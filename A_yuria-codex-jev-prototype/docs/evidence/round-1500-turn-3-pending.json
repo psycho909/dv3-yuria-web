@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-09-22T03:04:18.986Z",
+  "status": "awaiting_acquisition_timing",
+  "goal": "目前第3回合，前兩張牌都失敗，本局優先提高最終分數至少1500分的達標機率。",
+  "resolution": {
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "source": "jev",
+    "probabilities": {
+      "stability": 0,
+      "expected_score": 0,
+      "threshold_probability": 1
+    }
+  },
+  "state": {
+    "turn": 3,
+    "selected": [
+      {
+        "cardId": "chariot",
+        "color": "blue",
+        "activated": false
+      },
+      {
+        "cardId": "sun",
+        "color": "blue",
+        "activated": false
+      }
+    ]
+  },
+  "suppliedCandidates": [
+    {
+      "cardId": "strength",
+      "color": "blue",
+      "multiplierValue": 0.8,
+      "reportedAcquisitionProbability": 1
+    },
+    {
+      "cardId": "hermit",
+      "color": "purple",
+      "scoreValue": 130,
+      "reportedAcquisitionProbability": 0.6
+    },
+    {
+      "cardId": "hanged_man",
+      "color": "purple",
+      "scoreValue": 140,
+      "reportedAcquisitionProbability": 0.55
+    }
+  ],
+  "note": "Jev selected the semantic goal only. No candidate simulation was run pending clarification of acquisition probability timing."
+}

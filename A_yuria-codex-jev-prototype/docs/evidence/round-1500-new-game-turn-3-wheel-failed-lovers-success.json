@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-09-22",
+  "target": 1500,
+  "objective": "threshold_probability",
+  "objectiveSource": "jev",
+  "turn": 3,
+  "selected": [
+    { "cardId": "wheel_of_fortune", "nameZh": "命運之輪", "color": "blue", "activated": false },
+    { "cardId": "lovers", "nameZh": "戀人", "color": "blue", "activated": true }
+  ],
+  "candidates": [
+    { "cardId": "devil", "nameZh": "惡魔", "color": "purple", "score": 150, "activationProbability": 0.5 },
+    { "cardId": "hierophant", "nameZh": "教皇", "color": "purple", "score": 100, "activationProbability": 0.75 },
+    { "cardId": "strength", "nameZh": "力量", "color": "blue", "multiplier": 0.8, "activationProbability": 1 }
+  ],
+  "simulation": {
+    "simulations": 20000,
+    "seed": 20260922,
+    "futureColorModel": "independentUniform",
+    "starRemovalPolicy": "uniformPresent"
+  },
+  "ranked": [
+    { "cardId": "strength", "color": "blue", "thresholdProbability": 0.0562 },
+    { "cardId": "devil", "color": "purple", "thresholdProbability": 0.0513 },
+    { "cardId": "hierophant", "color": "purple", "thresholdProbability": 0.0193 }
+  ]
+}

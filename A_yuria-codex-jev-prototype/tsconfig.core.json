@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": ".core-dist"
+  },
+  "include": ["src/domain/**/*.ts", "src/cli/demo-local.ts", "scripts/selftest.ts"]
+}

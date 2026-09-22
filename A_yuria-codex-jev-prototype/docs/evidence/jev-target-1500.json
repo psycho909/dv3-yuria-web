@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-09-22T02:47:54.555Z",
+  "goal": "先嘗試1500分，準備開始第一輪並啟動Jev",
+  "objective": {
+    "kind": "threshold_probability",
+    "threshold": 1500
+  },
+  "source": "jev",
+  "probabilities": {
+    "expected_score": 0,
+    "stability": 0,
+    "threshold_probability": 1
+  },
+  "note": "Choice probabilities describe semantic routing, not game score probabilities. Waiting for new first-turn card details."
+}

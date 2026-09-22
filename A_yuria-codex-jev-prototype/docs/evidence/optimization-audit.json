@@ -1,0 +1,91 @@
+{
+  "scores": [
+    748,
+    972,
+    1270,
+    840
+  ],
+  "completedGames": 4,
+  "average": 957.5,
+  "minimum": 748,
+  "maximum": 1270,
+  "atLeast1000": 1,
+  "atLeast1500": 0,
+  "limitations": [
+    "Only user-reported completed games counted; partial games excluded.",
+    "Not a controlled policy comparison; do not infer calibrated success rates from four games.",
+    "972 final card/branch and 840 removal/red branch are model-consistent reconstructions, not directly observed details."
+  ],
+  "lastGameRecommendation": {
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "selectionMode": "highest_expected_score_fallback",
+    "ranked": [
+      {
+        "candidate": {
+          "cardId": "star",
+          "color": "red"
+        },
+        "meanScore": 670.9318181818186,
+        "p10": 476,
+        "p50": 550,
+        "p90": 862,
+        "standardDeviation": 171.15322716624863,
+        "threshold": 1500,
+        "thresholdProbability": 0,
+        "simulations": 0,
+        "calculationMethod": "exact",
+        "minScore": 476,
+        "maxScore": 877
+      },
+      {
+        "candidate": {
+          "cardId": "judgement",
+          "color": "purple"
+        },
+        "meanScore": 468,
+        "p10": 255,
+        "p50": 255,
+        "p90": 681,
+        "standardDeviation": 213,
+        "threshold": 1500,
+        "thresholdProbability": 0,
+        "simulations": 0,
+        "calculationMethod": "exact",
+        "minScore": 255,
+        "maxScore": 681
+      },
+      {
+        "candidate": {
+          "cardId": "sun",
+          "color": "blue"
+        },
+        "meanScore": 433,
+        "p10": 255,
+        "p50": 255,
+        "p90": 611,
+        "standardDeviation": 178,
+        "threshold": 1500,
+        "thresholdProbability": 0,
+        "simulations": 0,
+        "calculationMethod": "exact",
+        "minScore": 255,
+        "maxScore": 611
+      }
+    ],
+    "assumptions": [
+      "第 1~4 回合卡種權重使用 10/10/5，第 5 回合使用 5/10/20。",
+      "未來候選顏色暫假設各自獨立、三色等機率，可出現同色牌；此分布尚未驗證，類別內卡片也暫假設等權。",
+      "未來回合採 Monte Carlo rollout + 單步期望值策略，不是完整精確 Expectimax。",
+      "整數紅色模型的最後一回合完整列舉並依目標選牌；較早的未來回合仍採即時平均分策略，尚非全局最優。",
+      "已選過的牌（包含失敗或被移除者）不再出現；同輪候選不重複，未選牌可再出現。此為待驗證假設。",
+      "紅色加成採整數百分比均勻抽樣；未來選牌估值使用區間中點，非完整紅色分布期望。",
+      "達標率為有限次抽樣估計；0 次命中不代表事件不可能。",
+      "星牌採實測畫面的 +240%；移除目標假設為其他尚未移除的牌（含失敗牌），各目標等機率仍待驗證。",
+      "太陽目前假設會把自己算入啟用卡數。",
+      "尤里亞的祝福因『隨機增加一個數位 1』缺乏可驗證公式，測試版暫不納入。"
+    ]
+  }
+}

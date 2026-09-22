@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-09-22",
+  "target": 1500,
+  "history": [
+    { "cardId": "lovers", "nameZh": "戀人", "color": "red", "activated": true, "score": 110 },
+    { "cardId": "devil", "nameZh": "惡魔", "color": "purple", "activated": true, "score": 150 },
+    { "cardId": "strength", "nameZh": "力量", "color": "purple", "activated": true, "multiplier": 0.8 },
+    { "cardId": "magician", "nameZh": "魔術師", "color": "purple", "activated": true, "score": 80 },
+    { "cardId": "judgement", "nameZh": "審判", "color": "red", "activated": true, "multiplier": 1.5 }
+  ],
+  "observedOutcome": { "finalScore": 1648, "status": "RANGE_MATCH_MODEL_DISCREPANCY" },
+  "model": {
+    "sum": 340,
+    "multiplier": 4.1,
+    "redCount": 2,
+    "redRange": [0.1, 0.2],
+    "integerRedScores": { "10%": 1533, "18%": 1644, "19%": 1658, "20%": 1672 },
+    "impliedRedBonus": 0.1822094691535152,
+    "impliedRedPercent": 18.22094691535152
+  },
+  "interpretation": "1648 lies inside the modeled range but does not equal any integer-percent outcome. This supports a continuous red roll or an unmodeled intermediate rounding rule; one observation is insufficient to choose between them.",
+  "action": "Keep integer red mode as the reproducible default for now; collect additional red-card final scores before changing the probability model."
+}

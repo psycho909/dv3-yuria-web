@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-09-22",
+  "target": 1500,
+  "history": [
+    { "cardId": "hierophant", "nameZh": "教皇", "color": "purple", "activated": true },
+    { "cardId": "world", "nameZh": "世界", "color": "blue", "activated": false },
+    { "cardId": "emperor", "nameZh": "皇帝", "color": "red", "activated": true },
+    { "cardId": "justice", "nameZh": "正義", "color": "purple", "activated": false },
+    { "cardId": "star", "nameZh": "星", "color": "red", "activated": true }
+  ],
+  "observedOutcome": {
+    "finalScore": 840,
+    "status": "MATCHED_GAME_RESULT"
+  },
+  "inferredFromScore": {
+    "starRemovalTarget": ["world", "justice"],
+    "redBonus": 0.15,
+    "sum": 215,
+    "multiplier": 3.4,
+    "formula": "floor(215 * 3.4 * 1.15) = 840"
+  },
+  "modeledOutcomes": {
+    "removeHierophant": { "range": [504, 550], "mean": 527.3636363636364 },
+    "removeWorld": { "range": [804, 877], "mean": 840.1818181818181 },
+    "removeEmperor": { "range": [476, 476], "mean": 476 },
+    "removeJustice": { "range": [804, 877], "mean": 840.1818181818181 },
+    "overallExpectedScore": 670.9318181818181
+  },
+  "notes": [
+    "World and Justice produce the same score distribution because both were failed cards worth the same 20-point compensation.",
+    "The exact removed card was not supplied; the final score identifies the World-or-Justice branch and +15% red roll under the current model."
+  ]
+}

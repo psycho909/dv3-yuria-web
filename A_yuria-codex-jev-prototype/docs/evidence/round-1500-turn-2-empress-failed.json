@@ -1,0 +1,153 @@
+{
+  "checkedAt": "2026-09-22T07:00:49.627Z",
+  "history": {
+    "turn": 2,
+    "selected": [
+      {
+        "cardId": "empress",
+        "color": "purple",
+        "activated": false
+      }
+    ]
+  },
+  "probabilityMeaning": "After selection: success acquisition versus failure, applied once as activationProbability.",
+  "supplied": [
+    {
+      "cardId": "temperance",
+      "color": "red",
+      "multiplierValue": 1.2,
+      "activationProbability": 0.6,
+      "category": "multiplier"
+    },
+    {
+      "cardId": "star",
+      "color": "blue",
+      "multiplierValue": 2.4,
+      "activationProbability": 1,
+      "category": "special"
+    },
+    {
+      "cardId": "wheel_of_fortune",
+      "color": "purple",
+      "multiplierValue": 0.9,
+      "activationProbability": 0.9,
+      "category": "multiplier"
+    }
+  ],
+  "cardDataCheck": "PASS",
+  "resolution": {
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "source": "jev",
+    "probabilities": {
+      "threshold_probability": 1,
+      "expected_score": 0,
+      "stability": 0
+    }
+  },
+  "input": {
+    "state": {
+      "turn": 2,
+      "selected": [
+        {
+          "cardId": "empress",
+          "color": "purple",
+          "activated": false
+        }
+      ]
+    },
+    "candidates": [
+      {
+        "cardId": "temperance",
+        "color": "red"
+      },
+      {
+        "cardId": "star",
+        "color": "blue"
+      },
+      {
+        "cardId": "wheel_of_fortune",
+        "color": "purple"
+      }
+    ],
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "simulations": 20000,
+    "seed": 20260922
+  },
+  "rules": {
+    "failureScore": 20,
+    "sunCountsSelf": true,
+    "redRollMode": "integerPercent",
+    "blessingMode": "disabled",
+    "futureOfferModel": "categoryWeight_uniformWithinCategory",
+    "futureColorModel": "independentUniform",
+    "starRemovalPolicy": "uniformPresent"
+  },
+  "result": {
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "ranked": [
+      {
+        "candidate": {
+          "cardId": "star",
+          "color": "blue"
+        },
+        "meanScore": 1030.11595,
+        "p10": 476,
+        "p50": 952,
+        "p90": 1710,
+        "standardDeviation": 477.5701444872816,
+        "threshold": 1500,
+        "thresholdProbability": 0.1638,
+        "simulations": 20000
+      },
+      {
+        "candidate": {
+          "cardId": "temperance",
+          "color": "red"
+        },
+        "meanScore": 718.39425,
+        "p10": 215,
+        "p50": 701,
+        "p90": 1188,
+        "standardDeviation": 369.0679031247934,
+        "threshold": 1500,
+        "thresholdProbability": 0.02475,
+        "simulations": 20000
+      },
+      {
+        "candidate": {
+          "cardId": "wheel_of_fortune",
+          "color": "purple"
+        },
+        "meanScore": 721.9115,
+        "p10": 256,
+        "p50": 722,
+        "p90": 1150,
+        "standardDeviation": 348.56863824468934,
+        "threshold": 1500,
+        "thresholdProbability": 0.02235,
+        "simulations": 20000
+      }
+    ],
+    "assumptions": [
+      "第 1~4 回合卡種權重使用 10/10/5，第 5 回合使用 5/10/20。",
+      "未來候選顏色暫假設各自獨立、三色等機率，可出現同色牌；此分布尚未驗證，類別內卡片也暫假設等權。",
+      "未來回合採 Monte Carlo rollout + 單步期望值策略，不是完整精確 Expectimax。",
+      "所有目標的未來選牌均使用即時平均分策略；達標率及穩定性僅用於本輪排名，並非該目標的最優策略。",
+      "已選過的牌（包含失敗或被移除者）不再出現；同輪候選不重複，未選牌可再出現。此為待驗證假設。",
+      "紅色加成採整數百分比均勻抽樣；未來選牌估值使用區間中點，非完整紅色分布期望。",
+      "達標率為有限次抽樣估計；0 次命中不代表事件不可能。",
+      "星牌採實測畫面的 +240%；移除目標假設為其他尚未移除的牌（含失敗牌），各目標等機率仍待驗證。",
+      "太陽目前假設會把自己算入啟用卡數。",
+      "尤里亞的祝福因『隨機增加一個數位 1』缺乏可驗證公式，測試版暫不納入。"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+# Local secrets and dependency/build output
+.env
+.env.*
+!.env.example
+**/node_modules/
+**/dist/
+**/coverage/
+**/.vercel/
+**/.env.local
+.DS_Store

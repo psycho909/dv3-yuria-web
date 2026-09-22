@@ -1,0 +1,209 @@
+{
+  "checkedAt": "2026-09-22T02:56:49.850Z",
+  "goal": "本局已選過一張戰車且失敗，現在選第二張牌。優先提高最終分數至少1500分的達標機率。",
+  "resolution": {
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "source": "jev",
+    "probabilities": {
+      "stability": 0,
+      "expected_score": 0,
+      "threshold_probability": 1
+    }
+  },
+  "input": {
+    "state": {
+      "turn": 2,
+      "selected": [
+        {
+          "cardId": "chariot",
+          "color": "blue",
+          "activated": false
+        }
+      ]
+    },
+    "candidates": [
+      {
+        "cardId": "emperor",
+        "color": "red"
+      },
+      {
+        "cardId": "sun",
+        "color": "blue"
+      },
+      {
+        "cardId": "temperance",
+        "color": "purple"
+      }
+    ],
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "simulations": 20000,
+    "seed": 20260922
+  },
+  "rules": {
+    "failureScore": 20,
+    "sunCountsSelf": true,
+    "redRollMode": "integerPercent",
+    "blessingMode": "disabled",
+    "futureOfferModel": "categoryWeight_uniformWithinCategory",
+    "starRemovalPolicy": "uniformPresent"
+  },
+  "cardDefinitions": [
+    {
+      "id": "emperor",
+      "nameZh": "皇帝",
+      "category": "score",
+      "activationProbability": 0.55,
+      "scoreValue": 95
+    },
+    {
+      "id": "sun",
+      "nameZh": "太陽",
+      "category": "special",
+      "activationProbability": 0.5,
+      "multiplierValue": 0.4
+    },
+    {
+      "id": "temperance",
+      "nameZh": "節制",
+      "category": "multiplier",
+      "activationProbability": 0.6,
+      "multiplierValue": 1.2
+    }
+  ],
+  "result": {
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "ranked": [
+      {
+        "candidate": {
+          "cardId": "sun",
+          "color": "blue"
+        },
+        "meanScore": 785.84575,
+        "p10": 252,
+        "p50": 748,
+        "p90": 1380,
+        "standardDeviation": 435.35256753226804,
+        "threshold": 1500,
+        "thresholdProbability": 0.07245,
+        "simulations": 20000
+      },
+      {
+        "candidate": {
+          "cardId": "temperance",
+          "color": "purple"
+        },
+        "meanScore": 685.2073,
+        "p10": 216,
+        "p50": 671,
+        "p90": 1122,
+        "standardDeviation": 349.15669537717463,
+        "threshold": 1500,
+        "thresholdProbability": 0.0236,
+        "simulations": 20000
+      },
+      {
+        "candidate": {
+          "cardId": "emperor",
+          "color": "red"
+        },
+        "meanScore": 666.89465,
+        "p10": 238,
+        "p50": 620,
+        "p90": 1127,
+        "standardDeviation": 347.05752844647486,
+        "threshold": 1500,
+        "thresholdProbability": 0.0227,
+        "simulations": 20000
+      }
+    ],
+    "assumptions": [
+      "第 1~4 回合卡種權重使用 10/10/5，第 5 回合使用 5/10/20。",
+      "同一回合固定產生藍/紫/紅各 1 張；類別內卡片暫假設等權抽取。",
+      "未來回合採 Monte Carlo rollout + 單步期望值策略，不是完整精確 Expectimax。",
+      "所有目標的未來選牌均使用即時平均分策略；達標率及穩定性僅用於本輪排名，並非該目標的最優策略。",
+      "已選過的牌（包含失敗或被移除者）不再出現；同輪候選不重複，未選牌可再出現。此為待驗證假設。",
+      "紅色加成採整數百分比均勻抽樣；未來選牌估值使用區間中點，非完整紅色分布期望。",
+      "達標率為有限次抽樣估計；0 次命中不代表事件不可能。",
+      "星牌採實測畫面的 +240%；移除目標假設為其他尚未移除的牌（含失敗牌），各目標等機率仍待驗證。",
+      "太陽目前假設會把自己算入啟用卡數。",
+      "尤里亞的祝福因『隨機增加一個數位 1』缺乏可驗證公式，測試版暫不納入。"
+    ]
+  },
+  "sunExcludesSelf": {
+    "objective": {
+      "kind": "threshold_probability",
+      "threshold": 1500
+    },
+    "ranked": [
+      {
+        "candidate": {
+          "cardId": "sun",
+          "color": "blue"
+        },
+        "meanScore": 723.4219,
+        "p10": 240,
+        "p50": 682,
+        "p90": 1248,
+        "standardDeviation": 389.625383927167,
+        "threshold": 1500,
+        "thresholdProbability": 0.04435,
+        "simulations": 20000
+      },
+      {
+        "candidate": {
+          "cardId": "temperance",
+          "color": "purple"
+        },
+        "meanScore": 680.57315,
+        "p10": 216,
+        "p50": 663,
+        "p90": 1110,
+        "standardDeviation": 343.6931982874813,
+        "threshold": 1500,
+        "thresholdProbability": 0.02225,
+        "simulations": 20000
+      },
+      {
+        "candidate": {
+          "cardId": "emperor",
+          "color": "red"
+        },
+        "meanScore": 661.0497,
+        "p10": 240,
+        "p50": 613,
+        "p90": 1109,
+        "standardDeviation": 338.95675377533126,
+        "threshold": 1500,
+        "thresholdProbability": 0.0198,
+        "simulations": 20000
+      }
+    ],
+    "assumptions": [
+      "第 1~4 回合卡種權重使用 10/10/5，第 5 回合使用 5/10/20。",
+      "同一回合固定產生藍/紫/紅各 1 張；類別內卡片暫假設等權抽取。",
+      "未來回合採 Monte Carlo rollout + 單步期望值策略，不是完整精確 Expectimax。",
+      "所有目標的未來選牌均使用即時平均分策略；達標率及穩定性僅用於本輪排名，並非該目標的最優策略。",
+      "已選過的牌（包含失敗或被移除者）不再出現；同輪候選不重複，未選牌可再出現。此為待驗證假設。",
+      "紅色加成採整數百分比均勻抽樣；未來選牌估值使用區間中點，非完整紅色分布期望。",
+      "達標率為有限次抽樣估計；0 次命中不代表事件不可能。",
+      "星牌採實測畫面的 +240%；移除目標假設為其他尚未移除的牌（含失敗牌），各目標等機率仍待驗證。",
+      "太陽目前假設不會把自己算入啟用卡數。",
+      "尤里亞的祝福因『隨機增加一個數位 1』缺乏可驗證公式，測試版暫不納入。"
+    ]
+  },
+  "notes": [
+    "User called this turn 1, normalized to turn 2 because one card was already selected.",
+    "User-transcribed Emperor 55% and Sun base +40% supersede source defaults; screenshots not yet supplied for these values.",
+    "The probability column is interpreted as activation probability, consistent with the earlier card inputs.",
+    "Sun self-count and red random-distribution mechanics remain assumptions."
+  ]
+}

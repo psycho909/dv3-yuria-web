@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-09-22",
+  "target": 1500,
+  "objective": "threshold_probability",
+  "objectiveSource": "jev",
+  "turn": 1,
+  "selected": [],
+  "candidates": [
+    {
+      "cardId": "magician",
+      "nameZh": "魔術師",
+      "color": "purple",
+      "scoreOrMultiplier": "+80",
+      "category": "score",
+      "activationProbability": 0.95
+    },
+    {
+      "cardId": "wheel_of_fortune",
+      "nameZh": "命運之輪",
+      "color": "blue",
+      "scoreOrMultiplier": "+90%",
+      "category": "multiplier",
+      "activationProbability": 0.90
+    },
+    {
+      "cardId": "emperor",
+      "nameZh": "皇帝",
+      "color": "red",
+      "scoreOrMultiplier": "+95",
+      "category": "score",
+      "activationProbability": 0.80,
+      "note": "Latest user observation; earlier evidence recorded 0.55."
+    }
+  ],
+  "simulation": {
+    "simulations": 20000,
+    "seed": 20260922,
+    "futureColorModel": "independentUniform",
+    "starRemovalPolicy": "uniformPresent"
+  },
+  "ranked": [
+    {
+      "cardId": "wheel_of_fortune",
+      "color": "blue",
+      "thresholdProbability": 0.15335,
+      "meanScore": 1021.4105,
+      "p10": 473,
+      "p50": 935,
+      "p90": 1696
+    },
+    {
+      "cardId": "emperor",
+      "color": "red",
+      "thresholdProbability": 0.1516,
+      "meanScore": 1017.2529,
+      "p10": 459,
+      "p50": 928,
+      "p90": 1693
+    },
+    {
+      "cardId": "magician",
+      "color": "purple",
+      "thresholdProbability": 0.147,
+      "meanScore": 1021.2796,
+      "p10": 475,
+      "p50": 938,
+      "p90": 1678
+    }
+  ]
+}

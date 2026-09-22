@@ -1,0 +1,22 @@
+.knowledge-grid { display: grid; gap: 12px; margin-top: 18px; }
+.knowledge-panel { padding: 0 18px; }
+.knowledge-panel summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; cursor: pointer; list-style: none; padding: 18px 2px; }
+.knowledge-panel summary::-webkit-details-marker { display: none; }
+.knowledge-panel summary > span:last-child { color: var(--faint); font-size: 18px; }
+.knowledge-panel[open] summary > span:last-child { transform: rotate(180deg); }
+.knowledge-panel summary h2 { margin-top: 1px; }
+.reward-table { display: grid; grid-template-columns: repeat(7, minmax(70px, 1fr)); gap: 6px; padding: 0 0 17px; }
+.reward-table div { display: grid; gap: 3px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.035); }
+.reward-table span, .reward-table small { color: var(--muted); font-size: 10px; }
+.reward-table strong { color: var(--yellow); font-size: 15px; }
+.knowledge-note { color: var(--muted); padding: 0 0 17px; margin: 0; font-size: 11px; }
+.catalog { display: grid; gap: 17px; padding: 0 0 20px; }
+.catalog-group h4 { color: var(--cream); margin: 0 0 8px; font-size: 12px; }
+.catalog-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.catalog-list span { display: flex; align-items: center; justify-content: space-between; gap: 7px; min-width: 0; padding: 8px 9px; border-radius: 7px; background: rgba(255,255,255,.04); }
+.catalog-list b { color: var(--cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.catalog-list small { color: var(--muted); white-space: nowrap; font-size: 10px; }
+.formula { padding: 0 0 20px; }
+.formula code { display: block; padding: 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--yellow); background: #0b0f1c; font-size: 12px; }
+.formula p { color: var(--muted); margin: 11px 0 0; font-size: 11px; line-height: 1.6; }
+@media (max-width: 900px) { .reward-table { grid-template-columns: repeat(4, minmax(70px, 1fr)); } .catalog-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

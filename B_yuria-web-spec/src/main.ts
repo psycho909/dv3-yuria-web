@@ -4,19 +4,17 @@ import {
 } from "./domain";
 import "./styles.css";
 import "./knowledge.css";
+import "./pending.css";
 
 const cardList = Object.values(CARDS);
 const colorOptions: CardColor[] = ["blue", "purple", "red"];
 let state: GameState = { turn: 1, selected: [] };
 let targetThreshold = 1500;
 let objective: Objective = { kind: "threshold", target: targetThreshold };
-let candidates: OfferedCard[] = [
-  { cardId: "magician", color: "purple" },
-  { cardId: "death", color: "blue" },
-  { cardId: "lovers", color: "red" }
-];
+let candidates: Array<OfferedCard | null> = [null, null, null];
+let candidateColors: CardColor[] = ["blue", "blue", "blue"];
 let simulationCount = 10000;
-let result = recommend(state, candidates, objective, simulationCount, 20260922, RULES, targetThreshold);
+let result: ReturnType<typeof recommend> | null = null;
 
 const REAL_SCORES = [748, 972, 1270, 840, 1648];
 const REAL_AVERAGE = REAL_SCORES.reduce((sum, score) => sum + score, 0) / REAL_SCORES.length;
@@ -28,8 +26,8 @@ const cardName = (id: CardId) => CARDS[id].name;
 const colorBadge = (color: CardColor) => `<span class="color-chip ${colorClass[color]}">${colorLabel[color]}</span>`;
 const pct = (value: number) => `${(value * 100).toFixed(2)}%`;
 
-function cardSelect(value: CardId, index: number) {
-  return `<select class="card-select" data-card="${index}">${cardList.map(card => `<option value="${card.id}" ${card.id === value ? "selected" : ""}>${esc(card.name)}</option>`).join("")}</select>`;
+function cardSelect(value: CardId | "", index: number) {
+  return `<select class="card-select" data-card="${index}"><option value="" ${value === "" ? "selected" : ""}>選擇卡片</option>${cardList.map(card => `<option value="${card.id}" ${card.id === value ? "selected" : ""}>${esc(card.name)}</option>`).join("")}</select>`;
 }
 function colorSelect(value: CardColor, index: number) {
   return `<select class="color-select ${colorClass[value]}" data-color="${index}">${colorOptions.map(color => `<option value="${color}" ${color === value ? "selected" : ""}>${colorLabel[color]}</option>`).join("")}</select>`;
@@ -41,6 +39,23 @@ function renderHistory() {
     <span class="turn-no">${index + 1}</span>${colorBadge(card.color)}<strong>${esc(cardName(card.cardId))}</strong>
     <span class="status ${card.activated ? "success" : "failed"}">${card.activated ? "啟用" : "失敗"}</span>${card.removed ? `<span class="removed">已移除</span>` : ""}
   </div>`).join("");
+}
+
+function candidatesReady(): boolean {
+  if (candidates.some(candidate => candidate == null)) return false;
+  const ids = candidates.map(candidate => candidate!.cardId);
+  return new Set(ids).size === ids.length && !ids.some(id => state.selected.some(selected => selected.cardId === id));
+}
+
+function candidateInputHint() {
+  if (candidates.some(candidate => candidate == null)) return "請先選擇三張候選牌，完成後才會開始計算。";
+  if (!candidatesReady()) return "候選牌不可重複，也不能與已確定卡片重複。";
+  return "顏色是每次出牌的實例。";
+}
+
+function renderPendingCandidate(index: number, candidate: OfferedCard | null) {
+  const color = candidate?.color ?? candidateColors[index]!;
+  return `<article class="candidate-card pending-card ${colorClass[color]}"><div class="candidate-top"><span class="rank">${String(index + 1).padStart(2, "0")}</span>${colorBadge(color)}<span class="category">候選槽</span></div><h3>${candidate ? esc(cardName(candidate.cardId)) : "尚未選擇"}</h3><div class="pending-copy">${candidate ? "已填入候選牌，等另外兩張完成" : "＋ 選擇卡片"}</div></article>`;
 }
 
 function renderEvidencePanel() {
@@ -62,7 +77,7 @@ function renderKnowledgePanels() {
   return `<section class="knowledge-grid"><details class="panel knowledge-panel" open><summary><span><p class="eyebrow">REWARD LADDER</p><h2>尤里亞的祝福門檻</h2></span><span>⌄</span></summary><div class="reward-table">${REWARD_THRESHOLDS.map((threshold, index) => `<div><span>Lv.${index + 1}</span><strong>${threshold.toLocaleString()}</strong><small>${threshold === 0 ? "起始" : threshold >= 2700 ? "最高級" : "累積幸運分數"}</small></div>`).join("")}</div><p class="knowledge-note">推薦目標可自行輸入；門檻只作為參考，不會取代你設定的目標。</p></details><details class="panel knowledge-panel"><summary><span><p class="eyebrow">CARD CATALOG</p><h2>完整牌庫 · 22 張</h2></span><span>⌄</span></summary><div class="catalog">${cardsByCategory}</div></details><details class="panel knowledge-panel"><summary><span><p class="eyebrow">FORMULA & LIMITS</p><h2>公式與目前限制</h2></span><span>⌄</span></summary><div class="formula"><code>floor(SUM × MULT × (1 + RED_BONUS))</code><p>SUM 包含成功分數卡、失敗卡每張 +20、藍色級距、月亮與世界；MULT 將倍率卡、紫色級距、高塔、星星、太陽加總後再加 1。</p><p>目前採 A 版整數百分比紅色模型；1648 實測仍提示連續值或中間取整可能存在。未來出牌類別內等權、同色出現分布與太陽是否計自己仍是明示假設。</p></div></details></section>`;
 }
 
-function renderCandidate(index: number, metric: typeof result.ranked[number]) {
+function renderCandidate(index: number, metric: NonNullable<typeof result>["ranked"][number]) {
   const card = CARDS[metric.candidate.cardId];
   const isTop = index === 0;
   const pLabel = metric.thresholdProbability === 0 ? (metric.method === "monte_carlo" ? `抽樣 ${metric.simulations.toLocaleString()} 次未命中` : "模型為 0") : pct(metric.thresholdProbability);
@@ -80,8 +95,8 @@ function renderCandidate(index: number, metric: typeof result.ranked[number]) {
 }
 
 function render() {
-  const bestMean = [...result.ranked].sort((a, b) => b.meanScore - a.meanScore)[0]!;
-  const fallback = result.mode === "highest_expected_score_fallback";
+  const bestMean = result ? [...result.ranked].sort((a, b) => b.meanScore - a.meanScore)[0]! : null;
+  const fallback = result?.mode === "highest_expected_score_fallback";
   const activeCounts = state.selected.filter(c => c.activated && !c.removed).reduce((counts, c) => { counts[c.color]++; return counts; }, { blue: 0, purple: 0, red: 0 } as Record<CardColor, number>);
   app.innerHTML = `<main class="shell">
     <header class="header">
@@ -96,11 +111,11 @@ function render() {
     </section>
     <div class="layout">
       <aside class="sidebar">
-        <section class="panel history-panel"><div class="section-heading"><div><p class="eyebrow">CURRENT RUN</p><h2>本局狀態</h2></div><span class="turn-counter">${state.turn} / 5</span></div>
-          <div class="progress"><span style="width:${(state.turn - 1) * 25}%"></span></div>
+        <section class="panel history-panel"><div class="section-heading"><div><p class="eyebrow">CURRENT RUN</p><h2>已確定卡片</h2></div><span class="turn-counter">${state.selected.length} / 5</span></div>
+          <div class="progress"><span style="width:${state.selected.length * 20}%"></span></div>
           <div class="color-counts"><span class="blue-text">藍 ${activeCounts.blue}</span><span class="purple-text">紫 ${activeCounts.purple}</span><span class="red-text">紅 ${activeCounts.red}</span></div>
           <div class="history-list">${renderHistory()}</div>
-          <div class="history-actions"><button class="secondary-action" id="add-history">＋ 加入已選牌</button><button class="text-action" id="reset">重設本局</button></div>
+          <div class="history-actions">${result || state.selected.length ? `<button class="secondary-action" id="add-history">＋ 加入已選牌</button>` : `<span class="history-hint">先完成右側三張候選牌</span>`}<button class="text-action" id="reset">重設本局</button></div>
         </section>
         ${renderEvidencePanel()}
         <section class="panel data-panel"><div class="section-heading"><div><p class="eyebrow">MODEL STATUS</p><h2>資料可信度</h2></div><span class="status-dot verified"></span></div>
@@ -108,9 +123,9 @@ function render() {
         </section>
       </aside>
       <section class="workspace"><div class="workspace-heading"><div><p class="eyebrow">TURN ${state.turn} / CANDIDATES</p><h2>這回合的 3 張候選</h2></div><span class="calculation-time">seed 20260922 · ${simulationCount.toLocaleString()} 次</span></div>
-        <div class="candidate-grid">${result.ranked.map((metric, index) => renderCandidate(index, metric)).join("")}</div>
-        <section class="decision-panel panel"><div><p class="eyebrow">DECISION SPLIT</p><h2>${fallback ? "達標率皆為零，改看預期分數" : "兩種推薦同時保留"}</h2><p>${fallback ? "目前沒有模擬結果達到目標，系統選擇預期最終分數最高的牌。" : "你可以選擇拚目標，或選擇平均拿分最高的牌。"}</p></div><div class="decision-values"><div><span>達標率最高</span><strong>${esc(CARDS[result.ranked[0]!.candidate.cardId].name)}／${colorLabel[result.ranked[0]!.candidate.color]}</strong></div><div><span>預期分數最高</span><strong>${esc(CARDS[bestMean.candidate.cardId].name)}／${colorLabel[bestMean.candidate.color]}</strong></div></div></section>
-        <section class="candidate-input panel"><div class="section-heading"><div><p class="eyebrow">OFFER INPUT</p><h2>候選牌資料</h2></div><small>顏色是每次出牌的實例</small></div><div class="offer-rows">${candidates.map((candidate, index) => `<div class="offer-row"><span class="offer-number">${index + 1}</span>${cardSelect(candidate.cardId, index)}${colorSelect(candidate.color, index)}<span class="offer-detail">${esc(CARDS[candidate.cardId].category === "score" ? `+${CARDS[candidate.cardId].scoreValue} 分` : CARDS[candidate.cardId].category === "multiplier" ? `+${Math.round((CARDS[candidate.cardId].multiplierValue ?? 0) * 100)}%` : "特殊效果")} · ${Math.round(CARDS[candidate.cardId].activationProbability * 100)}%</span></div>`).join("")}</div></section>
+        <div class="candidate-grid">${result ? result.ranked.map((metric, index) => renderCandidate(index, metric)).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>
+        <section class="decision-panel panel ${result ? "" : "pending-decision"}"><div><p class="eyebrow">${result ? "DECISION SPLIT" : "FIRST STEP"}</p><h2>${result ? (fallback ? "達標率皆為零，改看預期分數" : "兩種推薦同時保留") : "先選擇本回合三張候選牌"}</h2><p>${result ? (fallback ? "目前沒有模擬結果達到目標，系統選擇預期最終分數最高的牌。" : "你可以選擇拚目標，或選擇平均拿分最高的牌。") : candidateInputHint()}</p></div>${result && bestMean ? `<div class="decision-values"><div><span>達標率最高</span><strong>${esc(CARDS[result.ranked[0]!.candidate.cardId].name)}／${colorLabel[result.ranked[0]!.candidate.color]}</strong></div><div><span>預期分數最高</span><strong>${esc(CARDS[bestMean.candidate.cardId].name)}／${colorLabel[bestMean.candidate.color]}</strong></div></div>` : ""}</section>
+        <section class="candidate-input panel"><div class="section-heading"><div><p class="eyebrow">OFFER INPUT</p><h2>選擇這回合的 3 張候選</h2></div><small>${candidateInputHint()}</small></div><div class="offer-rows">${candidates.map((candidate, index) => { const id: CardId | "" = candidate?.cardId ?? ""; const color = candidate?.color ?? candidateColors[index]!; const definition = candidate ? CARDS[candidate.cardId] : null; const detail = definition ? `${definition.category === "score" ? `+${definition.scoreValue} 分` : definition.category === "multiplier" ? `+${Math.round((definition.multiplierValue ?? 0) * 100)}%` : "特殊效果"} · ${Math.round(definition.activationProbability * 100)}%` : "尚未選擇"; return `<div class="offer-row"><span class="offer-number">${index + 1}</span>${cardSelect(id, index)}${colorSelect(color, index)}<span class="offer-detail">${esc(detail)}</span></div>`; }).join("")}</div></section>
         ${renderKnowledgePanels()}
       </section>
     </div>
@@ -119,15 +134,15 @@ function render() {
   bindEvents();
 }
 
-function calculate() { result = recommend(state, candidates, objective, simulationCount, 20260922, RULES, targetThreshold); render(); }
+function calculate() { result = candidatesReady() ? recommend(state, candidates as OfferedCard[], objective, simulationCount, 20260922, RULES, targetThreshold) : null; render(); }
 function bindEvents() {
   app.querySelectorAll<HTMLButtonElement>("[data-objective]").forEach(button => button.addEventListener("click", () => { const kind = button.dataset.objective as Objective["kind"]; objective = kind === "threshold" ? { kind, target: targetThreshold } : { kind }; calculate(); }));
   app.querySelector<HTMLInputElement>("#target")?.addEventListener("change", event => { const target = Number((event.target as HTMLInputElement).value); targetThreshold = Number.isFinite(target) && target >= 0 ? target : 1500; if (objective.kind === "threshold") objective = { kind: "threshold", target: targetThreshold }; calculate(); });
   app.querySelector<HTMLSelectElement>("#simulations")?.addEventListener("change", event => { simulationCount = Number((event.target as HTMLSelectElement).value); calculate(); });
   app.querySelector<HTMLButtonElement>("#calculate")?.addEventListener("click", calculate);
-  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => { state = { turn: 1, selected: [] }; calculate(); });
-  app.querySelectorAll<HTMLSelectElement>("[data-card]").forEach(select => select.addEventListener("change", event => { candidates[Number((event.target as HTMLSelectElement).dataset.card)].cardId = (event.target as HTMLSelectElement).value as CardId; calculate(); }));
-  app.querySelectorAll<HTMLSelectElement>("[data-color]").forEach(select => select.addEventListener("change", event => { candidates[Number((event.target as HTMLSelectElement).dataset.color)].color = (event.target as HTMLSelectElement).value as CardColor; calculate(); }));
+  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => { state = { turn: 1, selected: [] }; candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"]; calculate(); });
+  app.querySelectorAll<HTMLSelectElement>("[data-card]").forEach(select => select.addEventListener("change", event => { const index = Number((event.target as HTMLSelectElement).dataset.card); const value = (event.target as HTMLSelectElement).value as CardId | ""; candidates[index] = value ? { cardId: value, color: candidateColors[index]! } : null; calculate(); }));
+  app.querySelectorAll<HTMLSelectElement>("[data-color]").forEach(select => select.addEventListener("change", event => { const index = Number((event.target as HTMLSelectElement).dataset.color); const color = (event.target as HTMLSelectElement).value as CardColor; candidateColors[index] = color; if (candidates[index]) candidates[index] = { ...candidates[index]!, color }; calculate(); }));
   app.querySelector<HTMLButtonElement>("#add-history")?.addEventListener("click", () => addHistory());
   app.querySelectorAll<HTMLButtonElement>("[data-choose]").forEach(button => button.addEventListener("click", () => addHistory(button.dataset.choose as CardId, button.dataset.chooseColor as CardColor)));
 }

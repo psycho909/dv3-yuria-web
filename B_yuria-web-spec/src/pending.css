@@ -1,0 +1,12 @@
+.pending-card {
+  min-height: 235px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  border-style: dashed;
+  background: rgba(255,255,255,.025);
+}
+.pending-card .candidate-top { justify-content: center; }
+.pending-card h3 { color: var(--cream); margin-top: 15px; }
+.pending-copy, .history-hint { color: var(--muted); font-size: 12px; }

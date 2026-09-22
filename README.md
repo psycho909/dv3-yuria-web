@@ -4,6 +4,8 @@
 
 ## Projects
 
+新版整頁 UI / UX 規劃請見 [DESIGN.md](DESIGN.md)：暖色卡牌介面、桌機／手機流程、互動狀態與驗收標準。核心功能與瀏覽器案例已驗收，結果與剩餘風險記錄在 [DESIGN.md 第 17 節](DESIGN.md#17-驗收紀錄)。
+
 - `A_yuria-codex-jev-prototype/` — A 版規則、分數計算、Monte Carlo／終局精確分布、Jev 語意目標路由與回歸證據。
 - `B_yuria-web-spec/` — B 版 Vite 網頁介面，使用 A 版目前 22 張牌資料與規則，在本機計算達標率、預期分數、分位數與 fallback。
 

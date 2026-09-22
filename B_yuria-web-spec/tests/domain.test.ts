@@ -6,6 +6,7 @@ import {
   mulberry32,
   recommend,
   resolveSelection,
+  summarizeScore,
   type SelectedCard
 } from "../src/domain";
 
@@ -101,6 +102,57 @@ describe("deterministic score engine", () => {
     expect(result.sum).toBe(340);
     expect(result.multiplier).toBeCloseTo(4.1);
     expect(result.finalScore).toBe(1648);
+  });
+
+  it("enumerates the configured integer-red range for score summaries", () => {
+    const summary = summarizeScore([active("fool", "red"), active("magician", "red")], RULES);
+
+    expect(summary.method).toBe("exact");
+    expect(summary.minScore).toBe(170);
+    expect(summary.maxScore).toBe(186);
+    expect(summary.meanScore).toBeCloseTo(177.8182, 3);
+    expect([summary.p10, summary.p50, summary.p90]).toEqual([172, 178, 184]);
+  });
+
+  it("marks a no-red integer summary as exact without duplicate samples", () => {
+    expect(summarizeScore([active("fool", "blue")], RULES)).toEqual({
+      meanScore: 75,
+      p10: 75,
+      p50: 75,
+      p90: 75,
+      minScore: 75,
+      maxScore: 75,
+      method: "exact"
+    });
+  });
+
+  it("keeps the final-turn exact metrics aligned with score summaries", () => {
+    const selected = [
+      active("magician", "red"),
+      active("strength", "blue"),
+      active("justice", "purple"),
+      active("moon", "blue")
+    ];
+    const candidate = { cardId: "fool" as const, color: "red" as const };
+    const summary = summarizeScore([...selected, active(candidate.cardId, candidate.color)], RULES);
+    const metric = recommend(
+      { turn: 5, selected },
+      [candidate],
+      { kind: "expected" },
+      10_000,
+      42
+    ).ranked[0]!;
+
+    expect(metric.method).toBe("exact");
+    expect(metric.simulations).toBe(0);
+    expect(metric.meanScore).toBeCloseTo(summary.meanScore, 10);
+    expect([metric.p10, metric.p50, metric.p90, metric.minScore, metric.maxScore]).toEqual([
+      summary.p10,
+      summary.p50,
+      summary.p90,
+      summary.minScore,
+      summary.maxScore
+    ]);
   });
 });
 

@@ -85,6 +85,10 @@ const COLORS: CardColor[] = ["blue", "purple", "red"];
 const BLUE: Record<number, number> = { 2: 40, 3: 80, 4: 160, 5: 250 };
 const PURPLE: Record<number, number> = { 2: .4, 3: .8, 4: 1.5, 5: 2.4 };
 const RED: Record<number, [number, number]> = { 2: [.1, .2], 3: [.2, .3], 4: [.4, .6], 5: [.6, .9] };
+const integerRedRollCount = (redCount: number) => {
+  const range = RED[redCount];
+  return range ? Math.round((range[1] - range[0]) * 100) + 1 : 1;
+};
 const WEIGHTS = { early: { score: 10, multiplier: 10, special: 5 }, final: { score: 5, multiplier: 10, special: 20 } } as const;
 type Rng = () => number;
 
@@ -193,8 +197,7 @@ function finalTurnMetrics(selected: SelectedCard[], candidate: OfferedCard, thre
   const mass = new Map<number, number>();
   for (const branch of branches) {
     const redCount = branch.cards.filter(card => card.activated && !card.removed && card.color === "red").length;
-    const range = RED[redCount];
-    const rolls = range ? Math.round((range[1] - range[0]) * 100) + 1 : 1;
+    const rolls = integerRedRollCount(redCount);
     for (let i = 0; i < rolls; i++) {
       const score = calculateScore(branch.cards, () => (i + .5) / rolls, rules).finalScore;
       mass.set(score, (mass.get(score) ?? 0) + branch.probability / rolls);
@@ -226,4 +229,24 @@ export function recommend(state: GameState, candidates: OfferedCard[], objective
   });
   const byObjective = (a: Metrics, b: Metrics) => objective.kind === "expected" ? b.meanScore - a.meanScore : objective.kind === "stability" ? b.p10 - a.p10 || b.meanScore - a.meanScore : b.thresholdProbability - a.thresholdProbability || b.meanScore - a.meanScore;
   ranked.sort(byObjective); const mode = objective.kind === "threshold" && ranked.every(m => m.thresholdProbability === 0) ? "highest_expected_score_fallback" : "objective"; if (mode === "highest_expected_score_fallback") ranked.sort((a, b) => b.meanScore - a.meanScore); return { ranked, mode };
+}
+
+export interface ScoreSummary {
+  meanScore: number;
+  p10: number;
+  p50: number;
+  p90: number;
+  minScore: number;
+  maxScore: number;
+  method: "exact" | "sampled";
+}
+
+export function summarizeScore(cards: SelectedCard[], rules: Rules = RULES): ScoreSummary {
+  const colorCounts = calculateScore(cards, () => .5, rules).activeColorCounts;
+  const exact = rules.redRollMode === "integerPercent";
+  const rolls = exact ? integerRedRollCount(colorCounts.red) : 101;
+  const scores = Array.from({ length: rolls }, (_, index) => calculateScore(cards, () => (index + .5) / rolls, rules).finalScore).sort((a, b) => a - b);
+  const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const at = (q: number) => scores[Math.min(scores.length - 1, Math.floor((scores.length - 1) * q))]!;
+  return { meanScore: average, p10: at(.1), p50: at(.5), p90: at(.9), minScore: scores[0]!, maxScore: scores.at(-1)!, method: exact ? "exact" : "sampled" };
 }

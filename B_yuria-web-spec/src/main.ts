@@ -13,6 +13,9 @@ let targetThreshold = 1500;
 let objective: Objective = { kind: "threshold", target: targetThreshold };
 let candidates: Array<OfferedCard | null> = [null, null, null];
 let candidateColors: CardColor[] = ["blue", "blue", "blue"];
+type PickerDraft = { cardId: CardId | ""; color: CardColor };
+let pickerIndex: number | null = null;
+let pickerDraft: PickerDraft | null = null;
 let simulationCount = 10000;
 let result: ReturnType<typeof recommend> | null = null;
 
@@ -25,13 +28,6 @@ const esc = (value: string) => value.replace(/[&<>"']/g, c => ({ "&": "&amp;", "
 const cardName = (id: CardId) => CARDS[id].name;
 const colorBadge = (color: CardColor) => `<span class="color-chip ${colorClass[color]}">${colorLabel[color]}</span>`;
 const pct = (value: number) => `${(value * 100).toFixed(2)}%`;
-
-function cardSelect(value: CardId | "", index: number) {
-  return `<select class="card-select" data-card="${index}"><option value="" ${value === "" ? "selected" : ""}>選擇卡片</option>${cardList.map(card => `<option value="${card.id}" ${card.id === value ? "selected" : ""}>${esc(card.name)}</option>`).join("")}</select>`;
-}
-function colorSelect(value: CardColor, index: number) {
-  return `<select class="color-select ${colorClass[value]}" data-color="${index}">${colorOptions.map(color => `<option value="${color}" ${color === value ? "selected" : ""}>${colorLabel[color]}</option>`).join("")}</select>`;
-}
 
 function renderHistory() {
   if (!state.selected.length) return `<div class="empty-state"><span>◌</span><p>尚未加入已選牌。新一局從第 1 回合開始。</p></div>`;
@@ -55,7 +51,24 @@ function candidateInputHint() {
 
 function renderPendingCandidate(index: number, candidate: OfferedCard | null) {
   const color = candidate?.color ?? candidateColors[index]!;
-  return `<article class="candidate-card pending-card ${colorClass[color]}"><div class="candidate-top"><span class="rank">${String(index + 1).padStart(2, "0")}</span>${colorBadge(color)}<span class="category">候選槽</span></div><h3>${candidate ? esc(cardName(candidate.cardId)) : "尚未選擇"}</h3><div class="pending-copy">${candidate ? "已填入候選牌，等另外兩張完成" : "＋ 選擇卡片"}</div></article>`;
+  return `<article class="candidate-card pending-card ${colorClass[color]}">
+    <div class="candidate-top"><span class="rank">${String(index + 1).padStart(2, "0")}</span>${colorBadge(color)}<span class="category">候選槽</span></div>
+    <button type="button" class="candidate-slot-button" data-pick="${index}" aria-label="選擇第 ${index + 1} 張候選牌"><span class="slot-plus">${candidate ? "✦" : "＋"}</span><strong>${candidate ? esc(cardName(candidate.cardId)) : "選擇卡片"}</strong><small>${candidate ? "點擊修改卡片" : "請選擇候選卡片"}</small></button>
+    <div class="candidate-color-buttons" role="group" aria-label="第 ${index + 1} 張候選牌顏色">${colorOptions.map(option => `<button type="button" class="candidate-color-button ${colorClass[option]} ${color === option ? "selected" : ""}" data-slot-color="${option}" data-slot-index="${index}" aria-pressed="${color === option}">${colorLabel[option]}</button>`).join("")}</div>
+    <div class="pending-copy">${candidate ? "已填入候選牌" : "請選擇候選牌"}</div>
+  </article>`;
+}
+
+function renderPicker() {
+  if (pickerIndex === null || !pickerDraft) return "";
+  const usedByOtherSlot = new Set(candidates.flatMap((candidate, index) => index === pickerIndex || !candidate ? [] : [candidate.cardId]));
+  const selectedCard = pickerDraft.cardId ? CARDS[pickerDraft.cardId] : null;
+  return `<div class="picker-backdrop" data-picker-backdrop><section class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+    <div class="picker-header"><div><p class="eyebrow">CARD PICKER</p><h2 id="picker-title">選擇第 ${pickerIndex + 1} 張候選牌</h2></div><button type="button" class="picker-close" data-picker-cancel aria-label="關閉選擇器">×</button></div>
+    <div class="picker-section"><div class="picker-section-heading"><strong>1. 選擇卡片</strong><small>${selectedCard ? `目前：${esc(selectedCard.name)}` : "尚未選擇"}</small></div><div class="picker-card-grid">${cardList.map(card => `<button type="button" class="picker-card ${pickerDraft!.cardId === card.id ? "selected" : ""}" data-picker-card="${card.id}" ${usedByOtherSlot.has(card.id) ? "disabled" : ""}><strong>${esc(card.name)}</strong><small>${card.category === "score" ? `分數卡 · +${card.scoreValue}` : card.category === "multiplier" ? `倍率卡 · +${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊卡"}</small><span>${Math.round(card.activationProbability * 100)}%</span></button>`).join("")}</div></div>
+    <div class="picker-section"><div class="picker-section-heading"><strong>2. 選擇卡牌顏色</strong><small>${colorLabel[pickerDraft.color]}</small></div><div class="picker-color-options">${colorOptions.map(color => `<button type="button" class="picker-color ${colorClass[color]} ${pickerDraft!.color === color ? "selected" : ""}" data-picker-color="${color}" aria-pressed="${pickerDraft!.color === color}">${colorLabel[color]}</button>`).join("")}</div></div>
+    <div class="picker-footer"><span>${selectedCard ? `${esc(selectedCard.name)}／${colorLabel[pickerDraft.color]}` : "請先選擇一張卡片"}</span><div><button type="button" class="secondary-action" data-picker-cancel>取消</button><button type="button" class="primary-action" data-picker-apply ${selectedCard ? "" : "disabled"}>套用候選</button></div></div>
+  </section></div>`;
 }
 
 function renderEvidencePanel() {
@@ -80,6 +93,7 @@ function renderKnowledgePanels() {
 function renderCandidate(index: number, metric: NonNullable<typeof result>["ranked"][number]) {
   const card = CARDS[metric.candidate.cardId];
   const isTop = index === 0;
+  const slotIndex = candidates.findIndex(candidate => candidate?.cardId === metric.candidate.cardId);
   const pLabel = metric.thresholdProbability === 0 ? (metric.method === "monte_carlo" ? `抽樣 ${metric.simulations.toLocaleString()} 次未命中` : "模型為 0") : pct(metric.thresholdProbability);
   return `<article class="candidate-card ${isTop ? "is-top" : ""} ${colorClass[metric.candidate.color]}">
     <div class="candidate-top"><span class="rank">${String(index + 1).padStart(2, "0")}</span>${colorBadge(metric.candidate.color)}<span class="category">${card.category === "score" ? "分數" : card.category === "multiplier" ? "倍率" : "特殊"}</span>${isTop ? `<span class="recommend-badge">推薦</span>` : ""}</div>
@@ -90,6 +104,7 @@ function renderCandidate(index: number, metric: NonNullable<typeof result>["rank
     <div class="metric-row"><span>分數範圍</span><strong>${metric.minScore}～${metric.maxScore}</strong></div>
     <div class="percentile"><span>P10 ${metric.p10}</span><span>P50 ${metric.p50}</span><span>P90 ${metric.p90}</span></div>
     <div class="activation">點選獲得率 <b>${Math.round(card.activationProbability * 100)}%</b></div>
+    <button type="button" class="edit-candidate" data-pick="${slotIndex}">編輯卡片／顏色</button>
     <button class="choose-card" data-choose="${metric.candidate.cardId}" data-choose-color="${metric.candidate.color}">選擇這張</button>
   </article>`;
 }
@@ -125,11 +140,11 @@ function render() {
       <section class="workspace"><div class="workspace-heading"><div><p class="eyebrow">TURN ${state.turn} / CANDIDATES</p><h2>這回合的 3 張候選</h2></div><span class="calculation-time">seed 20260922 · ${simulationCount.toLocaleString()} 次</span></div>
         <div class="candidate-grid">${result ? result.ranked.map((metric, index) => renderCandidate(index, metric)).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>
         <section class="decision-panel panel ${result ? "" : "pending-decision"}"><div><p class="eyebrow">${result ? "DECISION SPLIT" : "FIRST STEP"}</p><h2>${result ? (fallback ? "達標率皆為零，改看預期分數" : "兩種推薦同時保留") : "先選擇本回合三張候選牌"}</h2><p>${result ? (fallback ? "目前沒有模擬結果達到目標，系統選擇預期最終分數最高的牌。" : "你可以選擇拚目標，或選擇平均拿分最高的牌。") : candidateInputHint()}</p></div>${result && bestMean ? `<div class="decision-values"><div><span>達標率最高</span><strong>${esc(CARDS[result.ranked[0]!.candidate.cardId].name)}／${colorLabel[result.ranked[0]!.candidate.color]}</strong></div><div><span>預期分數最高</span><strong>${esc(CARDS[bestMean.candidate.cardId].name)}／${colorLabel[bestMean.candidate.color]}</strong></div></div>` : ""}</section>
-        <section class="candidate-input panel"><div class="section-heading"><div><p class="eyebrow">OFFER INPUT</p><h2>選擇這回合的 3 張候選</h2></div><small>${candidateInputHint()}</small></div><div class="offer-rows">${candidates.map((candidate, index) => { const id: CardId | "" = candidate?.cardId ?? ""; const color = candidate?.color ?? candidateColors[index]!; const definition = candidate ? CARDS[candidate.cardId] : null; const detail = definition ? `${definition.category === "score" ? `+${definition.scoreValue} 分` : definition.category === "multiplier" ? `+${Math.round((definition.multiplierValue ?? 0) * 100)}%` : "特殊效果"} · ${Math.round(definition.activationProbability * 100)}%` : "尚未選擇"; return `<div class="offer-row"><span class="offer-number">${index + 1}</span>${cardSelect(id, index)}${colorSelect(color, index)}<span class="offer-detail">${esc(detail)}</span></div>`; }).join("")}</div></section>
         ${renderKnowledgePanels()}
       </section>
     </div>
     <footer class="footer"><span>數學結果由本機 deterministic engine 計算</span><span>特殊卡、顏色級距與失敗補償已納入</span><span>祝福尚未建模</span></footer>
+    ${renderPicker()}
   </main>`;
   bindEvents();
 }
@@ -140,9 +155,14 @@ function bindEvents() {
   app.querySelector<HTMLInputElement>("#target")?.addEventListener("change", event => { const target = Number((event.target as HTMLInputElement).value); targetThreshold = Number.isFinite(target) && target >= 0 ? target : 1500; if (objective.kind === "threshold") objective = { kind: "threshold", target: targetThreshold }; calculate(); });
   app.querySelector<HTMLSelectElement>("#simulations")?.addEventListener("change", event => { simulationCount = Number((event.target as HTMLSelectElement).value); calculate(); });
   app.querySelector<HTMLButtonElement>("#calculate")?.addEventListener("click", calculate);
-  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => { state = { turn: 1, selected: [] }; candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"]; calculate(); });
-  app.querySelectorAll<HTMLSelectElement>("[data-card]").forEach(select => select.addEventListener("change", event => { const index = Number((event.target as HTMLSelectElement).dataset.card); const value = (event.target as HTMLSelectElement).value as CardId | ""; candidates[index] = value ? { cardId: value, color: candidateColors[index]! } : null; calculate(); }));
-  app.querySelectorAll<HTMLSelectElement>("[data-color]").forEach(select => select.addEventListener("change", event => { const index = Number((event.target as HTMLSelectElement).dataset.color); const color = (event.target as HTMLSelectElement).value as CardColor; candidateColors[index] = color; if (candidates[index]) candidates[index] = { ...candidates[index]!, color }; calculate(); }));
+  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => { state = { turn: 1, selected: [] }; candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"]; pickerIndex = null; pickerDraft = null; calculate(); });
+  app.querySelectorAll<HTMLButtonElement>("[data-slot-color]").forEach(button => button.addEventListener("click", () => { const index = Number(button.dataset.slotIndex); const color = button.dataset.slotColor as CardColor; candidateColors[index] = color; if (candidates[index]) candidates[index] = { ...candidates[index]!, color }; calculate(); }));
+  app.querySelectorAll<HTMLElement>("[data-pick]").forEach(trigger => trigger.addEventListener("click", () => { const index = Number(trigger.dataset.pick); const candidate = candidates[index]; pickerIndex = index; pickerDraft = { cardId: candidate?.cardId ?? "", color: candidate?.color ?? candidateColors[index]! }; render(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-picker-card]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, cardId: button.dataset.pickerCard as CardId }; render(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-picker-color]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, color: button.dataset.pickerColor as CardColor }; render(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-picker-cancel]").forEach(button => button.addEventListener("click", () => { pickerIndex = null; pickerDraft = null; render(); }));
+  app.querySelector<HTMLElement>("[data-picker-backdrop]")?.addEventListener("click", event => { if (event.target === event.currentTarget) { pickerIndex = null; pickerDraft = null; render(); } });
+  app.querySelector<HTMLButtonElement>("[data-picker-apply]")?.addEventListener("click", () => { if (pickerIndex === null || !pickerDraft?.cardId) return; candidates[pickerIndex] = { cardId: pickerDraft.cardId, color: pickerDraft.color }; candidateColors[pickerIndex] = pickerDraft.color; pickerIndex = null; pickerDraft = null; calculate(); });
   app.querySelector<HTMLButtonElement>("#add-history")?.addEventListener("click", () => addHistory());
   app.querySelectorAll<HTMLButtonElement>("[data-choose]").forEach(button => button.addEventListener("click", () => addHistory(button.dataset.choose as CardId, button.dataset.chooseColor as CardColor)));
 }

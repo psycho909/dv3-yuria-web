@@ -2,7 +2,7 @@
 
 更新日期：2026-09-22。範圍：`B_yuria-web-spec/` 的完整單頁介面。
 
-狀態：施工完成；核心功能與瀏覽器案例驗收通過，桌機計算效能未達 P95 目標，200% 縮放與螢幕閱讀器仍待補驗。
+狀態：施工完成；核心功能與本機／Vercel production 瀏覽器案例驗收通過，桌機計算效能未達 P95 目標，200% 縮放與螢幕閱讀器仍待補驗。
 
 ## 1. 設計結論
 
@@ -335,7 +335,7 @@
 
 ## 17. 驗收紀錄
 
-記錄日期：2026-09-22。核心功能已驗收；正式部署在本節末另記。勾選只代表有可重現證據，不代表已驗證螢幕閱讀器或所有真實裝置。
+記錄日期：2026-09-23（Asia/Taipei）。核心功能與 production smoke 已驗收。勾選只代表有可重現證據，不代表已驗證螢幕閱讀器或所有真實裝置。
 
 本次完成：暖色亮色版面、固定候選槽、搜尋與分類選牌、結果草稿提交、特殊牌必要輸入、撤回／重設、localStorage 恢復、Web Worker、150ms debounce、requestId 過期結果防護、計算錯誤／重試、目標指標切換、第五回合精確零機率文案與焦點管理。
 
@@ -345,6 +345,14 @@
 - 瀏覽器案例：18／18 通過，0 page error；測試尺寸 375、768、1024、1440px，四種尺寸均無橫向溢出，暖色背景為 `rgb(244, 239, 227)`。
 - 對比／控制：抽查對比 5.29:1–12.18:1；dialog 可操作控制皆至少 44px；鍵盤搜尋、選牌、分類、取消、焦點回復與 reduced-motion 通過。
 - 操作證據：[browser-results.json](B_yuria-web-spec/artifacts/acceptance/browser-results.json)；同目錄保留桌機、平板、手機與 picker／結算截圖。
+
+### Production deployment
+
+- Git：`dc144cb7c59cd7543290533bd786626fe568ecdc` 已推送至 `origin/main`，local／remote SHA 一致。
+- Vercel：`dpl_HEdVT5Hz3LZnvPog6shM2MjLpxgB`，`READY`、`production`；[Inspect deployment](https://vercel.com/psycho909s-projects/dv3-yuria-web/HEdVT5Hz3LZnvPog6shM2MjLpxgB)。
+- 公開網址：[dv3-yuria-web.vercel.app](https://dv3-yuria-web.vercel.app/)；HTTP 200、Age 0，公開 bundle 為 `index-cPFbVJmG.js`／`index-29OOJ2wB.css`。
+- Production 瀏覽器案例：同一套 18／18 通過，0 page error；Git auto-deploy 尚未連接，後續 push 仍需 Vercel CLI 部署。
+- Observability：`vercel logs --level error --since 1h` 回報 `No logs found`；本次為靜態頁，沒有 runtime function log 可掃描。
 
 ### 功能與資料流程
 
@@ -376,10 +384,10 @@
 - [x] 計算中、失敗、重試、全零命中與精確零機率文案符合第 10／11 節，並以瀏覽器案例確認舊結果不覆蓋重設後輸入。
 - [~] Web Worker、約 150ms debounce、requestId 已驗證；效能目標未達：Windows 10、Node v22.20.0、Intel i5-8400、5 組 3 候選／每候選 10,000 次樣本，turn 1 為 2186–2260ms，超過桌機 P95 <800ms；turn 5 精確分支為 0.039–0.073ms。Worker 保持介面可回應，但總計算延遲仍需優化。
 - [x] `npm test`、`npm run typecheck`、`npm run build` 通過；`git diff --check` 通過。
-- [x] 已產出桌機／手機／牌庫／結算截圖與 JSON 操作證據；正式部署狀態待本次 Git／Vercel 動作後補記，不以本機結果代替。
+- [x] 已產出桌機／手機／牌庫／結算截圖與 JSON 操作證據；Git SHA、Vercel deployment ID 與 production smoke 已回填本節。
 
 ### 未完成與後續
 
 1. 桌機前幾回合 Monte Carlo 計算仍高於 800ms 目標；優先評估降低重複分配或改用可驗證的批次計算，不能只降低抽樣次數掩蓋精度。
 2. 補做 200% 瀏覽器縮放與螢幕閱讀器實測；完成前保留對應項目的未驗收狀態。
-3. 本節證據為本機／測試部署前驗收；Git push 與 Vercel production 結果須以 SHA、部署 URL／狀態及公開站 smoke test 另行記錄。
+3. 本節已記錄本次 Git push 與 Vercel production 結果；Git auto-deploy 尚未連接，下一次 production 更新仍要使用已登入的 Vercel CLI。

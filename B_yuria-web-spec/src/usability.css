@@ -110,8 +110,8 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .score-total { font-size: 28px; color: var(--yellow); }
 .header .eyebrow { font-family: Georgia, serif; font-style: italic; }
 .history-panel { background: transparent; padding: 0; border: 0; box-shadow: none; }
-.history-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); align-items: start; gap: 12px; }
-.history-row { display: grid; gap: 8px; }
+.history-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 16px; }
+.history-row { display: grid; grid-template-rows: 184px auto auto auto 1fr; align-content: start; gap: 8px; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #fffaf2; }
 .history-row label { display: grid; gap: 4px; }
 .history-row select { width: 100%; min-width: 0; padding: 4px 8px; }
 .history-result { display: flex; gap: 4px; }
@@ -123,7 +123,9 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .history-add span { font-size: 24px; }
 .history-add small { font-size: 12px; }
 .card-face { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; position: relative; min-height: 174px; width: 100%; border: 1px solid #b3c5d5; border-radius: 10px; padding: 32px 8px 12px; margin-top: 12px; text-align: center; color: #243645; }
-.history-row .card-face { margin: 0; }
+.history-row .card-face { margin: 0; min-height: 0; height: 184px; }
+.history-row .history-result button { min-height: 44px; }
+.history-list .history-add { max-width: none; width: 100%; }
 .card-face.blue { background: #dfedf8; border-color: #a0bfd8; }
 .card-face.purple { background: #eee4f7; border-color: #c7afdc; }
 .card-face.red { background: #f8e1dc; border-color: #deb3ac; }
@@ -167,7 +169,7 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
   .layout { grid-template-columns: 1fr; }
   .workspace, .sidebar { grid-column: 1; grid-row: auto; }
   .workspace { order: 1; } .sidebar { order: 2; }
-  .history-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .history-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
   .shell { width: calc(100% - 24px); }
@@ -180,7 +182,7 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
   .candidate-slot-button { min-height: 92px; margin: 0; }
   .candidate-color-buttons { align-self: center; margin: 0; }
   .pending-copy { display: none; }
-  .history-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .history-list { grid-template-columns: 1fr; }
   .picker-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .picker-card { padding: 8px 4px; }
   .restored-note { align-items: flex-start; }

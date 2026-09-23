@@ -407,3 +407,4 @@
 - 側欄「真實牌局紀錄」顯示已記錄局數、有實得分數局數、候選齊全局數；樣本不足不顯示個人達標率。`catalogProbability` 與 `observedProbability` 區分牌庫預設和畫面觀察。
 - GitHub 登入與雲端下載放在獨立收合區；未登入仍可本機操作。登入後的新紀錄僅在玩家按「紀錄本局」後同步。Supabase OAuth provider 尚待控制台設定；正式站登入與雙帳號 RLS 隔離未實測，不列為已驗收。
 - 本機新增 `tests/real-game-flow.cjs`：五回合前 0 筆歸檔、刷新仍 0、可留白紀錄、後補 840 分、修訂版本、JSON 重複匯入不加倍、重設保留歸檔及 0 page error；既有瀏覽器驗收 18/18 通過。詳細資料欄位與校準門檻見 `REAL_GAME_DATA_PLAN.md`。
+- 已選卡版面修正：側欄各卡固定相同兩欄寬度與 184px 卡面高度，5 張依 2／2／1 換列；手機 599px 以下改單欄。`artifacts/real-game-flow/history-1.png`、`history-5.png`、`history-5-mobile.png` 顯示首張與後四張格式一致。375px 無橫向溢出；修正後 `tests/real-game-flow.cjs` 和既有 18 項瀏覽器案例再次通過。

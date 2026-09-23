@@ -7,6 +7,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
   const browser = await chromium.launch({ headless: true, channel: 'msedge' });
   const context = await browser.newContext({ acceptDownloads: true });
   const page = await context.newPage();
+  await page.setViewportSize({ width: 1440, height: 900 });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const records = () => page.evaluate(async () => new Promise((resolve, reject) => {
@@ -29,7 +30,18 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
   };
   try {
     await page.goto(url);
-    for (const [id, color, outcome] of [['fool', 'blue', 'success'], ['magician', 'purple', 'failure'], ['empress', 'red', 'success'], ['emperor', 'blue', 'success'], ['hermit', 'purple', 'failure']]) await add(id, color, outcome);
+    for (const [index, [id, color, outcome]] of [['fool', 'blue', 'success'], ['magician', 'purple', 'failure'], ['empress', 'red', 'success'], ['emperor', 'blue', 'success'], ['hermit', 'purple', 'failure']].entries()) {
+      await add(id, color, outcome);
+      if (index === 0 || index === 4) {
+        const fs = require('node:fs');
+        fs.mkdirSync('artifacts/real-game-flow', { recursive: true });
+        await page.locator('.history-panel').screenshot({ path: `artifacts/real-game-flow/history-${index + 1}.png` });
+      }
+    }
+    await page.setViewportSize({ width: 375, height: 900 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.locator('.history-panel').screenshot({ path: 'artifacts/real-game-flow/history-5-mobile.png' });
+    await page.setViewportSize({ width: 1440, height: 900 });
     assert.equal((await records()).length, 0, 'completion alone must not archive');
     assert.match(await page.locator('.real-score-panel').innerText(), /紀錄本局/);
     await page.reload();

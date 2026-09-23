@@ -322,8 +322,8 @@ function render() {
         <section class="panel history-panel"><div class="section-heading"><div><p class="eyebrow">CURRENT RUN</p><h2>已確定卡片</h2></div><span class="turn-counter">${state.selected.length} / 5</span></div>
           <div class="progress"><span style="width:${state.selected.length * 20}%"></span></div>
           <div class="color-counts"><span class="blue-text">藍 ${activeCounts.blue}</span><span class="purple-text">紫 ${activeCounts.purple}</span><span class="red-text">紅 ${activeCounts.red}</span></div>
+          <div class="history-actions">${state.selected.length ? `<button class="secondary-action" id="undo">撤回上一回合</button>` : `<span class="history-hint">先填入本回合候選牌</span>`}<button class="secondary-action" id="reset">↺ 重設本局</button></div>
           <div class="history-list">${renderHistory()}</div>
-          <div class="history-actions">${state.selected.length ? `<button class="secondary-action" id="undo">撤回上一回合</button>` : `<span class="history-hint">先填入本回合候選牌</span>`}<button class="text-action" id="reset">重設本局</button></div>
         </section>
         <details class="supplement"><summary>查看統計與實測</summary>${renderEvidencePanel()}</details>
         <details class="supplement real-archive" data-detail-key="real-archive"${detailAttribute("real-archive")}><summary>真實牌局紀錄</summary><section class="panel real-archive-panel"><p id="record-save-status" role="status">${esc(archiveSaveState)}</p><div id="real-archive-body">${renderArchiveBody()}</div></section></details>

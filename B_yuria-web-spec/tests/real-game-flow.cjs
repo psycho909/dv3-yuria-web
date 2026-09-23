@@ -30,17 +30,33 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
   };
   try {
     await page.goto(url);
+    assert.equal(await page.locator('.shell').evaluate(el => Math.round(el.getBoundingClientRect().width)), 1440);
     for (const [index, [id, color, outcome]] of [['fool', 'blue', 'success'], ['magician', 'purple', 'failure'], ['empress', 'red', 'success'], ['emperor', 'blue', 'success'], ['hermit', 'purple', 'failure']].entries()) {
       await add(id, color, outcome);
       if (index === 0 || index === 4) {
         const fs = require('node:fs');
         fs.mkdirSync('artifacts/real-game-flow', { recursive: true });
         await page.locator('.history-panel').screenshot({ path: `artifacts/real-game-flow/history-${index + 1}.png` });
+        if (index === 0) {
+          const widths = await page.evaluate(() => ({ selected: document.querySelector('.history-row').getBoundingClientRect().width, candidate: document.querySelector('.candidate-card').getBoundingClientRect().width }));
+          assert.ok(Math.abs(widths.selected - widths.candidate) <= 4, `selected and candidate card widths differ: ${JSON.stringify(widths)}`);
+          await page.evaluate(() => scrollTo(0, 0));
+          await page.screenshot({ path: 'artifacts/real-game-flow/matched-cards-1440.png' });
+        }
       }
     }
     await page.setViewportSize({ width: 375, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.equal(await page.locator('.shell').evaluate(el => Math.round(el.getBoundingClientRect().width)), 375);
     await page.locator('.history-panel').screenshot({ path: 'artifacts/real-game-flow/history-5-mobile.png' });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.screenshot({ path: 'artifacts/real-game-flow/full-width-1440.png' });
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.equal(await page.locator('.shell').evaluate(el => Math.round(el.getBoundingClientRect().width)), 1920);
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.screenshot({ path: 'artifacts/real-game-flow/full-width-1920.png' });
     await page.setViewportSize({ width: 1440, height: 900 });
     assert.equal((await records()).length, 0, 'completion alone must not archive');
     assert.match(await page.locator('.real-score-panel').innerText(), /紀錄本局/);

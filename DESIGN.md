@@ -373,21 +373,21 @@
 - [x] 768px 平板：工作區切換單欄，歷史和候選順序符合文件，不壓縮牌名。
 - [x] 1024px 與 1440px 桌機：左右工作區比例、卡片寬度、計分摘要和收合參考區可讀。
 - [ ] 200% 瀏覽器縮放：本輪未執行專用縮放驗收，保留待補。
-- [~] 鍵盤流程：搜尋、選牌、顏色、套用、取消與 dialog 焦點陷阱已通過；結果記錄／撤回的全鍵盤案例未獨立記錄。
+- [x] 鍵盤流程：搜尋、選牌、顏色、套用、取消與 dialog 焦點陷阱已通過；另以 `tests/keyboard-flow.cjs` 在 production Edge 153、768px 驗證全鍵盤選牌、記錄失敗與撤回，歷史由 0→1→0，無 page error。
 - [ ] 螢幕閱讀器語意：本輪未啟動螢幕閱讀器，僅完成 DOM／ARIA 靜態與鍵盤檢查。
 - [x] `prefers-reduced-motion`：瀏覽器案例確認主要流程仍可操作且非必要 transition 為 0s。
 - [x] 對比檢查：抽查文字與控制配對均 ≥4.5:1，控制最小尺寸無低於 44px 的啟用按鈕。
 
 ### 計算、效能與交付檢查
 
-- [x] 同 seed、同輸入、同規則輸出一致；`npm test` 共 14 tests 通過。
+- [x] 同 seed、同輸入、同規則輸出一致；新增固定 seed 的分布回歸後，`npm test` 共 15 tests 通過。
 - [x] 計算中、失敗、重試、全零命中與精確零機率文案符合第 10／11 節，並以瀏覽器案例確認舊結果不覆蓋重設後輸入。
-- [~] Web Worker、約 150ms debounce、requestId 已驗證；效能目標未達：Windows 10、Node v22.20.0、Intel i5-8400、5 組 3 候選／每候選 10,000 次樣本，turn 1 為 2186–2260ms，超過桌機 P95 <800ms；turn 5 精確分支為 0.039–0.073ms。Worker 保持介面可回應，但總計算延遲仍需優化。
+- [~] Web Worker、約 150ms debounce、requestId 已驗證。先前 Windows 10／Node v22.20.0／Intel i5-8400、5 組 3 候選且每候選 10,000 次樣本：turn 1 為 2186–2260ms，超過桌機 P95 <800ms。2026-09-23 優化 Monte Carlo 熱路徑、保留抽樣數與規則後，在 Intel Core Ultra 7 165H／Node v22.14.0 同機基準由 1254–1413ms 降至 615–683ms；獨立重跑 5 組為 605–689ms，turn 5 為 0.016–0.062ms。12 組推薦與 24 組候選結果和優化前逐位元組 JSON 相同。這些短樣本不能證明 P95；原 i5 與瀏覽器端仍待複測。
 - [x] `npm test`、`npm run typecheck`、`npm run build` 通過；`git diff --check` 通過。
 - [x] 已產出桌機／手機／牌庫／結算截圖與 JSON 操作證據；Git SHA、Vercel deployment ID 與 production smoke 已回填本節。
 
 ### 未完成與後續
 
-1. 桌機前幾回合 Monte Carlo 計算仍高於 800ms 目標；優先評估降低重複分配或改用可驗證的批次計算，不能只降低抽樣次數掩蓋精度。
+1. 在原 i5 與實際瀏覽器 Worker 複測前幾回合延遲並記錄足夠樣本估計 P95；保留每候選 10,000 次抽樣與固定 seed 回歸，不以降低抽樣數掩蓋精度。
 2. 補做 200% 瀏覽器縮放與螢幕閱讀器實測；完成前保留對應項目的未驗收狀態。
 3. 本節已記錄本次 Git push 與 Vercel production 結果；Git auto-deploy 尚未連接，下一次 production 更新仍要使用已登入的 Vercel CLI。

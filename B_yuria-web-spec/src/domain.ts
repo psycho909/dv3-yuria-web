@@ -132,11 +132,24 @@ export function calculateScore(cards: SelectedCard[], rng: Rng, rules: Rules = R
   return { sum, multiplier, redBonus, finalScore: Math.floor(sum * multiplier * (1 + redBonus)), activeColorCounts: counts, failedCount: failed.length };
 }
 
-function category(rng: Rng, turn: number): CardCategory { const weights = turn === 5 ? CATEGORY_WEIGHTS.final : CATEGORY_WEIGHTS.early; const roll = rng() * Object.values(weights).reduce((a, b) => a + b, 0); let remaining = roll; for (const [key, value] of Object.entries(weights) as [CardCategory, number][]) { remaining -= value; if (remaining <= 0) return key; } return "special"; }
+function category(rng: Rng, turn: number): CardCategory {
+  const weights = turn === 5 ? CATEGORY_WEIGHTS.final : CATEGORY_WEIGHTS.early;
+  const roll = rng() * (weights.score + weights.multiplier + weights.special);
+  if (roll <= weights.score) return "score";
+  if (roll <= weights.score + weights.multiplier) return "multiplier";
+  return "special";
+}
+
+const CARD_DEFINITIONS = Object.values(CARDS);
+const CARDS_BY_CATEGORY: Record<CardCategory, CardDefinition[]> = {
+  score: CARD_DEFINITIONS.filter(card => card.category === "score"),
+  multiplier: CARD_DEFINITIONS.filter(card => card.category === "multiplier"),
+  special: CARD_DEFINITIONS.filter(card => card.category === "special")
+};
 
 export function generateOffer(rng: Rng, selected: SelectedCard[], turn: number, rules: Rules = RULES): OfferedCard[] {
-  const used = new Set(selected.map(c => c.cardId)); const offered = new Set<CardId>(); const cards = Object.values(CARDS); const result: OfferedCard[] = [];
-  for (let i = 0; i < 3; i++) { const color = rules.futureColorModel === "oneEach" ? COLORS[i]! : pick(rng, COLORS); let pool: CardDefinition[] = []; for (let attempt = 0; attempt < 20; attempt++) { const kind = category(rng, turn); pool = cards.filter(c => c.category === kind && !used.has(c.id) && !offered.has(c.id)); if (pool.length) break; } if (!pool.length) pool = cards.filter(c => !used.has(c.id) && !offered.has(c.id)); const card = pick(rng, pool); offered.add(card.id); result.push({ cardId: card.id, color }); }
+  const used = new Set(selected.map(c => c.cardId)); const offered = new Set<CardId>(); const result: OfferedCard[] = [];
+  for (let i = 0; i < 3; i++) { const color = rules.futureColorModel === "oneEach" ? COLORS[i]! : pick(rng, COLORS); let pool: CardDefinition[] = []; for (let attempt = 0; attempt < 20; attempt++) { const kind = category(rng, turn); pool = CARDS_BY_CATEGORY[kind].filter(c => !used.has(c.id) && !offered.has(c.id)); if (pool.length) break; } if (!pool.length) pool = CARD_DEFINITIONS.filter(c => !used.has(c.id) && !offered.has(c.id)); const card = pick(rng, pool); offered.add(card.id); result.push({ cardId: card.id, color }); }
   return result;
 }
 
@@ -161,10 +174,21 @@ function immediate(selected: SelectedCard[], offer: OfferedCard, rules: Rules): 
 }
 function chooseFuture(selected: SelectedCard[], offers: OfferedCard[], rules: Rules, target: number): OfferedCard {
   if (selected.length === 4 && rules.redRollMode === "integerPercent") {
-    return offers.map(candidate => finalTurnMetrics(selected, candidate, target, rules))
-      .sort((a, b) => b.thresholdProbability - a.thresholdProbability || b.meanScore - a.meanScore)[0]!.candidate;
+    let best = finalTurnMetrics(selected, offers[0]!, target, rules);
+    for (let i = 1; i < offers.length; i++) {
+      const next = finalTurnMetrics(selected, offers[i]!, target, rules);
+      if (next.thresholdProbability > best.thresholdProbability ||
+        (next.thresholdProbability === best.thresholdProbability && next.meanScore > best.meanScore)) best = next;
+    }
+    return best.candidate;
   }
-  return [...offers].sort((a, b) => immediate(selected, b, rules) - immediate(selected, a, rules))[0]!;
+  let best = offers[0]!;
+  let bestScore = immediate(selected, best, rules);
+  for (let i = 1; i < offers.length; i++) {
+    const score = immediate(selected, offers[i]!, rules);
+    if (score > bestScore) { best = offers[i]!; bestScore = score; }
+  }
+  return best;
 }
 function simulateOne(rng: Rng, state: GameState, candidate: OfferedCard, rules: Rules, target: number) {
   let selected = resolveSelection(rng, state.selected, candidate, rules);
@@ -196,10 +220,16 @@ function finalTurnMetrics(selected: SelectedCard[], candidate: OfferedCard, thre
 
   const mass = new Map<number, number>();
   for (const branch of branches) {
-    const redCount = branch.cards.filter(card => card.activated && !card.removed && card.color === "red").length;
+    // The red roll is the only random part of the final score for this branch.
+    // Keep the exact integer-percent enumeration, but derive its fixed SUM and
+    // multiplier once instead of rescanning the cards for every possible roll.
+    const fixed = calculateScore(branch.cards, () => 0, rules);
+    const redCount = fixed.activeColorCounts.red;
     const rolls = integerRedRollCount(redCount);
+    const redStart = RED[redCount] ? Math.round(RED[redCount]![0] * 100) : 0;
     for (let i = 0; i < rolls; i++) {
-      const score = calculateScore(branch.cards, () => (i + .5) / rolls, rules).finalScore;
+      const redBonus = redCount >= 2 ? (redStart + i) / 100 : 0;
+      const score = Math.floor(fixed.sum * fixed.multiplier * (1 + redBonus));
       mass.set(score, (mass.get(score) ?? 0) + branch.probability / rolls);
     }
   }

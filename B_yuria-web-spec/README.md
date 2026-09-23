@@ -12,7 +12,7 @@
 ```text
 1. Domain card data + exact score calculator
 2. Regression tests
-3. Monte Carlo Web Worker
+3. Monte Carlo Web Worker（已完成）
 4. Mobile input flow
 5. Analytics / assumptions UI
 ```

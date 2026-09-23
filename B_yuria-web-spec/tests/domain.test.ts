@@ -157,6 +157,34 @@ describe("deterministic score engine", () => {
 });
 
 describe("recommendation reproducibility", () => {
+  it("preserves the seeded turn-one score distribution and ranking", () => {
+    const result = recommend(
+      { turn: 1, selected: [] },
+      [
+        { cardId: "magician", color: "purple" },
+        { cardId: "death", color: "blue" },
+        { cardId: "lovers", color: "red" }
+      ],
+      { kind: "threshold", target: 1500 },
+      120,
+      42
+    );
+
+    expect(result.mode).toBe("objective");
+    expect(result.ranked.map(metric => ({
+      cardId: metric.candidate.cardId,
+      meanScore: metric.meanScore,
+      p10: metric.p10,
+      p50: metric.p50,
+      p90: metric.p90,
+      thresholdProbability: metric.thresholdProbability
+    }))).toEqual([
+      { cardId: "death", meanScore: 980.575, p10: 390, p50: 901, p90: 1672, thresholdProbability: .225 },
+      { cardId: "magician", meanScore: 1021.4083333333333, p10: 408, p50: 966, p90: 1678, thresholdProbability: 26 / 120 },
+      { cardId: "lovers", meanScore: 1001.5583333333333, p10: 360, p50: 960, p90: 1607, thresholdProbability: 26 / 120 }
+    ]);
+  });
+
   it("returns identical results for the same seed and input", () => {
     const state = { turn: 1 as const, selected: [] };
     const candidates = [

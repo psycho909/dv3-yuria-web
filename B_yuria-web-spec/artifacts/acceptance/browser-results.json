@@ -1,7 +1,7 @@
 {
-  "url": "https://dv3-yuria-web.vercel.app",
+  "url": "http://127.0.0.1:4174/",
   "browser": "153.0.4234.48",
-  "date": "2026-09-22T22:46:00.256Z",
+  "date": "2026-09-23T01:18:25.508Z",
   "checks": [
     {
       "name": "empty-375",

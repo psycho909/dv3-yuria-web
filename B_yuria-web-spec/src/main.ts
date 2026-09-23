@@ -39,7 +39,6 @@ type StoredSession = {
 let turnSnapshots: TurnSnapshot[] = [];
 let starTargetIds: Array<CardId | null> = [];
 let pendingEditIndex: number | null = null;
-let pendingEditOutcome: "success" | "failure" | null = null;
 let pendingEditTowerProc: boolean | null = null;
 let pendingEditRemovedCardId: CardId | null = null;
 let selectedCandidateKey = "";
@@ -181,8 +180,8 @@ function renderHistory() {
     <div class="card-face ${colorClass[card.color]} ${card.activated ? "" : "is-failed"}">${cardFace(card.cardId)}<span class="face-status">第 ${index + 1} 回合 · ${card.removed ? "已移除" : card.activated ? "成功" : "失敗"}</span></div>
     <label>牌色<select data-history-color="${index}" aria-label="${esc(cardName(card.cardId))} 牌色" ${targetError ? "disabled" : ""}>${colorOptions.map(color => `<option value="${color}" ${color === card.color ? "selected" : ""}>${colorLabel[color]}色</option>`).join("")}</select></label>
     <div class="history-result">${[true, false].map(activated => `<button type="button" data-history-result="${index}" data-activated="${activated}" aria-pressed="${card.activated === activated}" class="${card.activated === activated ? "selected" : ""}" ${targetError ? "disabled" : ""}>${activated ? "成功" : "失敗"}</button>`).join("")}</div>
-    <label class="removed-toggle"><input type="checkbox" data-history-removed="${index}" ${card.removed ? "checked" : ""} ${targetError ? "disabled" : ""} />已被移除</label>
-    ${card.cardId === "star" && starTargetIds[index] ? `<small class="history-special-link">移除：${esc(cardName(starTargetIds[index]!))}</small>` : card.cardId === "tower" && card.activated ? `<small class="history-special-link">高塔倍率：${card.towerProc ? "高" : "低"}</small>` : ""}
+    <label class="removed-toggle"><input type="checkbox" data-history-removed="${index}" ${card.removed ? "checked" : ""} ${targetError || starTargetIds.some((target, starIndex) => target === card.cardId && state.selected[starIndex]?.activated) ? "disabled" : ""} />已被移除</label>
+    ${card.cardId === "star" && card.activated && starTargetIds[index] ? `<small class="history-special-link">移除：${esc(cardName(starTargetIds[index]!))}（按「成功」可更正）</small>` : card.cardId === "tower" && card.activated ? `<small class="history-special-link">高塔倍率：${card.towerProc ? "高" : "低"}（按「成功」可更正）</small>` : ""}
   </div>`).join("") + (state.selected.length < 5 ? `<button class="history-add" id="add-history" type="button" ${targetError ? "disabled" : ""}><span>＋</span>加入已確定卡片<small>接續進行中的牌局</small></button>` : "");
 }
 
@@ -269,7 +268,7 @@ function renderCandidate(slotIndex: number, metric: NonNullable<typeof result>["
 function render() {
   const focused = document.activeElement as HTMLElement | null;
   const dialogFocus = Boolean(focused?.closest("dialog"));
-  const focusSelector = focused?.dataset.pickerCard ? `[data-picker-card="${focused.dataset.pickerCard}"]` : focused?.dataset.pickerColor ? `[data-picker-color="${focused.dataset.pickerColor}"]` : focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.id ? `#${focused.id}` : null;
+  const focusSelector = focused?.dataset.pickerCard ? `[data-picker-card="${focused.dataset.pickerCard}"]` : focused?.dataset.pickerColor ? `[data-picker-color="${focused.dataset.pickerColor}"]` : focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.editTowerProc ? `[data-edit-tower-proc="${focused.dataset.editTowerProc}"]` : focused?.dataset.editRemoveCard ? `[data-edit-remove-card="${focused.dataset.editRemoveCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.id ? `#${focused.id}` : null;
   const pickerScroll = app.querySelector(".picker-dialog")?.scrollTop ?? 0;
   const bestMean = result ? [...result.ranked].sort((a, b) => b.meanScore - a.meanScore)[0]! : null;
   const ranked = result?.ranked ?? [];
@@ -318,13 +317,14 @@ function render() {
     ${renderPicker()}
     <p class="sr-only" aria-live="polite">${resultReady ? "推薦已更新" : calculationStatus === "calculating" ? "正在計算推薦" : calculationStatus === "error" ? "推薦計算失敗，可重試" : state.selected.length === 5 ? "本局已完成" : ""}</p>
     ${pendingChoice ? renderOutcomeDialog() : ""}
+    ${pendingEditIndex !== null ? renderEditOutcomeDialog() : ""}
   </main>`;
   bindEvents();
   const dialog = app.querySelector<HTMLDialogElement>("dialog");
   document.body.classList.toggle("modal-open", Boolean(dialog));
   if (dialog) {
     dialog.showModal();
-    dialog.addEventListener("cancel", event => { event.preventDefault(); closeDialog(); });
+    dialog.addEventListener("cancel", event => { event.preventDefault(); if (pendingEditIndex !== null) closeEditDialog(); else closeDialog(); });
     dialog.addEventListener("keydown", event => {
       if (event.key !== "Tab") return;
       const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')).filter(element => element.getClientRects().length);
@@ -335,7 +335,7 @@ function render() {
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     });
     const restoredFocus = dialogFocus && focusSelector ? app.querySelector<HTMLElement>(focusSelector) : null;
-    const nextFocus = restoredFocus ?? (pickerIndex !== null ? app.querySelector<HTMLElement>("#card-search") : pendingChoice && pendingOutcome && pendingChoice.cardId === "tower" ? app.querySelector<HTMLElement>('[data-tower-proc="false"]') : pendingChoice && pendingOutcome && pendingChoice.cardId === "star" ? app.querySelector<HTMLElement>("[data-remove-card]") : pendingChoice ? app.querySelector<HTMLElement>('[data-outcome="success"]') : null);
+    const nextFocus = restoredFocus ?? (pendingEditIndex !== null ? app.querySelector<HTMLElement>("[data-edit-tower-proc], [data-edit-remove-card], [data-edit-commit]") : pickerIndex !== null ? app.querySelector<HTMLElement>("#card-search") : pendingChoice && pendingOutcome && pendingChoice.cardId === "tower" ? app.querySelector<HTMLElement>('[data-tower-proc="false"]') : pendingChoice && pendingOutcome && pendingChoice.cardId === "star" ? app.querySelector<HTMLElement>("[data-remove-card]") : pendingChoice ? app.querySelector<HTMLElement>('[data-outcome="success"]') : null);
     nextFocus?.focus({ preventScroll: true });
     dialog.scrollTop = pickerScroll;
   }
@@ -413,8 +413,12 @@ function calculate() {
 
 function bindEvents() {
   app.querySelectorAll<HTMLSelectElement>("[data-history-color]").forEach(select => select.addEventListener("change", () => { state.selected[Number(select.dataset.historyColor)]!.color = select.value as CardColor; calculate(); }));
-  app.querySelectorAll<HTMLButtonElement>("[data-history-result]").forEach(button => button.addEventListener("click", () => { state.selected[Number(button.dataset.historyResult)]!.activated = button.dataset.activated === "true"; calculate(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-history-result]").forEach(button => button.addEventListener("click", () => editHistoryResult(Number(button.dataset.historyResult), button.dataset.activated === "true")));
   app.querySelectorAll<HTMLInputElement>("[data-history-removed]").forEach(input => input.addEventListener("change", () => { state.selected[Number(input.dataset.historyRemoved)]!.removed = input.checked; calculate(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-edit-tower-proc]").forEach(button => button.addEventListener("click", () => { pendingEditTowerProc = button.dataset.editTowerProc === "true"; render(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-edit-remove-card]").forEach(button => button.addEventListener("click", () => { pendingEditRemovedCardId = button.dataset.editRemoveCard as CardId; render(); }));
+  app.querySelector<HTMLButtonElement>("[data-edit-commit]")?.addEventListener("click", commitEditResult);
+  app.querySelector<HTMLButtonElement>("[data-edit-cancel]")?.addEventListener("click", closeEditDialog);
   app.querySelector<HTMLInputElement>("#card-search")?.addEventListener("input", event => {
     pickerSearch = (event.target as HTMLInputElement).value;
     const matches = cardList.filter(card => (pickerCategory === "all" || card.category === pickerCategory) && card.name.includes(pickerSearch.trim()));
@@ -442,7 +446,6 @@ function bindEvents() {
     pendingTowerProc = null;
     pendingRemovedCardId = null;
     pendingEditIndex = null;
-    pendingEditOutcome = null;
     pendingEditTowerProc = null;
     pendingEditRemovedCardId = null;
     candidates = [null, null, null];
@@ -467,6 +470,79 @@ function bindEvents() {
     render();
   }));
   app.querySelector<HTMLButtonElement>("[data-commit-outcome]")?.addEventListener("click", () => { if (!pendingOutcome || (pendingChoice?.cardId === "tower" && pendingTowerProc === null) || (pendingChoice?.cardId === "star" && removableCards().length && pendingRemovedCardId === null)) return; commitOutcome(pendingOutcome); });
+}
+
+function starEditTargets(index: number): SelectedCard[] {
+  const currentTarget = starTargetIds[index];
+  return state.selected.slice(0, index).filter(card =>
+    (!card.removed || card.cardId === currentTarget) && (RULES.starRemovalPolicy === "uniformPresent" || card.activated)
+  );
+}
+
+function editHistoryResult(index: number, activated: boolean) {
+  const card = state.selected[index];
+  if (!card) return;
+  if (activated && (card.cardId === "star" || card.cardId === "tower")) {
+    pendingEditIndex = index;
+    pendingEditTowerProc = card.cardId === "tower" && card.activated ? card.towerProc ?? null : null;
+    pendingEditRemovedCardId = card.cardId === "star" && card.activated ? starTargetIds[index] : null;
+    render();
+    return;
+  }
+  if (card.cardId === "star" && !activated && starTargetIds[index]) {
+    const target = state.selected.find(item => item.cardId === starTargetIds[index]);
+    if (target) target.removed = false;
+    starTargetIds[index] = null;
+  }
+  if (card.cardId === "tower" && !activated) delete card.towerProc;
+  card.activated = activated;
+  calculate();
+}
+
+function closeEditDialog() {
+  const index = pendingEditIndex;
+  pendingEditIndex = null;
+  pendingEditTowerProc = null;
+  pendingEditRemovedCardId = null;
+  render();
+  if (index !== null) app.querySelector<HTMLElement>(`[data-history-result="${index}"][data-activated="true"]`)?.focus();
+}
+
+function commitEditResult() {
+  const index = pendingEditIndex;
+  if (index === null) return;
+  const card = state.selected[index];
+  if (!card) return;
+  if (card.cardId === "tower") {
+    if (pendingEditTowerProc === null) return;
+    card.towerProc = pendingEditTowerProc;
+  }
+  if (card.cardId === "star") {
+    const targets = starEditTargets(index);
+    if (targets.length && !pendingEditRemovedCardId) return;
+    const oldTarget = state.selected.find(item => item.cardId === starTargetIds[index]);
+    if (oldTarget) oldTarget.removed = false;
+    const newTarget = state.selected.find(item => item.cardId === pendingEditRemovedCardId);
+    if (newTarget) newTarget.removed = true;
+    starTargetIds[index] = pendingEditRemovedCardId;
+  }
+  card.activated = true;
+  pendingEditIndex = null;
+  pendingEditTowerProc = null;
+  pendingEditRemovedCardId = null;
+  calculate();
+  app.querySelector<HTMLElement>(`[data-history-result="${index}"][data-activated="true"]`)?.focus();
+}
+
+function renderEditOutcomeDialog() {
+  const index = pendingEditIndex!;
+  const card = state.selected[index]!;
+  const targets = card.cardId === "star" ? starEditTargets(index) : [];
+  const choices = card.cardId === "tower"
+    ? `<fieldset><legend>高塔實際倍率</legend><div class="outcome-choice-row"><button type="button" data-edit-tower-proc="false" class="${pendingEditTowerProc === false ? "selected" : ""}">低倍率 +0.25</button><button type="button" data-edit-tower-proc="true" class="${pendingEditTowerProc === true ? "selected" : ""}">高倍率 +2.0</button></div></fieldset>`
+    : targets.length ? `<fieldset><legend>星星移除哪張牌？</legend><div class="outcome-choice-row">${targets.map(target => `<button type="button" data-edit-remove-card="${target.cardId}" class="${pendingEditRemovedCardId === target.cardId ? "selected" : ""}">${esc(cardName(target.cardId))}／${colorLabel[target.color]}</button>`).join("")}</div></fieldset>` : `<p>當時沒有其他可移除卡片。</p>`;
+  const incomplete = card.cardId === "tower" ? pendingEditTowerProc === null : targets.length > 0 && pendingEditRemovedCardId === null;
+  return `<dialog class="picker-dialog outcome-dialog" aria-labelledby="edit-outcome-title"><h2 id="edit-outcome-title">更正第 ${index + 1} 回合 ${esc(cardName(card.cardId))} 的結果</h2><p>選擇遊戲中實際發生的效果。</p>${choices}<button type="button" class="primary-action" data-edit-commit ${incomplete ? "disabled" : ""}>儲存更正</button><button type="button" class="text-action" data-edit-cancel>取消</button></dialog>`;
 }
 
 function addHistory(cardId?: CardId, color?: CardColor) {

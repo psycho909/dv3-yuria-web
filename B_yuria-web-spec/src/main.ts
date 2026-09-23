@@ -2,6 +2,12 @@ import {
   CARDS, REWARD_THRESHOLDS, RULES, calculateScore, colorClass, colorLabel, recommend, summarizeScore,
   type CardColor, type CardId, type GameState, type Objective, type OfferedCard, type SelectedCard
 } from "./domain";
+import {
+  createGameRecord, exportEnvelope, importGames, isValidGameRecord, listGames, parseExport, saveGame, summarizeRealGames,
+  type EvidenceLevel, type RealGameRecordV1, type RealRound
+} from "./real-game-record";
+import { currentCloudUser, downloadRecordedGames, signInWithGitHub, signOutCloud, uploadRecordedGame, watchCloudAuth } from "./cloud-games";
+import type { User } from "@supabase/supabase-js";
 import "./styles.css";
 import "./knowledge.css";
 import "./pending.css";
@@ -35,6 +41,7 @@ type StoredSession = {
   candidates?: Array<OfferedCard | null>;
   candidateColors?: CardColor[];
   simulationCount?: number;
+  currentRecord?: RealGameRecordV1 | null;
 };
 let turnSnapshots: TurnSnapshot[] = [];
 let starTargetIds: Array<CardId | null> = [];
@@ -51,6 +58,15 @@ let calculationTimer: number | undefined;
 let requestId = 0;
 let restoredSession = false;
 let storageNotice = "";
+let currentRecord: RealGameRecordV1 | null = null;
+let archiveGames: RealGameRecordV1[] = [];
+let archiveNotice = "";
+let archiveSaveState = "";
+let recordSaveQueue: Promise<void> = Promise.resolve();
+let scoreEditing = false;
+let pendingChoiceSource: "candidate" | "manual" | null = null;
+let cloudUser: User | null = null;
+let cloudStatus = "GitHub 登入設定完成後可跨裝置同步；本機紀錄不需登入。";
 const detailOpen = new Map<string, boolean>();
 
 const STORAGE_KEY = "yuria-web-session-v1";
@@ -120,7 +136,7 @@ function storageFailureNotice() {
 
 function persistSession() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ state: cloneState(state), starTargets: cloneTargets(starTargetIds), turnSnapshots: turnSnapshots.slice(-5).map(cloneSnapshot), targetThreshold, objective, candidates, candidateColors, simulationCount }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ state: cloneState(state), starTargets: cloneTargets(starTargetIds), turnSnapshots: turnSnapshots.slice(-5).map(cloneSnapshot), targetThreshold, objective, candidates, candidateColors, simulationCount, currentRecord }));
   } catch { storageFailureNotice(); }
 }
 
@@ -156,6 +172,8 @@ function loadSession() {
     objective = saved.objective?.kind === "expected" || saved.objective?.kind === "stability" ? { kind: saved.objective.kind } : { kind: "threshold", target: targetThreshold };
     targetInput = String(targetThreshold);
     simulationCount = saved.simulationCount === 5000 || saved.simulationCount === 20000 ? saved.simulationCount : 10000;
+    currentRecord = saved.currentRecord && isValidGameRecord(saved.currentRecord) && saved.currentRecord.rounds.length === state.selected.length &&
+      saved.currentRecord.rounds.every((round, index) => round.chosen.cardId === state.selected[index]!.cardId && round.chosen.color === state.selected[index]!.color && round.activated === state.selected[index]!.activated) ? saved.currentRecord : null;
     restoredSession = Boolean(state.selected.length || candidates.some(Boolean));
   } catch {
     try { localStorage.removeItem(STORAGE_KEY); } catch { storageFailureNotice(); }
@@ -266,6 +284,7 @@ function renderCandidate(slotIndex: number, metric: NonNullable<typeof result>["
 }
 
 function render() {
+  captureDetails();
   const focused = document.activeElement as HTMLElement | null;
   const dialogFocus = Boolean(focused?.closest("dialog"));
   const focusSelector = focused?.dataset.pickerCard ? `[data-picker-card="${focused.dataset.pickerCard}"]` : focused?.dataset.pickerColor ? `[data-picker-color="${focused.dataset.pickerColor}"]` : focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.editTowerProc ? `[data-edit-tower-proc="${focused.dataset.editTowerProc}"]` : focused?.dataset.editRemoveCard ? `[data-edit-remove-card="${focused.dataset.editRemoveCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.id ? `#${focused.id}` : null;
@@ -296,6 +315,7 @@ function render() {
     <div class="layout">
       <section class="workspace"><div class="workspace-heading"><div><p class="eyebrow">第 ${state.turn} / 5 回合</p><h2>${workspaceTitle}</h2></div><span class="calculation-time" aria-live="polite">${statusText}</span></div>
         ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>可撤回上一回合修正，或重設本局重新開始。</p></section>` : `<div class="candidate-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
+        ${renderActualScorePanel()}
         <section class="decision-panel panel ${resultReady ? "" : "pending-decision"}" ${state.selected.length === 5 ? "hidden" : ""}><div><p class="eyebrow">${resultReady ? "選牌建議" : calculationStatus === "error" ? "計算錯誤" : calculationStatus === "calculating" ? "正在計算" : "操作提示"}</p><h2>${resultReady ? (fallback ? exactZero ? "依目前模型，達標機率為 0%" : "達標率皆為零，改看預期分數" : "依你的目標比較推薦") : calculationStatus === "error" ? "輸入已保留，請重試" : calculationStatus === "calculating" ? "正在整理三張牌的比較結果" : "先選擇本回合三張候選牌"}</h2><p>${resultReady ? (fallback ? exactZero ? "目前精確模型沒有支援達標的結果，系統仍以預期最終分數最高者排序。" : "目前抽樣沒有達到目標，系統改以預期最終分數最高者排序。" : "先在遊戲中選牌，再按「選擇這張」記錄啟用結果。") : calculationStatus === "error" ? calculationError : calculationStatus === "calculating" ? "計算完成後會在原本的候選槽顯示指標，不會改變牌的順序。" : candidateInputHint()}</p></div>${resultReady && bestMean ? `<div class="decision-values"><div><span>目前目標推薦</span><strong>${esc(CARDS[result!.ranked[0]!.candidate.cardId].name)}／${colorLabel[result!.ranked[0]!.candidate.color]}</strong></div><div><span>預期分數最高</span><strong>${esc(CARDS[bestMean.candidate.cardId].name)}／${colorLabel[bestMean.candidate.color]}</strong></div></div>` : calculationStatus === "error" ? `<button type="button" class="secondary-action retry-action" id="retry-calculation">重新計算</button>` : ""}</section>
       </section>
       <aside class="sidebar">
@@ -306,6 +326,8 @@ function render() {
           <div class="history-actions">${state.selected.length ? `<button class="secondary-action" id="undo">撤回上一回合</button>` : `<span class="history-hint">先填入本回合候選牌</span>`}<button class="text-action" id="reset">重設本局</button></div>
         </section>
         <details class="supplement"><summary>查看統計與實測</summary>${renderEvidencePanel()}</details>
+        <details class="supplement real-archive" data-detail-key="real-archive"${detailAttribute("real-archive")}><summary>真實牌局紀錄</summary><section class="panel real-archive-panel"><p id="record-save-status" role="status">${esc(archiveSaveState)}</p><div id="real-archive-body">${renderArchiveBody()}</div></section></details>
+        <details class="supplement" data-detail-key="cloud-games"${detailAttribute("cloud-games")}><summary>GitHub 登入與跨裝置紀錄</summary><section class="panel cloud-panel"><p>${cloudUser ? `已登入 ${esc(cloudUser.email ?? cloudUser.id)}` : "尚未登入；本機牌局仍可照常使用。"}</p><p id="cloud-status" role="status">${esc(cloudStatus)}</p><div class="archive-actions">${cloudUser ? `<button type="button" class="secondary-action" id="download-cloud-games">載入雲端牌局</button><button type="button" class="secondary-action" id="upload-current-game" ${currentRecord?.status === "recorded" ? "" : "disabled"}>同步本局</button><button type="button" class="text-action" id="cloud-sign-out">登出</button>` : `<button type="button" class="secondary-action" id="cloud-sign-in">使用 GitHub 登入</button>`}</div><small>只有按下「紀錄本局」的完整牌局會儲存；登入後的新紀錄會同步，舊資料可自行匯出或逐局核對。</small></section></details>
         <details class="panel data-panel"><summary>資料可信度與模型限制</summary>
           <div class="confidence"><div><span class="confidence-icon verified">✓</span><p><strong>22 張牌資料</strong><small>使用者提供並記錄</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>未驗證出牌分布</strong><small>類別內暫採等權</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>紅色抽樣模型</strong><small>整數預設；1648 暗示連續值</small></p></div><div><span class="confidence-icon muted">—</span><p><strong>Jev 僅語意路由</strong><small>不參與數學計算</small></p></div></div>
         </details>
@@ -388,6 +410,7 @@ function handleWorkerError(source: Worker) {
 
 function calculate() {
   cancelPendingCalculation();
+  syncCurrentRecord();
   persistSession();
   if (state.selected.length >= 5 || !candidatesReady()) {
     result = null;
@@ -412,9 +435,9 @@ function calculate() {
 }
 
 function bindEvents() {
-  app.querySelectorAll<HTMLSelectElement>("[data-history-color]").forEach(select => select.addEventListener("change", () => { state.selected[Number(select.dataset.historyColor)]!.color = select.value as CardColor; calculate(); }));
+  app.querySelectorAll<HTMLSelectElement>("[data-history-color]").forEach(select => select.addEventListener("change", () => { startRecordCorrection(); state.selected[Number(select.dataset.historyColor)]!.color = select.value as CardColor; calculate(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-history-result]").forEach(button => button.addEventListener("click", () => editHistoryResult(Number(button.dataset.historyResult), button.dataset.activated === "true")));
-  app.querySelectorAll<HTMLInputElement>("[data-history-removed]").forEach(input => input.addEventListener("change", () => { state.selected[Number(input.dataset.historyRemoved)]!.removed = input.checked; calculate(); }));
+  app.querySelectorAll<HTMLInputElement>("[data-history-removed]").forEach(input => input.addEventListener("change", () => { startRecordCorrection(); state.selected[Number(input.dataset.historyRemoved)]!.removed = input.checked; calculate(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-edit-tower-proc]").forEach(button => button.addEventListener("click", () => { pendingEditTowerProc = button.dataset.editTowerProc === "true"; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-edit-remove-card]").forEach(button => button.addEventListener("click", () => { pendingEditRemovedCardId = button.dataset.editRemoveCard as CardId; render(); }));
   app.querySelector<HTMLButtonElement>("[data-edit-commit]")?.addEventListener("click", commitEditResult);
@@ -434,10 +457,11 @@ function bindEvents() {
   app.querySelector<HTMLButtonElement>("#calculate")?.addEventListener("click", calculate);
   app.querySelector<HTMLButtonElement>("#retry-calculation")?.addEventListener("click", calculate);
   app.querySelector<HTMLButtonElement>("#dismiss-restored")?.addEventListener("click", () => { restoredSession = false; render(); });
-  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => { if ((state.selected.length || candidates.some(Boolean)) && !window.confirm("清除本局卡片與候選牌，重新開始？")) return; state = { turn: 1, selected: [] }; turnSnapshots = []; starTargetIds = []; candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"]; pickerIndex = null; pickerDraft = null; restoredSession = false; targetError = ""; try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore unavailable storage */ } calculate(); });
+  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => { if ((state.selected.length || candidates.some(Boolean)) && !window.confirm("清除本局卡片與候選牌，重新開始？已按「紀錄本局」的牌局會保留。")) return; state = { turn: 1, selected: [] }; turnSnapshots = []; starTargetIds = []; candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"]; currentRecord = null; scoreEditing = false; pickerIndex = null; pickerDraft = null; restoredSession = false; targetError = ""; try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore unavailable storage */ } calculate(); });
   app.querySelector<HTMLButtonElement>("#undo")?.addEventListener("click", () => {
     const previous = turnSnapshots.pop();
     if (!previous) return;
+    startRecordCorrection();
     state = cloneState(previous.state);
     starTargetIds = cloneTargets(previous.starTargets);
     selectedCandidateKey = "";
@@ -457,7 +481,7 @@ function bindEvents() {
   app.querySelectorAll<HTMLButtonElement>("[data-picker-card]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, cardId: button.dataset.pickerCard as CardId }; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-picker-color]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, color: button.dataset.pickerColor as CardColor }; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-picker-cancel]").forEach(button => button.addEventListener("click", closeDialog));
-  app.querySelector<HTMLButtonElement>("[data-picker-apply]")?.addEventListener("click", () => { if (pickerIndex === null || !pickerDraft?.cardId) return; if (pickerIndex === -1) { pendingChoice = { cardId: pickerDraft.cardId, color: pickerDraft.color }; pickerIndex = null; pickerDraft = null; render(); return; } candidates[pickerIndex] = { cardId: pickerDraft.cardId, color: pickerDraft.color }; candidateColors[pickerIndex] = pickerDraft.color; pickerIndex = null; pickerDraft = null; calculate(); app.querySelector<HTMLElement>(returnFocus)?.focus(); });
+  app.querySelector<HTMLButtonElement>("[data-picker-apply]")?.addEventListener("click", () => { if (pickerIndex === null || !pickerDraft?.cardId) return; if (pickerIndex === -1) { pendingChoice = { cardId: pickerDraft.cardId, color: pickerDraft.color }; pendingChoiceSource = "manual"; pickerIndex = null; pickerDraft = null; render(); return; } candidates[pickerIndex] = { cardId: pickerDraft.cardId, color: pickerDraft.color }; candidateColors[pickerIndex] = pickerDraft.color; pickerIndex = null; pickerDraft = null; calculate(); app.querySelector<HTMLElement>(returnFocus)?.focus(); });
   app.querySelector<HTMLButtonElement>("#add-history")?.addEventListener("click", () => { pickerSearch = ""; pickerCategory = "all"; returnFocus = "#add-history"; pickerIndex = -1; pickerDraft = { cardId: "", color: "blue" }; render(); });
   app.querySelectorAll<HTMLButtonElement>("[data-choose]").forEach(button => button.addEventListener("click", () => addHistory(button.dataset.choose as CardId, button.dataset.chooseColor as CardColor)));
   app.querySelectorAll<HTMLButtonElement>("[data-tower-proc]").forEach(button => button.addEventListener("click", () => { pendingTowerProc = button.dataset.towerProc === "true"; render(); }));
@@ -469,7 +493,195 @@ function bindEvents() {
     pendingOutcome = outcome;
     render();
   }));
-  app.querySelector<HTMLButtonElement>("[data-commit-outcome]")?.addEventListener("click", () => { if (!pendingOutcome || (pendingChoice?.cardId === "tower" && pendingTowerProc === null) || (pendingChoice?.cardId === "star" && removableCards().length && pendingRemovedCardId === null)) return; commitOutcome(pendingOutcome); });
+  app.querySelector<HTMLButtonElement>("[data-commit-outcome]")?.addEventListener("click", () => { if (!pendingOutcome || (pendingOutcome === "success" && pendingChoice?.cardId === "tower" && pendingTowerProc === null) || (pendingOutcome === "success" && pendingChoice?.cardId === "star" && removableCards().length && pendingRemovedCardId === null)) return; commitOutcome(pendingOutcome); });
+  app.querySelector<HTMLFormElement>("#actual-score-form")?.addEventListener("submit", event => {
+    event.preventDefault();
+    if (state.selected.length !== 5) return;
+    const raw = app.querySelector<HTMLInputElement>("#actual-final-score")!.value.trim();
+    const value = raw === "" ? null : Number(raw);
+    if (value !== null && (!Number.isSafeInteger(value) || value < 0)) { archiveNotice = "實得分數請填 0 或以上的整數，或留空。"; refreshArchiveBody(); return; }
+    if (scoreEditing) startRecordCorrection();
+    syncCurrentRecord();
+    if (!currentRecord) return;
+    currentRecord.status = "recorded";
+    currentRecord.actualFinalScore = value;
+    currentRecord.evidenceLevel = value === null ? null : app.querySelector<HTMLSelectElement>("#score-evidence")!.value as EvidenceLevel;
+    currentRecord.completedAt = new Date().toISOString();
+    currentRecord.updatedAt = currentRecord.completedAt;
+    scoreEditing = false;
+    archiveNotice = "已按你的操作紀錄本局；沒有自動上傳。";
+    persistSession();
+    queueRecordSave();
+    render();
+  });
+  app.querySelector<HTMLButtonElement>("#edit-actual-score")?.addEventListener("click", () => { scoreEditing = true; render(); app.querySelector<HTMLInputElement>("#actual-final-score")?.focus(); });
+  app.querySelector<HTMLButtonElement>("#cancel-score-edit")?.addEventListener("click", () => { scoreEditing = false; render(); });
+  bindArchiveEvents();
+  bindCloudEvents();
+}
+
+function bindCloudEvents() {
+  app.querySelector<HTMLButtonElement>("#cloud-sign-in")?.addEventListener("click", async () => {
+    try { cloudStatus = "正在前往 GitHub 登入…"; render(); await signInWithGitHub(); }
+    catch (error) { cloudStatus = error instanceof Error ? error.message : "無法開始 GitHub 登入"; render(); }
+  });
+  app.querySelector<HTMLButtonElement>("#cloud-sign-out")?.addEventListener("click", async () => {
+    try { await signOutCloud(); cloudUser = null; cloudStatus = "已登出；本機紀錄仍保留。"; render(); }
+    catch (error) { cloudStatus = error instanceof Error ? error.message : "登出失敗"; render(); }
+  });
+  app.querySelector<HTMLButtonElement>("#download-cloud-games")?.addEventListener("click", async () => {
+    try { const games = await downloadRecordedGames(); const count = await importGames(games); archiveGames = await listGames(); cloudStatus = `雲端 ${games.length} 局；新增 ${count.added} 局，略過相同 ${count.skipped} 局。`; }
+    catch (error) { cloudStatus = error instanceof Error ? error.message : "載入雲端牌局失敗"; }
+    render();
+  });
+  app.querySelector<HTMLButtonElement>("#upload-current-game")?.addEventListener("click", async () => {
+    if (!cloudUser || currentRecord?.status !== "recorded") return;
+    try { await uploadRecordedGame(currentRecord, cloudUser); cloudStatus = "本局已同步至你的雲端帳號。"; }
+    catch (error) { cloudStatus = error instanceof Error ? error.message : "本局同步失敗；本機紀錄仍保留。"; }
+    render();
+  });
+}
+
+function bindArchiveEvents() {
+  app.querySelector<HTMLButtonElement>("#export-real-games")?.addEventListener("click", async () => {
+    await recordSaveQueue;
+    const games = [...archiveGames];
+    if (currentRecord?.status === "recorded") {
+      const index = games.findIndex(game => game.id === currentRecord!.id);
+      if (index >= 0) games[index] = currentRecord;
+      else games.push(currentRecord);
+    }
+    const blob = new Blob([JSON.stringify(exportEnvelope(games), null, 2)], { type: "application/json" });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = `yuria-real-games-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(href), 30_000);
+  });
+  app.querySelector<HTMLInputElement>("#import-real-games")?.addEventListener("change", async event => {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > 5_000_000) throw new Error("檔案超過 5 MB，請分批匯入。");
+      const games = parseExport(JSON.parse(await file.text()));
+      const result = await importGames(games);
+      archiveGames = await listGames();
+      archiveNotice = `匯入 ${result.added} 局；略過重複 ${result.skipped} 局。`;
+    } catch (error) { archiveNotice = error instanceof Error ? error.message : "匯入失敗；沒有修改原有資料。"; }
+    refreshArchiveBody();
+  });
+}
+
+function renderActualScorePanel() {
+  if (state.selected.length !== 5) return "";
+  if (currentRecord?.status === "recorded" && !scoreEditing) return `<section class="real-score-panel panel"><h3>本局已記錄</h3><p>模型估算平均 ${summarizeScore(state.selected, RULES).meanScore.toFixed(1)} 分；遊戲實得 ${currentRecord.actualFinalScore === null ? "未填" : `${currentRecord.actualFinalScore.toLocaleString()} 分`}。兩者分開保存。</p><button type="button" class="secondary-action" id="edit-actual-score">更正本局紀錄</button></section>`;
+  return `<section class="real-score-panel panel"><h3>紀錄這一局</h3><p>五回合已完成；按下「紀錄本局」才加入本機紀錄。遊戲實得分數可留空，模型分數不會代填。</p><form id="actual-score-form"><label>遊戲實得分數（可留空） <input id="actual-final-score" type="number" min="0" step="1" value="${scoreEditing && currentRecord?.actualFinalScore !== null ? currentRecord?.actualFinalScore ?? "" : ""}" /></label><label>證據來源 <select id="score-evidence"><option value="player_report">玩家回報</option><option value="screen_verified">已核對遊戲畫面</option></select></label><button class="primary-action" type="submit">紀錄本局</button>${scoreEditing ? `<button class="text-action" type="button" id="cancel-score-edit">取消更正</button>` : ""}</form></section>`;
+}
+
+function wilsonInterval(success: number, total: number): string {
+  if (!total) return "樣本不足";
+  const z = 1.96;
+  const p = success / total;
+  const denominator = 1 + z * z / total;
+  const center = (p + z * z / (2 * total)) / denominator;
+  const spread = z * Math.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / denominator;
+  return `${Math.round((center - spread) * 100)}–${Math.round((center + spread) * 100)}%`;
+}
+
+function renderArchiveBody() {
+  const summary = summarizeRealGames(archiveGames);
+  const cardRows = [...summary.clickCounts].sort((a, b) => b[1].total - a[1].total).map(([id, count]) =>
+    `<li>${esc(cardName(id))}：點選 ${count.total} 次、成功 ${count.success} 次；${count.total >= 30 ? `成功率 ${Math.round(count.success / count.total * 100)}%（95% 區間 ${wilsonInterval(count.success, count.total)}）` : "樣本不足，暫不校準機率"}</li>`).join("");
+  const colorText = (color: CardColor) => `${colorLabel[color]} ${summary.offerColors[color]}`;
+  const entries = archiveGames.slice(0, 12).map(game => `<li><time>${esc(game.createdAt.slice(0, 10))}</time> · ${game.rounds.length}/5 回合 · ${game.actualFinalScore === null ? "實得分數未填" : `${game.actualFinalScore} 分`} · 修訂 ${game.revision}</li>`).join("");
+  return `<p role="status">${esc(archiveNotice)}</p><p>本機已記錄 ${summary.recordedCount} 局；有實得分數 ${summary.scoredCount} 局；五回合候選齊全 ${summary.completeWithOffersCount} 局。${summary.scoredCount < 30 ? "分數樣本不足，不顯示個人達標率。" : `實測平均 ${summary.averageScore!.toFixed(1)} 分。`}</p>
+    <p>完成局中的候選顏色紀錄：${colorText("blue")}／${colorText("purple")}／${colorText("red")}（共 ${summary.observedOffers} 張）。</p>
+    <p>終局預測與實得分數差：${summary.residualCount >= 30 ? `${summary.scoreResidualMean!.toFixed(1)} 分，n=${summary.residualCount}` : `樣本不足（${summary.residualCount}/30）`}。</p>
+    <details><summary>查看點選後成功次數</summary><ul>${cardRows || "<li>尚無完整實測</li>"}</ul><small>未點選牌不計為失敗；模擬局與舊五局分數不在這裡。</small></details>
+    <details><summary>查看最近牌局</summary><ul>${entries || "<li>尚無本機牌局</li>"}</ul></details>
+    <div class="archive-actions"><button type="button" class="secondary-action" id="export-real-games">匯出 JSON 備份</button><label>匯入 JSON <input id="import-real-games" type="file" accept="application/json,.json" /></label></div>
+    <small>資料只儲存在此瀏覽器；清除網站資料會遺失。JSON 可自行帶到另一台電腦匯入。沒有自動上傳。</small>`;
+}
+
+function startRecordCorrection() {
+  if (!currentRecord || currentRecord.status !== "recorded") return;
+  currentRecord.revisions.push({ at: new Date().toISOString(), previousScore: currentRecord.actualFinalScore, previousRounds: structuredClone(currentRecord.rounds) });
+  currentRecord.revision++;
+  currentRecord.status = "draft";
+  currentRecord.actualFinalScore = null;
+  currentRecord.evidenceLevel = null;
+  currentRecord.completedAt = null;
+  scoreEditing = false;
+}
+
+function syncCurrentRecord() {
+  if (!currentRecord && !state.selected.length) return;
+  if (!currentRecord) currentRecord = createGameRecord(CALCULATION_SEED, simulationCount);
+  currentRecord.rounds = state.selected.map((card, index): RealRound => {
+    const previous = currentRecord!.rounds[index];
+    return {
+      turn: index + 1,
+      offers: previous?.offers ?? null,
+      objective: previous?.objective ?? structuredClone(objective),
+      target: previous?.target ?? targetThreshold,
+      recommendedCardId: previous?.recommendedCardId ?? null,
+      predictions: previous?.predictions ?? null,
+      chosen: { cardId: card.cardId, color: card.color },
+      activated: card.activated,
+      towerProc: card.cardId === "tower" && card.activated ? card.towerProc ?? null : null,
+      starRemovedCardId: card.cardId === "star" && card.activated ? starTargetIds[index] ?? null : null
+    };
+  });
+  if (currentRecord.status !== "recorded") currentRecord.status = "draft";
+  currentRecord.updatedAt = new Date().toISOString();
+}
+
+function captureChosenRound(chosen: OfferedCard, activated: boolean): RealRound {
+  const hasObservedOffers = pendingChoiceSource === "candidate" && candidatesReady() && candidates.some(card => card?.cardId === chosen.cardId && card.color === chosen.color);
+  const offers = hasObservedOffers ? candidates.map(card => ({ cardId: card!.cardId, color: card!.color, catalogProbability: CARDS[card!.cardId].activationProbability, observedProbability: null })) as RealRound["offers"] : null;
+  const predictions = hasObservedOffers && result?.ranked.length === 3 ? result.ranked.map(metric => ({ cardId: metric.candidate.cardId, meanScore: metric.meanScore,
+    thresholdProbability: metric.thresholdProbability, p10: metric.p10, p50: metric.p50, p90: metric.p90, method: metric.method })) : null;
+  return { turn: state.selected.length + 1, offers, objective: structuredClone(objective), target: targetThreshold,
+    recommendedCardId: offers && result?.ranked[0] ? result.ranked[0].candidate.cardId : null, predictions,
+    chosen: { ...chosen }, activated, towerProc: chosen.cardId === "tower" && activated ? pendingTowerProc : null,
+    starRemovedCardId: chosen.cardId === "star" && activated ? pendingRemovedCardId : null };
+}
+
+function refreshArchiveBody() {
+  const body = app.querySelector<HTMLElement>("#real-archive-body");
+  if (body) { body.innerHTML = renderArchiveBody(); bindArchiveEvents(); }
+  const status = app.querySelector<HTMLElement>("#record-save-status");
+  if (status) status.textContent = archiveSaveState;
+}
+
+function queueRecordSave() {
+  if (!currentRecord || currentRecord.status !== "recorded") return;
+  const snapshot = structuredClone(currentRecord);
+  const cloudOwner = cloudUser;
+  archiveSaveState = "正在儲存牌局…";
+  recordSaveQueue = recordSaveQueue.then(async () => {
+    await saveGame(snapshot);
+    archiveGames = await listGames();
+    archiveSaveState = "已儲存於這台裝置";
+    refreshArchiveBody();
+    if (cloudOwner) {
+      try { await uploadRecordedGame(snapshot, cloudOwner); cloudStatus = "本局已同步至你的雲端帳號。"; }
+      catch (error) { cloudStatus = `本機已儲存；雲端同步失敗：${error instanceof Error ? error.message : "未知錯誤"}`; }
+      const cloudNode = app.querySelector<HTMLElement>("#cloud-status");
+      if (cloudNode) cloudNode.textContent = cloudStatus;
+    }
+  }).catch(() => {
+    archiveSaveState = "牌局資料庫儲存失敗；請先匯出 JSON，避免資料遺失。";
+    refreshArchiveBody();
+  });
+}
+
+async function loadArchive() {
+  try { archiveGames = await listGames(); archiveSaveState = "本機牌局資料庫已就緒"; }
+  catch { archiveSaveState = "牌局資料庫無法開啟；本局仍暫存在瀏覽器工作階段。"; }
+  refreshArchiveBody();
 }
 
 function starEditTargets(index: number): SelectedCard[] {
@@ -489,6 +701,7 @@ function editHistoryResult(index: number, activated: boolean) {
     render();
     return;
   }
+  startRecordCorrection();
   if (card.cardId === "star" && !activated && starTargetIds[index]) {
     const target = state.selected.find(item => item.cardId === starTargetIds[index]);
     if (target) target.removed = false;
@@ -513,6 +726,7 @@ function commitEditResult() {
   if (index === null) return;
   const card = state.selected[index];
   if (!card) return;
+  startRecordCorrection();
   if (card.cardId === "tower") {
     if (pendingEditTowerProc === null) return;
     card.towerProc = pendingEditTowerProc;
@@ -549,12 +763,13 @@ function addHistory(cardId?: CardId, color?: CardColor) {
   if (state.selected.length >= 5) return;
   if (!cardId || !color || state.selected.some(card => card.cardId === cardId)) return;
   pendingChoice = { cardId, color };
+  pendingChoiceSource = "candidate";
   returnFocus = `[data-choose="${cardId}"]`;
   render();
 }
 
 function closeDialog() {
-  pickerIndex = null; pickerDraft = null; pendingChoice = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
+  pickerIndex = null; pickerDraft = null; pendingChoice = null; pendingChoiceSource = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
   render();
   app.querySelector<HTMLElement>(returnFocus)?.focus();
 }
@@ -565,12 +780,15 @@ function removableCards() {
 
 function commitOutcome(outcome: "success" | "failure") {
   if (!pendingChoice || state.selected.length >= 5) return;
+  syncCurrentRecord();
+  currentRecord ??= createGameRecord(CALCULATION_SEED, simulationCount);
+  currentRecord.rounds.push(captureChosenRound(pendingChoice, outcome === "success"));
   snapshotCurrentState();
   if (pendingRemovedCardId) state.selected = state.selected.map(card => card.cardId === pendingRemovedCardId ? { ...card, removed: true } : card);
   state.selected.push({ ...pendingChoice, activated: outcome === "success", ...(outcome === "success" && pendingChoice.cardId === "tower" ? { towerProc: pendingTowerProc! } : {}) });
   starTargetIds = [...starTargetIds, pendingChoice.cardId === "star" ? pendingRemovedCardId : null];
   state.turn = Math.min(5, state.selected.length + 1) as GameState["turn"];
-  pendingChoice = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
+  pendingChoice = null; pendingChoiceSource = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
   candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"];
   calculate();
   app.querySelector<HTMLElement>(state.selected.length === 5 ? "#completion-title" : '[data-pick="0"]')?.focus();
@@ -587,5 +805,9 @@ function renderOutcomeDialog() {
 
 worker = createWorker();
 loadSession();
+syncCurrentRecord();
 render();
+void loadArchive();
+watchCloudAuth(user => { cloudUser = user; cloudStatus = user ? "已登入；新紀錄會在按下紀錄本局後同步。" : "尚未登入；本機紀錄仍可照常使用。"; render(); });
+void currentCloudUser().then(user => { if (user?.id !== cloudUser?.id) { cloudUser = user; render(); } }).catch(() => {});
 if (state.selected.length < 5 && candidatesReady()) calculate();

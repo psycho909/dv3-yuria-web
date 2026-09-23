@@ -5,6 +5,7 @@
 - `PROJECT.md`：定位、技術、分期、可信度原則
 - `SPEC.md`：完整功能與驗收規格
 - `ALGORITHM-DATA-STRUCTURE.md`：資料結構與推薦演算法
+- `RECOMMENDATION-ALGORITHM.md`：目前已實作的推薦、計分與模擬規則；日後調整以此核對現況
 - `WIREFRAME.md`：Mobile/Desktop Wireframe、Component Tree、RWD
 
 建議開發順序：
@@ -30,7 +31,7 @@
 - 達標率與預期分數的雙重推薦；達標率全為 0 時改列預期分數最高選項
 - 5 局實測與 30 局模型自我模擬統計、獎勵門檻、22 張牌目錄與公式限制
 - 真實五回合牌局：完成後按「紀錄本局」才存入 IndexedDB；遊戲實得分數可留空，並與模型估算分開顯示
-- 本機牌局 JSON 匯出／匯入、修訂紀錄及只讀統計；GitHub 登入與 Supabase 跨裝置同步程式已接入，OAuth provider 設定完成前不可登入
+- 本機牌局 JSON 匯出／匯入、修訂紀錄及只讀統計；GitHub 登入與 Supabase 跨裝置同步程式已接入
 
 在此目錄執行：
 
@@ -43,4 +44,4 @@ npm run dev
 
 新牌局先在本機操作。完成五回合後可留白或填入遊戲實得分數，再按「紀錄本局」；完成不會自動入庫。瀏覽器清除網站資料會移除 IndexedDB 紀錄，請用「匯出 JSON 備份」保存。舊五局總分與模擬局不會自動灌入此庫。資料結構、驗收及校準門檻見根目錄 `REAL_GAME_DATA_PLAN.md`。
 
-雲端專案為獨立的 Supabase `dv3-yuria`（ref `kihgibfacsvbmvvmohuc`），RLS 限定帳號只能讀寫自己的 `real_games`。前端只使用公開 publishable key。登入上線前，需在 [GitHub OAuth Apps](https://github.com/settings/developers) 建立應用程式：Homepage URL 為 `https://dv3-yuria-web.vercel.app/`，Authorization callback URL 為 `https://kihgibfacsvbmvvmohuc.supabase.co/auth/v1/callback`；再到 [Supabase GitHub provider](https://supabase.com/dashboard/project/kihgibfacsvbmvvmohuc/auth/providers) 填 Client ID／Secret，並將正式網站 URL 設為 Site URL、加入 Redirect URLs。**Secret 只在控制台輸入，不要放進 Git 或聊天。** 本機預覽若要測登入，另外將 `http://127.0.0.1:4174/` 加入允許的 Redirect URLs。OAuth 實際登入及跨帳號隔離目前仍待驗證。
+雲端專案為獨立的 Supabase `dv3-yuria`（ref `kihgibfacsvbmvvmohuc`），RLS 限定帳號只能讀寫自己的 `real_games`。前端只使用公開 publishable key。GitHub OAuth 已在正式站完成登入、登出、重新登入與空資料下載測試；完整牌局上傳、非空跨裝置下載、跨帳號隔離仍待驗證。**Secret 只在控制台輸入，不要放進 Git 或聊天。** 本機預覽若要測登入，另外將 `http://127.0.0.1:4174/` 加入允許的 Redirect URLs。詳細測試證據見根目錄 `HANDOFF-2026-09-22.md`。

@@ -16,8 +16,13 @@
 .candidate-slot-button strong { font-size: 14px; }
 .candidate-slot-button small { color: var(--muted); font-size: 10px; }
 .candidate-color-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; }
-.candidate-color-button { border: 1px solid var(--line); border-radius: 7px; padding: 7px 4px; font-size: 10px; font-weight: 800; }
-.candidate-color-button.blue { color: #182638; background: var(--blue); }.candidate-color-button.purple { color: #251b3d; background: var(--purple); }.candidate-color-button.red { color: #3b171b; background: var(--red); }
+.candidate-color-button { border: 1px solid var(--line); border-radius: 7px; padding: 7px 4px; font-size: 10px; font-weight: 800; background: #fff; }
+.candidate-color-button.blue, .picker-color.blue { color: #225c89; border-color: #225c89; }
+.candidate-color-button.purple, .picker-color.purple { color: #71439c; border-color: #71439c; }
+.candidate-color-button.red, .picker-color.red { color: #a1423e; border-color: #a1423e; }
+.candidate-color-button.blue.selected, .picker-color.blue.selected { color: #fff; background: #225c89; }
+.candidate-color-button.purple.selected, .picker-color.purple.selected { color: #fff; background: #71439c; }
+.candidate-color-button.red.selected, .picker-color.red.selected { color: #fff; background: #a1423e; }
 .candidate-color-button.selected { box-shadow: 0 0 0 2px var(--yellow); }.candidate-color-button:hover, .candidate-color-button:focus-visible { box-shadow: 0 0 0 2px rgba(247,199,108,.55); outline: none; }
 .edit-candidate { width: 100%; margin-top: 14px; border: 1px dashed var(--line); border-radius: 8px; padding: 8px; color: var(--muted); background: transparent; font-size: 11px; }
 .edit-candidate:hover, .edit-candidate:focus-visible { color: var(--cream); border-color: rgba(247,199,108,.55); outline: none; }
@@ -40,8 +45,7 @@
 .picker-card:disabled { cursor: not-allowed; opacity: .32; }
 .picker-card:disabled:hover { border-color: var(--line); background: rgba(255,255,255,.035); }
 .picker-color-options { display: flex; gap: 8px; margin-top: 12px; }
-.picker-color { flex: 1; border: 1px solid var(--line); border-radius: 9px; padding: 10px; font-size: 12px; font-weight: 800; }
-.picker-color.blue { color: #182638; background: var(--blue); }.picker-color.purple { color: #251b3d; background: var(--purple); }.picker-color.red { color: #3b171b; background: var(--red); }
+.picker-color { flex: 1; border: 1px solid var(--line); border-radius: 9px; padding: 10px; font-size: 12px; font-weight: 800; background: #fff; }
 .picker-color.selected, .picker-color:hover, .picker-color:focus-visible { box-shadow: 0 0 0 3px rgba(247,199,108,.35); outline: none; }
 .picker-footer { padding-top: 18px; color: var(--muted); font-size: 12px; }
 .picker-footer > div { display: flex; gap: 8px; }

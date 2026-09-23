@@ -398,4 +398,4 @@
 
 - 已重現：星星成功移除愚者後，將星星歷史結果改成失敗，愚者仍顯示已移除且保留「移除：愚者」，導致分數錯誤。
 - 修復：星星改為失敗會清除其移除目標並恢復該卡；改回成功或更換目標須明確選實際目標。高塔改為失敗會清掉分支，改回成功須選實際倍率。星星管理的移除勾選由其更正對話框操作，避免兩處狀態矛盾。
-- 本機證據：`tests/history-special-edit.cjs` 通過；`npm test` 15/15、typecheck、build 及 `tests/browser-acceptance.cjs` 18/18 通過，0 page error。正式站修復驗證與 deployment ID 待本次部署後回填。
+- 本機證據：`tests/history-special-edit.cjs` 通過；`npm test` 15/15、typecheck、build 及 `tests/browser-acceptance.cjs` 18/18 通過，0 page error。程式提交 `175294a` 已推送 GitHub；Vercel `dpl_57PMFmUAaLgZ9e8SKwuQ4MbT3Ybj` 為 `READY`／`production`，正式 alias HTTP 200 且載入 `index-Bm9x20Da.js`。正式站特殊卡更正與鍵盤記錄／撤回測試再次通過。

@@ -70,6 +70,13 @@ let cloudStatus = "GitHub 登入設定完成後可跨裝置同步；本機紀錄
 const detailOpen = new Map<string, boolean>();
 
 const STORAGE_KEY = "yuria-web-session-v1";
+const LAYOUT_MODE_KEY = "yuria-web-layout-mode-v1";
+type LayoutMode = "full" | "narrow";
+function readLayoutMode(): LayoutMode {
+  try { return localStorage.getItem(LAYOUT_MODE_KEY) === "narrow" ? "narrow" : "full"; }
+  catch { return "full"; }
+}
+let layoutMode: LayoutMode = readLayoutMode();
 const CALCULATION_SEED = 20260922;
 let worker: Worker | null = null;
 type WorkerMessage =
@@ -300,13 +307,13 @@ function render() {
   const workspaceTitle = state.selected.length === 5 ? "本局已完成" : resultReady ? "比較結果，選一張並記錄" : calculationStatus === "calculating" ? "正在計算推薦" : calculationStatus === "error" ? "推薦暫時無法更新" : "填入遊戲中的 3 張候選牌";
   const statusText = calculationStatus === "calculating" ? "計算中…" : calculationStatus === "error" ? "需要重試" : `${candidates.filter(Boolean).length} / 3 已填入`;
   const scoreMethod = scoreSummary.method === "exact" ? "紅色整數百分比完整枚舉" : "紅色效果取樣估算";
-  app.innerHTML = `<main class="shell">
+  app.innerHTML = `<main class="shell ${layoutMode === "narrow" ? "layout-narrow" : "layout-full"}">
     <header class="header">
       <div><p class="eyebrow">YURIA / 選牌助手</p><h1>尤里亞的占卜計算器</h1><p class="subhead">填入三張牌 → 比較推薦 → 記錄遊戲結果</p></div>
       <div class="header-meta"><span>目前估算平均</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div>
     </header>
     ${restoredSession ? `<div class="restored-note" role="status"><span>已恢復這台裝置上的上一局資料。</span><button type="button" class="text-action" id="dismiss-restored">知道了</button></div>` : ""}
-    <section class="control-bar panel">
+    <section class="control-bar panel"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div>
       <div class="control-group"><label>推薦目標</label><div class="segmented"><button data-objective="threshold" class="${objective.kind === "threshold" ? "active" : ""}">達標率</button><button data-objective="expected" class="${objective.kind === "expected" ? "active" : ""}">預期分數</button><button data-objective="stability" class="${objective.kind === "stability" ? "active" : ""}">穩定</button></div></div>
       <label class="target-field">目標分數 <input id="target" type="number" min="0" step="100" value="${esc(targetInput)}" aria-invalid="${Boolean(targetError)}" aria-describedby="target-error" /><small id="target-error" class="field-error" ${targetError ? "" : "hidden"}>${esc(targetError)}</small></label>
       <label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label>
@@ -452,6 +459,11 @@ function bindEvents() {
   app.querySelector<HTMLButtonElement>("#clear-search")?.addEventListener("click", () => { pickerSearch = ""; render(); app.querySelector<HTMLInputElement>("#card-search")?.focus(); });
   app.querySelectorAll<HTMLButtonElement>("[data-picker-category]").forEach(button => button.addEventListener("click", () => { pickerCategory = button.dataset.pickerCategory as typeof pickerCategory; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-objective]").forEach(button => button.addEventListener("click", () => { const kind = button.dataset.objective as Objective["kind"]; objective = kind === "threshold" ? { kind, target: targetThreshold } : { kind }; calculate(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-layout-mode]").forEach(button => button.addEventListener("click", () => {
+    layoutMode = button.dataset.layoutMode === "narrow" ? "narrow" : "full";
+    try { localStorage.setItem(LAYOUT_MODE_KEY, layoutMode); } catch { /* keep the current view for this session */ }
+    render();
+  }));
   app.querySelector<HTMLInputElement>("#target")?.addEventListener("change", event => { targetInput = (event.target as HTMLInputElement).value.trim(); const target = Number(targetInput); if (!targetInput || !Number.isInteger(target) || !Number.isFinite(target) || target < 0) { cancelPendingCalculation(); result = null; calculationStatus = "idle"; calculationError = ""; targetError = "請輸入 0 或以上的整數分數。"; render(); return; } targetError = ""; targetThreshold = target; if (objective.kind === "threshold") objective = { kind: "threshold", target }; calculate(); });
   app.querySelector<HTMLSelectElement>("#simulations")?.addEventListener("change", event => { simulationCount = Number((event.target as HTMLSelectElement).value); calculate(); });
   app.querySelector<HTMLButtonElement>("#calculate")?.addEventListener("click", calculate);

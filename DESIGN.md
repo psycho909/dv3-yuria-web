@@ -348,6 +348,7 @@
 
 ### Production deployment
 
+- 2026-09-23 更新：效能程式提交 `91dfbfa` 已推送 `origin/main`；Vercel deployment `dpl_fE6M8DgMzsTfcPLiTApGaJJB3pfY` 為 `READY`／`production`，正式 alias 指向該 deployment。HTTP 200，HTML 載入 `index-Bl5Uvdlj.js`／`index-29OOJ2wB.css`；新版本 Edge 鍵盤記錄失敗與撤回通過、0 page error。下列為前一次完整瀏覽器 18／18 驗收快照。
 - Git：`dc144cb7c59cd7543290533bd786626fe568ecdc` 已推送至 `origin/main`，local／remote SHA 一致。
 - Vercel：`dpl_HEdVT5Hz3LZnvPog6shM2MjLpxgB`，`READY`、`production`；[Inspect deployment](https://vercel.com/psycho909s-projects/dv3-yuria-web/HEdVT5Hz3LZnvPog6shM2MjLpxgB)。
 - 公開網址：[dv3-yuria-web.vercel.app](https://dv3-yuria-web.vercel.app/)；HTTP 200、Age 0，公開 bundle 為 `index-cPFbVJmG.js`／`index-29OOJ2wB.css`。

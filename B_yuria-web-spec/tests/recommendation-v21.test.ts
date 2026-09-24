@@ -5,7 +5,7 @@ import { exactFinalDistribution, weightedMetrics } from "../src/recommendation-v
 
 const config: V21Config = {
   scenarioCount: 8,
-  pilotSamples: 4,
+  pilotSamples: 16,
   searchDepth: 2,
   seed: 20260924,
   target: 1500,

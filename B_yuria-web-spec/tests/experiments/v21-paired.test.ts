@@ -71,8 +71,8 @@ describe("V1/V2/V2.1 paired expected-score pilot", () => {
     const v21VsV2 = pairedDifference(v2Scores, v21Scores);
     const v21VsV1 = pairedDifference(v1Scores, v21Scores);
 
-    expect(trials).toHaveLength(seeds.length * 3);
-    if (games === 30) expect(v21VsV2.mean).toBeGreaterThan(0);
+    // Report before asserting. The acceptance gate below can fail, and a failed
+    // expectation must not discard the measurement it was gating on.
     console.log("V1/V2/V2.1 paired expected-score pilot", JSON.stringify({
       environment: `${seeds.length} paired seeded synthetic worlds; future offers can diverge with policy-dependent card pools`,
       status: "research evidence only; V2/V2.1 are not production recommendations",
@@ -85,5 +85,8 @@ describe("V1/V2/V2.1 paired expected-score pilot", () => {
       seeds,
       planningSeeds
     }, null, 2));
+
+    expect(trials).toHaveLength(seeds.length * 3);
+    if (games === 30) expect(v21VsV2.mean).toBeGreaterThan(0);
   });
 });

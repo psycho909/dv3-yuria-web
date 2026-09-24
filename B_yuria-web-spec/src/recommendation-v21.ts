@@ -1,9 +1,9 @@
 // Experimental V2.1 planner. The production worker remains on V1.
 import {
-  CARDS, RULES, calculateScore, generateOffer, mulberry32, resolveSelection,
+  CARDS, CATEGORY_WEIGHTS, RULES, calculateScore, generateOffer, mulberry32, resolveSelection,
   type CardColor, type GameState, type Objective, type OfferedCard, type Rules, type SelectedCard
 } from "./domain";
-import { exactFinalDistribution, weightedMetrics, type WeightedScore } from "./recommendation-v2";
+import { exactFinalDistribution, weightedMetrics } from "./recommendation-v2";
 
 export interface V21Config {
   scenarioCount: number;
@@ -82,6 +82,7 @@ interface PlannerContext {
   cutoffStates: number;
   roundFiveStates: number;
   cacheHits: number;
+  profile: { actionPartsMs: number; exactMs: number; cutoffMs: number; roundFiveMs: number; actionMs: number };
 }
 
 const RULES_VERSION = "yuria-rules-20260922-a";
@@ -122,7 +123,8 @@ function makeContext(config: V21Config): PlannerContext {
     config, rules, configKey,
     decisionCache: new Map(), actionCache: new Map(), actionPartsCache: new Map(),
     cutoffCache: new Map(), roundFiveCache: new Map(), exactCache: new Map(),
-    cutoffStates: 0, roundFiveStates: 0, cacheHits: 0
+    cutoffStates: 0, roundFiveStates: 0, cacheHits: 0,
+    profile: { actionPartsMs: 0, exactMs: 0, cutoffMs: 0, roundFiveMs: 0, actionMs: 0 }
   };
 }
 
@@ -130,8 +132,8 @@ function validateConfig(config: V21Config, objective?: Objective): void {
   if (!Number.isInteger(config.scenarioCount) || config.scenarioCount < 1 || config.scenarioCount > 256) {
     throw new Error("V2.1 scenarioCount must be an integer from 1 to 256");
   }
-  if (!Number.isInteger(config.pilotSamples) || config.pilotSamples < 1 || config.pilotSamples > 64) {
-    throw new Error("V2.1 pilotSamples must be an integer from 1 to 64");
+  if (![16, 32, 64].includes(config.pilotSamples)) {
+    throw new Error("V2.1 pilotSamples must be 16, 32, or 64");
   }
   if (![1, 2].includes(config.searchDepth)) throw new Error("V2.1 searchDepth must be 1 or 2");
   if (!Number.isInteger(config.seed) || !Number.isFinite(config.target) || config.target < 0) {
@@ -187,7 +189,8 @@ function scoreParts(cards: readonly SelectedCard[], rules: Rules): ScoreParts {
 
 function scoreFromParts(parts: ScoreParts, rules: Rules): number {
   const sum = parts.baseSum + (BLUE_BONUS[parts.colors.blue] ?? 0);
-  const multiplier = 1 + parts.multiplierAdd + (PURPLE_BONUS[parts.colors.purple] ?? 0);
+  const multiplierAdd = parts.multiplierAdd + (PURPLE_BONUS[parts.colors.purple] ?? 0);
+  const multiplier = 1 + multiplierAdd;
   const range = RED_RANGE[parts.colors.red];
   if (!range) return Math.floor(sum * multiplier);
   let total = 0;
@@ -201,6 +204,18 @@ function scoreFromParts(parts: ScoreParts, rules: Rules): number {
 export function expectedScoreForStateV21(cards: readonly SelectedCard[], rules: Rules = RULES): number {
   if (rules.redRollMode !== "integerPercent") throw new Error("V2.1 exact terminal evaluation requires integerPercent red rolls");
   return scoreFromParts(scoreParts(cards, rules), rules);
+}
+
+export function expectedFinalActionScoreV21(
+  selected: readonly SelectedCard[],
+  candidate: OfferedCard,
+  rules: Rules = RULES
+): number {
+  if (rules.redRollMode !== "integerPercent") throw new Error("V2.1 exact terminal evaluation requires integerPercent red rolls");
+  return selectionOutcomes(selected, candidate, rules).reduce(
+    (sum, branch) => sum + branch.weight * scoreFromParts(scoreParts(branch.cards, rules), rules),
+    0
+  );
 }
 
 function selectionOutcomes(selected: readonly SelectedCard[], offer: OfferedCard, rules: Rules): Array<{ cards: SelectedCard[]; weight: number }> {
@@ -230,8 +245,9 @@ function exactActionValue(state: GameState, candidate: OfferedCard, ctx: Planner
   const cacheKey = `${ctx.configKey}|exact|${selectedKey(state)}|${cardKey(candidate)}`;
   const cached = ctx.exactCache.get(cacheKey);
   if (cached !== undefined) { ctx.cacheHits++; return cached; }
-  const distribution: WeightedScore[] = exactFinalDistribution(state.selected, candidate, ctx.rules);
-  const value = weightedMetrics(distribution, ctx.config.target).expectedScore;
+  const started = performance.now();
+  const value = expectedFinalActionScoreV21(state.selected, candidate, ctx.rules);
+  ctx.profile.exactMs += performance.now() - started;
   ctx.exactCache.set(cacheKey, value);
   return value;
 }
@@ -240,6 +256,7 @@ function actionParts(state: GameState, candidate: OfferedCard, ctx: PlannerConte
   const key = `${ctx.configKey}|parts|${selectedKey(state)}|${cardKey(candidate)}|${Number(includeRoundFiveTail)}`;
   const cached = ctx.actionPartsCache.get(key);
   if (cached) { ctx.cacheHits++; return cached; }
+  const started = performance.now();
 
   const before = scoreParts(state.selected, ctx.rules);
   const baseline = scoreFromParts(before, ctx.rules);
@@ -279,6 +296,7 @@ function actionParts(state: GameState, candidate: OfferedCard, ctx: PlannerConte
     total.specialPotential += branch.weight * branchParts.specialPotential;
   }
   ctx.actionPartsCache.set(key, total);
+  ctx.profile.actionPartsMs += performance.now() - started;
   return total;
 }
 
@@ -294,6 +312,7 @@ function roundFiveContinuationValue(state: GameState, ctx: PlannerContext): numb
   const key = `${ctx.configKey}|round5|${selectedKey(state)}`;
   const cached = ctx.roundFiveCache.get(key);
   if (cached !== undefined) { ctx.cacheHits++; return cached; }
+  const started = performance.now();
   ctx.roundFiveStates++;
   let sum = 0;
   for (let sample = 0; sample < ctx.config.pilotSamples; sample++) {
@@ -302,6 +321,7 @@ function roundFiveContinuationValue(state: GameState, ctx: PlannerContext): numb
   }
   const value = sum / ctx.config.pilotSamples;
   ctx.roundFiveCache.set(key, value);
+  ctx.profile.roundFiveMs += performance.now() - started;
   return value;
 }
 
@@ -309,30 +329,56 @@ function estimateStateInternal(state: GameState, ctx: PlannerContext): V21Cutoff
   const key = `${ctx.configKey}|cutoff|${selectedKey(state)}`;
   const cached = ctx.cutoffCache.get(key);
   if (cached) { ctx.cacheHits++; return cached; }
+  const started = performance.now();
   ctx.cutoffStates++;
   const baseExpectedScore = scoreFromParts(scoreParts(state.selected, ctx.rules), ctx.rules);
   const sum: ValueParts = { remainingRoundPotential: 0, colorPotential: 0, multiplierPotential: 0, specialPotential: 0 };
 
-  // Estimate each still-open decision from the real future offer model. The
-  // next-to-last pick includes the exact Round 5 solver when its branch reaches
-  // four selected cards; earlier opportunities use deterministic one-step EV.
-  for (let turn = state.turn; turn <= 4; turn++) {
-    const turnSum: ValueParts = { remainingRoundPotential: 0, colorPotential: 0, multiplierPotential: 0, specialPotential: 0 };
-    for (let sample = 0; sample < ctx.config.pilotSamples; sample++) {
-      const offers = generateOffer(stream(ctx.config.seed, sample, turn, 0x21c0), state.selected, turn, ctx.rules);
-      const actions = offers.map(candidate => actionParts(state, candidate, ctx, true));
-      const bestIndex = actions.reduce((best, value, index) =>
-        partsTotal(value) > partsTotal(actions[best]!) || (partsTotal(value) === partsTotal(actions[best]!) && cardKey(offers[index]!) < cardKey(offers[best]!)) ? index : best, 0);
-      const chosen = actions[bestIndex]!;
-      turnSum.remainingRoundPotential += chosen.remainingRoundPotential;
-      turnSum.colorPotential += chosen.colorPotential;
-      turnSum.multiplierPotential += chosen.multiplierPotential;
-      turnSum.specialPotential += chosen.specialPotential;
+  // The cutoff averages each remaining card category once, then evaluates the
+  // category triples using the same early/final weights as generateOffer().
+  // Future actions on searched nodes still use pilot samples; this avoids
+  // nesting another pilot loop inside every leaf of the bounded search.
+  const categories = ["score", "multiplier", "special"] as const;
+  const used = new Set(state.selected.map(card => card.cardId));
+  const categoryValues = new Map<(typeof categories)[number], ValueParts>();
+  for (const category of categories) {
+    const cards = Object.values(CARDS).filter(card => card.category === category && !used.has(card.id));
+    const average: ValueParts = { remainingRoundPotential: 0, colorPotential: 0, multiplierPotential: 0, specialPotential: 0 };
+    let count = 0;
+    for (const card of cards) for (const color of ["blue", "purple", "red"] as const) {
+      const parts = actionParts(state, { cardId: card.id, color }, ctx, false);
+      average.remainingRoundPotential += parts.remainingRoundPotential;
+      average.colorPotential += parts.colorPotential;
+      average.multiplierPotential += parts.multiplierPotential;
+      average.specialPotential += parts.specialPotential;
+      count++;
     }
-    sum.remainingRoundPotential += turnSum.remainingRoundPotential / ctx.config.pilotSamples;
-    sum.colorPotential += turnSum.colorPotential / ctx.config.pilotSamples;
-    sum.multiplierPotential += turnSum.multiplierPotential / ctx.config.pilotSamples;
-    sum.specialPotential += turnSum.specialPotential / ctx.config.pilotSamples;
+    if (count) {
+      average.remainingRoundPotential /= count;
+      average.colorPotential /= count;
+      average.multiplierPotential /= count;
+      average.specialPotential /= count;
+      categoryValues.set(category, average);
+    }
+  }
+
+  for (let turn = state.turn; turn <= 5; turn++) {
+    const weights = turn === 5 ? CATEGORY_WEIGHTS.final : CATEGORY_WEIGHTS.early;
+    const totalWeight = categories.reduce((total, category) => total + (categoryValues.has(category) ? weights[category] : 0), 0);
+    if (!totalWeight) continue;
+    const probability = (category: (typeof categories)[number]) => categoryValues.has(category) ? weights[category] / totalWeight : 0;
+    for (const first of categories) for (const second of categories) for (const third of categories) {
+      const offerProbability = probability(first) * probability(second) * probability(third);
+      if (!offerProbability) continue;
+      const offerValues = [categoryValues.get(first)!, categoryValues.get(second)!, categoryValues.get(third)!];
+      const bestIndex = offerValues.reduce((best, value, index) =>
+        partsTotal(value) > partsTotal(offerValues[best]!) ? index : best, 0);
+      const chosen = offerValues[bestIndex]!;
+      sum.remainingRoundPotential += offerProbability * chosen.remainingRoundPotential;
+      sum.colorPotential += offerProbability * chosen.colorPotential;
+      sum.multiplierPotential += offerProbability * chosen.multiplierPotential;
+      sum.specialPotential += offerProbability * chosen.specialPotential;
+    }
   }
 
   const estimate: V21CutoffEstimate = {
@@ -342,6 +388,7 @@ function estimateStateInternal(state: GameState, ctx: PlannerContext): V21Cutoff
     value: baseExpectedScore + partsTotal(sum)
   };
   ctx.cutoffCache.set(key, estimate);
+  ctx.profile.cutoffMs += performance.now() - started;
   return estimate;
 }
 
@@ -350,6 +397,7 @@ function actionValue(state: GameState, candidate: OfferedCard, depthRemaining: n
   const key = `${ctx.configKey}|action|${selectedKey(state)}|${cardKey(candidate)}|${boundedDepth}`;
   const cached = ctx.actionCache.get(key);
   if (cached !== undefined) { ctx.cacheHits++; return cached; }
+  const started = performance.now();
 
   if (state.turn === 5) {
     const value = exactActionValue(state, candidate, ctx);
@@ -376,6 +424,7 @@ function actionValue(state: GameState, candidate: OfferedCard, depthRemaining: n
     expected += branch.weight * branchValue;
   }
   ctx.actionCache.set(key, expected);
+  ctx.profile.actionMs += performance.now() - started;
   return expected;
 }
 
@@ -433,7 +482,8 @@ export function recommendCandidatesV21(
   if (candidates.length !== 3 || new Set(candidates.map(card => card.cardId)).size !== 3) throw new Error("Exactly three distinct candidates required");
   if (candidates.some(candidate => state.selected.some(card => card.cardId === candidate.cardId))) throw new Error("Candidate was already selected");
   const ctx = makeContext(config);
-  const results = candidates.map(candidate => {
+  const orderedCandidates = [...candidates].sort((a, b) => cardKey(a).localeCompare(cardKey(b)));
+  const results = orderedCandidates.map(candidate => {
     if (state.turn === 5) {
       const distribution = exactFinalDistribution(state.selected, candidate, ctx.rules);
       const exact = weightedMetrics(distribution, config.target);
@@ -451,6 +501,7 @@ export function recommendCandidatesV21(
       diagnostics: { scenarioCount: config.scenarioCount, pilotSamples: config.pilotSamples, searchDepth: config.searchDepth, seed: config.seed, cutoffStates: ctx.cutoffStates, roundFiveStates: ctx.roundFiveStates, cacheHits: ctx.cacheHits }
     };
   });
+  if (config.seed === 1 && config.scenarioCount === 256 && config.pilotSamples === 32) console.log("V2.1 profile", JSON.stringify(ctx.profile));
   return results.sort(compareExpected).map((item, index) => ({ ...item, rank: index + 1 }));
 }
 

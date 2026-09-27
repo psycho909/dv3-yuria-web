@@ -281,10 +281,12 @@ function renderCandidate(slotIndex: number, metric: NonNullable<typeof result>["
     <button class="card-face ${colorClass[metric.candidate.color]}" data-pick="${slotIndex}" aria-label="修改${esc(card.name)}">${cardFace(card.id)}</button>
     <div class="metric-main"><span>${primary.label}</span><strong>${primary.value}</strong></div>
     <div class="metric-row"><span>${objective.kind === "threshold" ? "預期最終分數" : `達到 ${targetThreshold.toLocaleString()} 分`}</span><strong>${objective.kind === "threshold" ? metric.meanScore.toFixed(1) : targetLabel}</strong></div>
+    <details class="metric-details" data-detail-key="metric-${slotIndex}"${detailAttribute(`metric-${slotIndex}`)}><summary>查看分數範圍與風險</summary>
     <div class="metric-row"><span>${objective.kind === "stability" ? "預期最終分數" : "保守分數 P10"}</span><strong>${objective.kind === "stability" ? metric.meanScore.toFixed(1) : metric.p10.toLocaleString()}</strong></div>
     <div class="metric-row"><span>模型分數範圍</span><strong>${metric.minScore.toLocaleString()}～${metric.maxScore.toLocaleString()}</strong></div>
     <div class="percentile"><span>P10 ${metric.p10}</span><span>P50 ${metric.p50}</span><span>P90 ${metric.p90}</span></div>
-    <div class="activation">點選獲得率 <b>${Math.round(card.activationProbability * 100)}%</b></div>
+    <p class="metric-help">P10 是模型中約 10% 結果低於的分數，不是保證最低分。</p></details>
+    <div class="activation">卡片啟用機率 <b>${Math.round(card.activationProbability * 100)}%</b></div>
     <button type="button" class="edit-candidate" data-pick="${slotIndex}">編輯卡片／顏色</button>
     <button class="choose-card" data-choose="${metric.candidate.cardId}" data-choose-color="${metric.candidate.color}">選擇這張</button>
   </article>`;
@@ -313,12 +315,17 @@ function render() {
       <div class="header-meta"><span>目前估算平均</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div>
     </header>
     ${restoredSession ? `<div class="restored-note" role="status"><span>已恢復這台裝置上的上一局資料。</span><button type="button" class="text-action" id="dismiss-restored">知道了</button></div>` : ""}
-    <section class="control-bar panel"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div>
-      <div class="control-group"><label>推薦目標</label><div class="segmented"><button data-objective="threshold" class="${objective.kind === "threshold" ? "active" : ""}">達標率</button><button data-objective="expected" class="${objective.kind === "expected" ? "active" : ""}">預期分數</button><button data-objective="stability" class="${objective.kind === "stability" ? "active" : ""}">穩定</button></div></div>
+    <ol class="workflow" aria-label="選牌操作步驟">
+      <li ${!resultReady && state.selected.length < 5 ? 'aria-current="step"' : ""}><b>1</b><span><strong>填入三張候選牌</strong><small>照遊戲順序選牌，再確認顏色</small></span></li>
+      <li ${resultReady ? 'aria-current="step"' : ""}><b>2</b><span><strong>比較推薦，在遊戲選牌</strong><small>三張填齊後自動計算，不用按更新</small></span></li>
+      <li ${state.selected.length === 5 ? 'aria-current="step"' : ""}><b>3</b><span><strong>${state.selected.length === 5 ? "本局完成，儲存紀錄" : "回來記錄啟用結果"}</strong><small>按「選擇這張」，確認成功或失敗</small></span></li>
+    </ol>
+    <details class="goal-settings panel" data-detail-key="goal-settings"${detailAttribute("goal-settings")}><summary>推薦目標：${objective.kind === "threshold" ? `達到 ${targetThreshold.toLocaleString()} 分` : objective.kind === "expected" ? "提高預期分數" : "保守穩定"} · 修改</summary><section class="control-bar" aria-label="推薦設定">
+      <div class="control-group"><label>你希望怎麼選？</label><div class="segmented" role="group" aria-label="推薦目標"><button data-objective="threshold" aria-pressed="${objective.kind === "threshold"}" class="${objective.kind === "threshold" ? "active" : ""}">達標率</button><button data-objective="expected" aria-pressed="${objective.kind === "expected"}" class="${objective.kind === "expected" ? "active" : ""}">預期分數</button><button data-objective="stability" aria-pressed="${objective.kind === "stability"}" class="${objective.kind === "stability" ? "active" : ""}">穩定</button></div><small class="goal-help">${objective.kind === "threshold" ? "提高達到目標分數的機會" : objective.kind === "expected" ? "優先選平均最終分數較高的牌" : "優先選較保守的結果，不代表保證分數"}</small></div>
       <label class="target-field">目標分數 <input id="target" type="number" min="0" step="100" value="${esc(targetInput)}" aria-invalid="${Boolean(targetError)}" aria-describedby="target-error" /><small id="target-error" class="field-error" ${targetError ? "" : "hidden"}>${esc(targetError)}</small></label>
-      <label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label>
       <button class="primary-action" id="calculate" aria-live="polite" ${!candidatesReady() || state.selected.length === 5 || calculationStatus === "calculating" || targetError ? "disabled" : ""}>${calculationStatus === "error" ? "重試計算" : calculationStatus === "calculating" ? "計算中…" : "更新推薦"}</button>
-    </section>
+    </section></details>
+    <details class="advanced-settings" data-detail-key="advanced-settings"${detailAttribute("advanced-settings")}><summary>進階設定 · 版面寬度與模擬次數</summary><div class="advanced-fields"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div><label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label></div></details>
     <div class="layout">
       <section class="workspace"><div class="workspace-heading"><div><p class="eyebrow">第 ${state.turn} / 5 回合</p><h2>${workspaceTitle}</h2></div><span class="calculation-time" aria-live="polite">${statusText}</span></div>
         ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>可撤回上一回合修正，或重設本局重新開始。</p></section>` : `<div class="candidate-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
@@ -330,7 +337,7 @@ function render() {
           <div class="progress"><span style="width:${state.selected.length * 20}%"></span></div>
           <div class="color-counts"><span class="blue-text">藍 ${activeCounts.blue}</span><span class="purple-text">紫 ${activeCounts.purple}</span><span class="red-text">紅 ${activeCounts.red}</span></div>
           <div class="history-actions">${state.selected.length ? `<button class="secondary-action" id="undo">撤回上一回合</button>` : `<span class="history-hint">先填入本回合候選牌</span>`}<button class="secondary-action" id="reset">↺ 重設本局</button></div>
-          <div class="history-list">${renderHistory()}</div>
+          <p class="history-hint">${state.selected.length ? "這裡是已記錄的結果；填錯可更正或撤回。" : "新牌局不用填這裡。已玩到一半？可補登先前的卡片。"}</p><div class="history-list">${renderHistory()}</div>
         </section>
         <details class="supplement"><summary>查看統計與實測</summary>${renderEvidencePanel()}</details>
         <details class="supplement real-archive" data-detail-key="real-archive"${detailAttribute("real-archive")}><summary>真實牌局紀錄</summary><section class="panel real-archive-panel"><p id="record-save-status" role="status">${esc(archiveSaveState)}</p><div id="real-archive-body">${renderArchiveBody()}</div></section></details>

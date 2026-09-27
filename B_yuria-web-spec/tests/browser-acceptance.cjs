@@ -35,6 +35,16 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
   const fresh = async () => { await page.goto(url); await page.evaluate(() => localStorage.removeItem('yuria-web-session-v1')); await page.reload(); };
   try {
     await page.goto(url);
+    await check('guided-settings', async () => {
+      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /填入三張/);
+      assert.equal(await page.locator('.advanced-settings').evaluate(el => el.open), false);
+      await page.locator('.advanced-settings > summary').focus();
+      await page.keyboard.press('Enter');
+      await page.locator('[data-layout-mode="narrow"]').click();
+      assert.equal(await page.locator('.advanced-settings').evaluate(el => el.open), true);
+      await page.locator('[data-layout-mode="full"]').click();
+      await page.locator('.advanced-settings > summary').click();
+    });
     for (const width of [375, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       const layout = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: getComputedStyle(document.body).backgroundColor }));
@@ -73,6 +83,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await add('star', 'success', 'purple', '[data-remove-card="magician"]');
       await add('moon', 'success', 'red');
       assert.equal(await page.locator('#completion-title').count(), 1);
+      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /本局完成/);
       assert.equal(await page.locator('[data-pick]').count(), 0);
       assert.equal((await stored()).state.selected.length, 5);
       await page.screenshot({ path: path.join(out, 'completed-1440.png'), fullPage: true });
@@ -88,6 +99,12 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
       const ids = () => page.locator('[data-choose]').evaluateAll(els => els.map(el => el.dataset.choose));
       assert.deepEqual(await ids(), ['fool', 'strength', 'moon']);
+      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /比較推薦/);
+      assert.equal(await page.locator('.metric-details').first().evaluate(el => el.open), false);
+      await page.locator('.metric-details > summary').first().click();
+      assert.equal(await page.locator('.metric-help').first().isVisible(), true);
+      await page.locator('.metric-details > summary').first().click();
+      await page.locator('.goal-settings > summary').click();
       for (const [mode, label] of [['expected', '預期最終分數'], ['stability', '保守分數 P10'], ['threshold', '達到 1,500 分']]) {
         await page.locator(`[data-objective="${mode}"]`).click();
         await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
@@ -108,6 +125,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     await check('mobile-final-turn-exact-zero', async () => {
       await page.setViewportSize({ width: 375, height: 812 });
       for (const id of ['fool', 'magician', 'empress', 'strength']) await add(id);
+      await page.locator('.goal-settings > summary').click();
       await page.locator('#target').fill('1000000');
       await page.locator('#target').press('Tab');
       for (const [i, id] of ['moon', 'tower', 'star'].entries()) await select(`[data-pick="${i}"]`, id);

@@ -46,7 +46,7 @@ export const RULES: Rules = {
   failureScore: 20,
   sunCountsSelf: true,
   redRollMode: "integerPercent",
-  futureColorModel: "independentUniform",
+  futureColorModel: "oneEach",
   starRemovalPolicy: "uniformPresent"
 };
 
@@ -149,7 +149,9 @@ const CARDS_BY_CATEGORY: Record<CardCategory, CardDefinition[]> = {
 
 export function generateOffer(rng: Rng, selected: SelectedCard[], turn: number, rules: Rules = RULES): OfferedCard[] {
   const used = new Set(selected.map(c => c.cardId)); const offered = new Set<CardId>(); const result: OfferedCard[] = [];
-  for (let i = 0; i < 3; i++) { const color = rules.futureColorModel === "oneEach" ? COLORS[i]! : pick(rng, COLORS); let pool: CardDefinition[] = []; for (let attempt = 0; attempt < 20; attempt++) { const kind = category(rng, turn); pool = CARDS_BY_CATEGORY[kind].filter(c => !used.has(c.id) && !offered.has(c.id)); if (pool.length) break; } if (!pool.length) pool = CARD_DEFINITIONS.filter(c => !used.has(c.id) && !offered.has(c.id)); const card = pick(rng, pool); offered.add(card.id); result.push({ cardId: card.id, color }); }
+  const colors = [...COLORS];
+  if (rules.futureColorModel === "oneEach") for (let i = colors.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [colors[i], colors[j]] = [colors[j]!, colors[i]!]; }
+  for (let i = 0; i < 3; i++) { const color = rules.futureColorModel === "oneEach" ? colors[i]! : pick(rng, COLORS); let pool: CardDefinition[] = []; for (let attempt = 0; attempt < 20; attempt++) { const kind = category(rng, turn); pool = CARDS_BY_CATEGORY[kind].filter(c => !used.has(c.id) && !offered.has(c.id)); if (pool.length) break; } if (!pool.length) pool = CARD_DEFINITIONS.filter(c => !used.has(c.id) && !offered.has(c.id)); const card = pick(rng, pool); offered.add(card.id); result.push({ cardId: card.id, color }); }
   return result;
 }
 

@@ -3,6 +3,7 @@ import {
   CARDS,
   RULES,
   calculateScore,
+  generateOffer,
   mulberry32,
   recommend,
   resolveSelection,
@@ -14,6 +15,19 @@ const active = (cardId: SelectedCard["cardId"], color: SelectedCard["color"]): S
 const failed = (cardId: SelectedCard["cardId"], color: SelectedCard["color"]): SelectedCard => ({ cardId, color, activated: false });
 
 describe("deterministic score engine", () => {
+  it("offers one of each color in varying positions without repeating cards", () => {
+    expect(RULES.futureColorModel).toBe("oneEach");
+    const orders = new Set<string>();
+    for (let seed = 0; seed < 20; seed++) for (let turn = 1; turn <= 5; turn++) {
+      const offer = generateOffer(mulberry32(seed), [active("fool", "blue")], turn);
+      expect(offer.map(card => card.color).sort()).toEqual(["blue", "purple", "red"]);
+      expect(new Set(offer.map(card => card.cardId)).size).toBe(3);
+      expect(offer.some(card => card.cardId === "fool")).toBe(false);
+      orders.add(offer.map(card => card.color).join(","));
+    }
+    expect(orders.size).toBeGreaterThan(1);
+    expect(generateOffer(() => 0, [], 1, { ...RULES, futureColorModel: "independentUniform" }).map(card => card.color)).toEqual(["blue", "blue", "blue"]);
+  });
   it("applies the blue two-card tier once", () => {
     const result = calculateScore([active("fool", "blue"), active("magician", "blue")], () => 0, RULES);
 
@@ -195,9 +209,9 @@ describe("recommendation reproducibility", () => {
       p90: metric.p90,
       thresholdProbability: metric.thresholdProbability
     }))).toEqual([
-      { cardId: "death", meanScore: 980.5916666666667, p10: 390, p50: 903, p90: 1672, thresholdProbability: .225 },
-      { cardId: "magician", meanScore: 1021.5833333333334, p10: 408, p50: 951, p90: 1678, thresholdProbability: 26 / 120 },
-      { cardId: "lovers", meanScore: 978.8166666666667, p10: 364, p50: 900, p90: 1603, thresholdProbability: 23 / 120 }
+      { cardId: "magician", meanScore: 1103.1916666666666, p10: 494, p50: 996, p90: 1681, thresholdProbability: 30 / 120 },
+      { cardId: "lovers", meanScore: 1077.625, p10: 500, p50: 979, p90: 1688, thresholdProbability: 25 / 120 },
+      { cardId: "death", meanScore: 1001.225, p10: 476, p50: 924, p90: 1548, thresholdProbability: 16 / 120 }
     ]);
   });
 

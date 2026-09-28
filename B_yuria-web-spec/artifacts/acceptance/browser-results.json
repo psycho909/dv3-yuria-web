@@ -1,7 +1,7 @@
 {
   "url": "http://127.0.0.1:4174",
   "browser": "154.0.4258.37",
-  "date": "2026-09-27T14:25:17.045Z",
+  "date": "2026-09-28T03:29:35.264Z",
   "checks": [
     {
       "name": "guided-settings",
@@ -50,6 +50,316 @@
     {
       "name": "cancel-1440",
       "pass": true
+    },
+    {
+      "name": "pc-empty-workbench-first-fold",
+      "pass": true,
+      "measurements": [
+        {
+          "width": 1024,
+          "height": 768,
+          "history": {
+            "top": 196,
+            "bottom": 354,
+            "width": 983
+          },
+          "candidates": {
+            "top": 424,
+            "bottom": 641,
+            "width": 983
+          },
+          "historyCard": {
+            "top": 274,
+            "bottom": 338,
+            "width": 176
+          },
+          "candidateCard": {
+            "top": 424,
+            "bottom": 641,
+            "width": 240
+          },
+          "scrollY": 0
+        },
+        {
+          "width": 1440,
+          "height": 900,
+          "history": {
+            "top": 205,
+            "bottom": 363,
+            "width": 1382
+          },
+          "candidates": {
+            "top": 434,
+            "bottom": 651,
+            "width": 1382
+          },
+          "historyCard": {
+            "top": 283,
+            "bottom": 347,
+            "width": 176
+          },
+          "candidateCard": {
+            "top": 434,
+            "bottom": 651,
+            "width": 240
+          },
+          "scrollY": 0
+        }
+      ]
+    },
+    {
+      "name": "pc-active-workbench-first-fold",
+      "pass": true,
+      "measurements": [
+        {
+          "selectedCount": 1,
+          "width": 1024,
+          "height": 768,
+          "history": {
+            "top": 196,
+            "bottom": 423,
+            "width": 983,
+            "height": 227
+          },
+          "candidates": {
+            "top": 493,
+            "bottom": 760,
+            "width": 983,
+            "height": 266
+          },
+          "historyCard": {
+            "top": 274,
+            "bottom": 407,
+            "width": 176,
+            "height": 133
+          },
+          "candidateCard": {
+            "top": 493,
+            "bottom": 760,
+            "width": 240,
+            "height": 266
+          },
+          "candidateFace": {
+            "top": 581,
+            "bottom": 702,
+            "width": 96,
+            "height": 120
+          },
+          "scrollY": 0
+        },
+        {
+          "selectedCount": 1,
+          "width": 1440,
+          "height": 900,
+          "history": {
+            "top": 205,
+            "bottom": 433,
+            "width": 1382,
+            "height": 227
+          },
+          "candidates": {
+            "top": 503,
+            "bottom": 769,
+            "width": 1382,
+            "height": 266
+          },
+          "historyCard": {
+            "top": 283,
+            "bottom": 417,
+            "width": 176,
+            "height": 133
+          },
+          "candidateCard": {
+            "top": 503,
+            "bottom": 769,
+            "width": 240,
+            "height": 266
+          },
+          "candidateFace": {
+            "top": 591,
+            "bottom": 711,
+            "width": 96,
+            "height": 120
+          },
+          "scrollY": 0
+        },
+        {
+          "selectedCount": 3,
+          "width": 1024,
+          "height": 768,
+          "history": {
+            "top": 196,
+            "bottom": 423,
+            "width": 983,
+            "height": 227
+          },
+          "candidates": {
+            "top": 493,
+            "bottom": 760,
+            "width": 983,
+            "height": 266
+          },
+          "historyCard": {
+            "top": 274,
+            "bottom": 407,
+            "width": 176,
+            "height": 133
+          },
+          "candidateCard": {
+            "top": 493,
+            "bottom": 760,
+            "width": 240,
+            "height": 266
+          },
+          "candidateFace": {
+            "top": 581,
+            "bottom": 702,
+            "width": 96,
+            "height": 120
+          },
+          "scrollY": 0
+        },
+        {
+          "selectedCount": 3,
+          "width": 1440,
+          "height": 900,
+          "history": {
+            "top": 205,
+            "bottom": 433,
+            "width": 1382,
+            "height": 227
+          },
+          "candidates": {
+            "top": 503,
+            "bottom": 769,
+            "width": 1382,
+            "height": 266
+          },
+          "historyCard": {
+            "top": 283,
+            "bottom": 417,
+            "width": 176,
+            "height": 133
+          },
+          "candidateCard": {
+            "top": 503,
+            "bottom": 769,
+            "width": 240,
+            "height": 266
+          },
+          "candidateFace": {
+            "top": 591,
+            "bottom": 711,
+            "width": 96,
+            "height": 120
+          },
+          "scrollY": 0
+        },
+        {
+          "selectedCount": 4,
+          "width": 1024,
+          "height": 768,
+          "history": {
+            "top": 196,
+            "bottom": 423,
+            "width": 983,
+            "height": 227
+          },
+          "candidates": {
+            "top": 493,
+            "bottom": 760,
+            "width": 983,
+            "height": 266
+          },
+          "historyCard": {
+            "top": 274,
+            "bottom": 407,
+            "width": 176,
+            "height": 133
+          },
+          "candidateCard": {
+            "top": 493,
+            "bottom": 760,
+            "width": 240,
+            "height": 266
+          },
+          "candidateFace": {
+            "top": 582,
+            "bottom": 702,
+            "width": 95,
+            "height": 119
+          },
+          "scrollY": 0
+        },
+        {
+          "selectedCount": 4,
+          "width": 1440,
+          "height": 900,
+          "history": {
+            "top": 205,
+            "bottom": 433,
+            "width": 1382,
+            "height": 227
+          },
+          "candidates": {
+            "top": 503,
+            "bottom": 769,
+            "width": 1382,
+            "height": 266
+          },
+          "historyCard": {
+            "top": 283,
+            "bottom": 417,
+            "width": 176,
+            "height": 133
+          },
+          "candidateCard": {
+            "top": 503,
+            "bottom": 769,
+            "width": 240,
+            "height": 266
+          },
+          "candidateFace": {
+            "top": 592,
+            "bottom": 711,
+            "width": 95,
+            "height": 119
+          },
+          "scrollY": 0
+        }
+      ],
+      "completed": [
+        {
+          "width": 1024,
+          "height": 768,
+          "history": {
+            "top": 196,
+            "bottom": 423,
+            "width": 983
+          },
+          "completion": {
+            "top": 493,
+            "bottom": 689,
+            "width": 983
+          },
+          "scrollY": 0
+        },
+        {
+          "width": 1440,
+          "height": 900,
+          "history": {
+            "top": 205,
+            "bottom": 433,
+            "width": 1382
+          },
+          "completion": {
+            "top": 503,
+            "bottom": 699,
+            "width": 1382
+          },
+          "scrollY": 0
+        }
+      ]
     },
     {
       "name": "result-draft-cancel",

@@ -39,7 +39,8 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
         await page.locator('.history-panel').screenshot({ path: `artifacts/real-game-flow/history-${index + 1}.png` });
         if (index === 0) {
           const widths = await page.evaluate(() => ({ selected: document.querySelector('.history-row').getBoundingClientRect().width, candidate: document.querySelector('.candidate-card').getBoundingClientRect().width }));
-          assert.ok(Math.abs(widths.selected - widths.candidate) <= 4, `selected and candidate card widths differ: ${JSON.stringify(widths)}`);
+          assert.ok(widths.selected >= 160 && widths.selected <= 176, `selected card width is outside the workbench target: ${JSON.stringify(widths)}`);
+          assert.ok(widths.candidate >= 210 && widths.candidate <= 240, `candidate card width is outside the workbench target: ${JSON.stringify(widths)}`);
           await page.evaluate(() => scrollTo(0, 0));
           await page.screenshot({ path: 'artifacts/real-game-flow/matched-cards-1440.png' });
         }
@@ -102,8 +103,8 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     await page.locator('#import-real-games').setInputFiles({ name: 'games.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(exported)) });
     await page.getByText('略過重複 1 局').waitFor();
     assert.equal((await records()).length, 1);
-    page.once('dialog', dialog => dialog.accept());
     await page.locator('#reset').click();
+    await page.locator('[data-reset-confirm]').click();
     assert.equal((await records()).length, 1, 'new run must retain archive');
     for (const [index, id, color] of [[0, 'fool', 'blue'], [1, 'magician', 'purple'], [2, 'empress', 'red']]) {
       await page.locator(`[data-pick="${index}"]`).click();

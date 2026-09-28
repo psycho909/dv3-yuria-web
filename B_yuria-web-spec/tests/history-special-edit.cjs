@@ -26,6 +26,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174/';
     assert.equal((await stored()).state.selected[0].removed, true);
     assert.equal(await page.locator('[data-history-removed="0"]').isDisabled(), true);
 
+    await page.locator('[data-detail-key="history-edit-2"] > summary').click();
     await page.locator('[data-history-result="2"][data-activated="false"]').click();
     let state = await stored();
     assert.equal(state.state.selected[2].activated, false);
@@ -54,6 +55,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174/';
     assert.equal(state.starTargets[2], 'fool');
 
     await add('tower', '[data-tower-proc="true"]');
+    await page.locator('[data-detail-key="history-edit-3"] > summary').click();
     await page.locator('[data-history-result="3"][data-activated="false"]').click();
     state = await stored();
     assert.equal(state.state.selected[3].towerProc, undefined);

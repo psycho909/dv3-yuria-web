@@ -36,7 +36,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
   try {
     await page.goto(url);
     await check('guided-settings', async () => {
-      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /填入三張/);
+      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /填入 3 張/);
       assert.equal(await page.locator('.advanced-settings').evaluate(el => el.open), false);
       await page.locator('.advanced-settings > summary').focus();
       await page.keyboard.press('Enter');
@@ -60,6 +60,79 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       assert.equal(await page.locator('.history-row').count(), 0);
       report.checks.push({ name: `cancel-${width}`, pass: true });
     }
+    await fresh();
+    await check('pc-empty-workbench-first-fold', async () => {
+      const measurements = [];
+      for (const [width, height] of [[1024, 768], [1440, 900]]) {
+        await page.setViewportSize({ width, height });
+        await page.evaluate(() => scrollTo(0, 0));
+        const bounds = await page.evaluate(() => {
+          const box = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width) }; };
+          return { history: box('.history-panel'), candidates: box('.candidate-grid'), historyCard: box('.history-empty-slot'), candidateCard: box('.candidate-card'), scrollY };
+        });
+        assert.equal(bounds.scrollY, 0);
+        assert.ok(bounds.history.bottom <= height, width + 'px history is below fold: ' + JSON.stringify(bounds));
+        assert.ok(bounds.candidates.bottom <= height, width + 'px candidates are below fold: ' + JSON.stringify(bounds));
+        assert.equal(await page.locator('.history-empty-slot').count(), 5);
+        assert.equal(await page.locator('.candidate-card').count(), 3);
+        await page.screenshot({ path: path.join(out, 'workbench-empty-' + width + '.png') });
+        measurements.push({ width, height, ...bounds });
+      }
+      return { measurements };
+    });
+    await fresh();
+    await check('pc-active-workbench-first-fold', async () => {
+      const measurements = [];
+      for (const scenario of [
+        { selected: ['fool'], candidates: ['justice', 'hermit', 'chariot'] },
+        { selected: ['fool', 'magician', 'moon'], candidates: ['empress', 'emperor', 'hermit'] },
+        { selected: ['fool', 'magician', 'moon', 'empress'], candidates: ['justice', 'hermit', 'chariot'] },
+      ]) {
+        await fresh();
+        for (const id of scenario.selected) await add(id);
+        for (const [index, id] of scenario.candidates.entries()) await select('[data-pick="' + index + '"]', id, 'blue');
+        await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
+        for (const [width, height] of [[1024, 768], [1440, 900]]) {
+          await page.setViewportSize({ width, height });
+          await page.evaluate(() => scrollTo(0, 0));
+          const bounds = await page.evaluate(() => {
+            const box = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width), height: Math.round(r.height) }; };
+            return { history: box('.history-panel'), candidates: box('.candidate-grid'), historyCard: box('.history-row'), candidateCard: box('.candidate-card'), candidateFace: box('.candidate-card:not(.pending-card) > .card-face'), scrollY };
+          });
+          assert.equal(bounds.scrollY, 0);
+          assert.ok(bounds.history.bottom <= height, width + 'px history is below fold: ' + JSON.stringify(bounds));
+          assert.ok(bounds.candidates.bottom <= height - 8, width + 'px candidates lack an 8px fold margin: ' + JSON.stringify(bounds));
+          assert.equal(await page.locator('.history-row').count(), scenario.selected.length);
+          assert.equal(await page.locator('.history-empty-slot').count(), 5 - scenario.selected.length);
+          assert.equal(await page.locator('.candidate-card').count(), 3);
+          assert.ok(bounds.historyCard.width >= 160 && bounds.historyCard.width <= 176, 'history card width: ' + JSON.stringify(bounds));
+          assert.ok(bounds.candidateCard.width >= 210 && bounds.candidateCard.width <= 240, 'candidate card width: ' + JSON.stringify(bounds));
+          assert.ok(Math.abs(bounds.candidateFace.height / bounds.candidateFace.width - 1.25) < 0.05, 'candidate face should stay 4:5: ' + JSON.stringify(bounds.candidateFace));
+          await page.screenshot({ path: path.join(out, 'workbench-' + scenario.selected.length + '-of-5-' + width + '.png') });
+          measurements.push({ selectedCount: scenario.selected.length, width, height, ...bounds });
+        }
+      }
+      await fresh();
+      for (const id of ['fool', 'magician', 'moon', 'empress', 'emperor']) await add(id);
+      assert.equal(await page.locator('.history-row').count(), 5);
+      assert.equal(await page.locator('.candidate-card').count(), 0, 'completed game has no active candidate choices');
+      const completed = [];
+      for (const [width, height] of [[1024, 768], [1440, 900]]) {
+        await page.setViewportSize({ width, height });
+        await page.evaluate(() => scrollTo(0, 0));
+        const bounds = await page.evaluate(() => {
+          const box = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width) }; };
+          return { history: box('.history-panel'), completion: box('.completion'), scrollY };
+        });
+        assert.equal(bounds.scrollY, 0);
+        assert.ok(bounds.history.bottom <= height, width + 'px completed history is below fold: ' + JSON.stringify(bounds));
+        assert.ok(bounds.completion.bottom <= height, width + 'px completion state is below fold: ' + JSON.stringify(bounds));
+        await page.screenshot({ path: path.join(out, 'workbench-complete-' + width + '.png') });
+        completed.push({ width, height, ...bounds });
+      }
+      return { measurements, completed };
+    });
+    await fresh();
     await check('result-draft-cancel', async () => {
       await select('#add-history', 'magician');
       await page.locator('[data-outcome="failure"]').click();
@@ -105,7 +178,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       assert.equal(await page.locator('.metric-help').first().isVisible(), true);
       await page.locator('.metric-details > summary').first().click();
       await page.locator('.goal-settings > summary').click();
-      for (const [mode, label] of [['expected', '預期最終分數'], ['stability', '保守分數 P10'], ['threshold', '達到 1,500 分']]) {
+      for (const [mode, label] of [['expected', '預期分數'], ['stability', '保守 P10'], ['threshold', '達標率']]) {
         await page.locator(`[data-objective="${mode}"]`).click();
         await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
         assert.deepEqual(await ids(), ['fool', 'strength', 'moon']);
@@ -130,9 +203,9 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await page.locator('#target').press('Tab');
       for (const [i, id] of ['moon', 'tower', 'star'].entries()) await select(`[data-pick="${i}"]`, id);
       await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3);
-      const metricText = await page.locator('.metric-main strong').allInnerTexts();
-      assert.equal(metricText.filter(text => text.includes('依目前模型為 0')).length, 3, metricText.join('\n'));
-      assert.ok(!metricText.some(text => text.includes('抽樣')), metricText.join('\n'));
+      const metrics = await page.locator('.metric-main strong').evaluateAll(els => els.map(el => ({ text: el.innerText, detail: el.parentElement.querySelector('.sr-only')?.textContent })));
+      assert.equal(metrics.filter(metric => metric.text === '0%' && metric.detail.includes('依目前模型為 0')).length, 3, JSON.stringify(metrics));
+      assert.ok(!metrics.some(metric => metric.detail.includes('抽樣')), JSON.stringify(metrics));
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.screenshot({ path: path.join(out, 'final-turn-mobile.png'), fullPage: true });
       await page.locator('[data-choose="moon"]').click();
@@ -165,8 +238,8 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await select('[data-pick="0"]', 'fool');
       await select('[data-pick="1"]', 'magician');
       await select('[data-pick="2"]', 'moon');
-      page.once('dialog', dialog => dialog.accept());
       await page.locator('#reset').click();
+      await page.locator('[data-reset-confirm]').click();
       await page.waitForTimeout(1500); // Deliberately wait past the debounce and prior worker response.
       assert.equal(await page.locator('[data-choose]').count(), 0);
       assert.deepEqual((await stored()).candidates, [null, null, null]);
@@ -174,11 +247,13 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     await fresh();
     await check('reset-confirmation-and-preferences', async () => {
       await select('[data-pick="0"]', 'moon');
-      page.once('dialog', dialog => dialog.dismiss());
       await page.locator('#reset').click();
+      assert.equal(await page.locator('[data-reset-cancel]').evaluate(el => el === document.activeElement), true);
       assert.equal((await stored()).candidates[0].cardId, 'moon');
-      page.once('dialog', dialog => dialog.accept());
+      await page.locator('[data-reset-cancel]').click();
+      assert.equal((await stored()).candidates[0].cardId, 'moon');
       await page.locator('#reset').click();
+      await page.locator('[data-reset-confirm]').click();
       assert.deepEqual((await stored()).candidates, [null, null, null]);
     });
     await check('malformed-storage-recovery', async () => {

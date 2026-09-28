@@ -15,7 +15,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     await page.evaluate(() => localStorage.removeItem('yuria-web-session-v1'));
     await page.reload();
 
-    for (const selector of ['#add-history', '[data-picker-card="fool"]', '[data-picker-apply]', '[data-outcome="failure"]', '[data-commit-outcome]']) {
+    for (const selector of ['#add-history', '[data-picker-direct-card="fool"][data-picker-direct-color="blue"]', '[data-outcome="failure"]', '[data-commit-outcome]']) {
       await page.locator(selector).focus();
       await page.keyboard.press('Enter');
     }

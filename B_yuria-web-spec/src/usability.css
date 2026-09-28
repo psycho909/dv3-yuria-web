@@ -151,10 +151,6 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .is-removed .card-face { border-style: dashed; opacity: .65; }
 .candidate-slot-button { min-height: 184px; margin-top: 8px; }
 .pending-card .pending-copy { display: none; }
-.picker-search { display: grid; gap: 6px; padding-top: 16px; }
-.search-control { display: flex; gap: 8px; align-items: center; }
-.search-control input { width: 100%; flex: 1; }
-.search-control button { flex: 0 0 auto; }
 .picker-card-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .picker-card { min-height: 130px; text-align: center; align-content: center; background: #f6f0e5; border-color: #d5c7b0; }
 .picker-card strong { font-size: 15px; }
@@ -332,7 +328,7 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .workspace, .sidebar { grid-column: 1; grid-row: auto; min-width: 0; }
 .sidebar { display: grid; gap: 10px; padding: 0; border: 0; }
 .history-panel { min-width: 0; }
-.history-heading { align-items: center; gap: 12px; margin-bottom: 4px; }
+.history-heading { align-items: center; gap: 12px 28px; margin-bottom: 4px; }
 .history-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .history-actions .turn-counter { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 4px 10px; border-radius: 999px; background: var(--surface-subtle); color: var(--text); font-weight: 700; white-space: nowrap; }
 .history-actions .secondary-action { min-height: 40px; padding: 6px 10px; white-space: nowrap; }
@@ -462,10 +458,9 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .history-card-summary > small { font-size: 12px; color: var(--text-muted); }
 .history-heading { justify-content: flex-start; }
 .history-heading .history-actions { margin-left: auto; }
-.history-row { grid-template-columns: minmax(0, 1fr) 60px; grid-template-rows: auto; align-items: center; }
+.history-row { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; }
 .history-card-summary { grid-column: 1; grid-row: 1; }
-.history-edit { grid-column: 2; grid-row: 1; }
-.history-edit[open] { grid-column: 1 / -1; grid-row: 2; }
+.history-edit { grid-column: 1; grid-row: 2; }
 .history-row.is-removed .game-card { opacity: .6; }
 .candidate-card > .card-face, .pending-card > .candidate-slot-button.card-face { display: grid; place-items: center; min-height: 0; padding: 14px 4px 4px; background: transparent; border: 0; }
 .candidate-card > .card-face .game-card { width: 70px; }
@@ -476,12 +471,11 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .picker-dialog { width: min(1120px, calc(100% - 24px)); }
 .picker-card-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
 .picker-card { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-height: 0; padding: 5px; background: #fffaf1; }
-.picker-card.is-used { opacity: .4; }
-.picker-card-choice { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; min-height: 124px; padding: 2px; border: 0; color: var(--text); background: transparent; cursor: pointer; }
+.picker-card-choice { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; min-height: 124px; padding: 2px; border: 0; color: var(--text); background: transparent; }
 .picker-card-choice img { width: 60px; height: 83px; object-fit: contain; image-rendering: pixelated; }
 .picker-card-choice strong { font-size: 14px; line-height: 1.2; }
 .picker-card-choice small { color: var(--text-muted); font-size: 11px; }
-.picker-card-choice:focus-visible, .mini-color:focus-visible { outline: 3px solid #8d5a14; outline-offset: 2px; }
+.mini-color:focus-visible { outline: 3px solid #8d5a14; outline-offset: 2px; }
 .picker-card-colors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 .mini-color { min-width: 0; min-height: 32px; border: 2px solid #fff; border-radius: 6px; cursor: pointer; }
 .mini-color.blue { background: #2d78d9; }.mini-color.purple { background: #8a3fe0; }.mini-color.red { background: #dd3d42; }
@@ -497,8 +491,6 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 /* Keep the PC workbench inside the first viewport without stretching artwork. */
 .history-card-summary > .game-card { width: 70px; }
 .history-list { padding-block: 12px; }
-.picker-footer #clear-picker-choice:disabled,
-.picker-footer [data-picker-apply]:disabled { display: none; }
 @media (max-width: 599px) { .clear-run-action { margin-left: 0; } }
 @media (min-width: 1000px) {
   .goal-settings .control-bar { align-items: center; gap: 12px; padding: 5px 12px; }
@@ -510,7 +502,9 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 }
 
 /* Keep direct color actions readable and close to the 44px touch target. */
-.picker-card-grid { grid-template-columns: repeat(auto-fill, minmax(144px, 1fr)); }
+.picker-card-grid { grid-template-columns: repeat(auto-fill, 140px); }
+.picker-card { padding: 3px; }
+.picker-card-colors { gap: 1px; }
 .mini-color {
   display: inline-grid;
   place-items: center;
@@ -523,4 +517,13 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
   line-height: 1.1;
   text-align: center;
   text-shadow: 0 1px 1px #0008;
+}
+@media (min-width: 1000px) and (max-width: 1100px) {
+  .workflow { margin-bottom: 0; }
+  .layout { gap: 2px; }
+  .history-heading { margin-bottom: 0; }
+  .history-list { padding-block: 3px; }
+  .history-row { gap: 0; padding: 5px; }
+  .history-card-summary { padding-top: 6px; }
+  .workspace-heading { margin-bottom: 0; padding-bottom: 0; }
 }

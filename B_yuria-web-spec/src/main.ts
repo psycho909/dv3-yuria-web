@@ -30,9 +30,7 @@ let targetError = "";
 let objective: Objective = { kind: "threshold", target: targetThreshold };
 let candidates: Array<OfferedCard | null> = [null, null, null];
 let candidateColors: CardColor[] = ["blue", "blue", "blue"];
-type PickerDraft = { cardId: CardId | ""; color: CardColor };
 let pickerIndex: number | null = null;
-let pickerDraft: PickerDraft | null = null;
 let simulationCount = 10000;
 let result: ReturnType<typeof recommend> | null = null;
 let pendingChoice: OfferedCard | null = null;
@@ -59,7 +57,6 @@ let pendingEditTowerProc: boolean | null = null;
 let pendingEditRemovedCardId: CardId | null = null;
 let selectedCandidateKey = "";
 let returnFocus = "";
-let pickerSearch = "";
 let pickerCategory: "all" | "score" | "multiplier" | "special" = "all";
 let calculationStatus: "idle" | "calculating" | "ready" | "error" = "idle";
 let calculationError = "";
@@ -260,18 +257,14 @@ function usageLabelForPicker(id: CardId) {
 }
 
 function renderPicker() {
-  if (pickerIndex === null || !pickerDraft) return "";
-  const selectedCard = pickerDraft.cardId ? CARDS[pickerDraft.cardId] : null;
-  const visibleCards = cardList.filter(card => !usageLabelForPicker(card.id) && (pickerCategory === "all" || card.category === pickerCategory) && card.name.includes(pickerSearch.trim()));
+  if (pickerIndex === null) return "";
+  const visibleCards = cardList.filter(card => !usageLabelForPicker(card.id) && (pickerCategory === "all" || card.category === pickerCategory));
   const categories = [["all", "全部"], ["score", "分數卡"], ["multiplier", "倍率卡"], ["special", "特殊卡"]] as const;
-  const categoryCount = (value: typeof categories[number][0]) => value === "all" ? cardList.length : cardList.filter(card => card.category === value).length;
-  const usageLabel = usageLabelForPicker;
+  const categoryCount = (value: typeof categories[number][0]) => cardList.filter(card => !usageLabelForPicker(card.id) && (value === "all" || card.category === value)).length;
   return `<dialog class="picker-dialog" aria-labelledby="picker-title">
     <div class="picker-header"><div><p class="eyebrow">CARD PICKER</p><h2 id="picker-title">${pickerIndex === -1 ? "加入已確定卡片" : `選擇第 ${pickerIndex + 1} 張候選牌`}</h2></div><button type="button" class="picker-close" data-picker-cancel aria-label="關閉選擇器">×</button></div>
-    <div class="picker-search"><label for="card-search">搜尋 22 張卡片</label><div class="search-control"><input id="card-search" type="search" placeholder="搜尋卡片名稱，例如：月亮" value="${esc(pickerSearch)}" autocomplete="off" /><button type="button" id="clear-search" class="secondary-action" aria-label="清除搜尋" ${pickerSearch ? "" : "hidden"}>清除</button></div></div>
-    <div class="picker-section"><div class="picker-section-heading"><strong>直接點卡片下方的藍／紫／紅，即可加入</strong><small>${selectedCard ? `目前：${esc(selectedCard.name)}` : "已使用的牌不顯示"}</small></div><div class="picker-categories" role="group" aria-label="牌庫分類">${categories.map(([value, label]) => `<button type="button" data-picker-category="${value}" aria-pressed="${pickerCategory === value}" class="${pickerCategory === value ? "selected" : ""}">${label} <span>${categoryCount(value)}</span></button>`).join("")}</div><div class="picker-card-grid">${cardList.map(card => { const usage = usageLabel(card.id); return `<div class="picker-card ${pickerDraft!.cardId === card.id ? "selected" : ""}" ${visibleCards.includes(card) ? "" : "hidden"}><button type="button" class="picker-card-choice" data-picker-card="${card.id}" aria-pressed="${pickerDraft!.cardId === card.id}" ${usage ? "disabled" : ""}><img src="${cardArt(card.id)}" alt="" loading="lazy" /><strong>${esc(card.name)}</strong><small>${card.category === "score" ? `+${card.scoreValue} 分` : card.category === "multiplier" ? `+${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊卡"}</small></button><div class="picker-card-colors" role="group" aria-label="${esc(card.name)}牌色">${colorOptions.map(color => `<button type="button" class="mini-color ${colorClass[color]}" data-picker-direct-card="${card.id}" data-picker-direct-color="${color}" aria-label="${esc(card.name)}，${colorLabel[color]}色，直接加入" ${usage ? "disabled" : ""}>${colorLabel[color]}</button>`).join("")}</div></div>`; }).join("")}</div><p id="search-empty" aria-live="polite" ${visibleCards.length ? "hidden" : ""}>找不到卡片，請換個名稱或分類。</p></div>
-    <div class="picker-section picker-manual-color"><div class="picker-section-heading"><strong>或先選圖卡，再選顏色</strong><small>${colorLabel[pickerDraft.color]}</small></div><div class="picker-color-options">${colorOptions.map(color => `<button type="button" class="picker-color ${colorClass[color]} ${pickerDraft!.color === color ? "selected" : ""}" data-picker-color="${color}" aria-pressed="${pickerDraft!.color === color}">${colorLabel[color]}</button>`).join("")}</div></div>
-    <div class="picker-footer"><span>${selectedCard ? `${esc(selectedCard.name)}／${colorLabel[pickerDraft.color]}` : "請先選擇一張卡片"}</span><div><button type="button" class="secondary-action" id="clear-picker-choice" ${selectedCard ? "" : "disabled"}>清除選擇</button><button type="button" class="secondary-action" data-picker-cancel>取消</button><button type="button" class="primary-action" data-picker-apply ${selectedCard ? "" : "disabled"}>${pickerIndex === -1 ? "下一步：記錄結果" : "套用候選"}</button></div></div>
+    <div class="picker-section"><div class="picker-section-heading"><strong>點卡片下方的藍／紫／紅，即可加入</strong><small>已使用的牌不顯示</small></div><div class="picker-categories" role="group" aria-label="牌庫分類">${categories.map(([value, label]) => `<button type="button" data-picker-category="${value}" aria-pressed="${pickerCategory === value}" class="${pickerCategory === value ? "selected" : ""}">${label} <span>${categoryCount(value)}</span></button>`).join("")}</div><div class="picker-card-grid">${visibleCards.map(card => `<div class="picker-card"><div class="picker-card-choice" data-picker-card="${card.id}"><img src="${cardArt(card.id)}" alt="" loading="lazy" /><strong>${esc(card.name)}</strong><small>${card.category === "score" ? `+${card.scoreValue} 分` : card.category === "multiplier" ? `+${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊卡"}</small></div><div class="picker-card-colors" role="group" aria-label="${esc(card.name)}牌色">${colorOptions.map(color => `<button type="button" class="mini-color ${colorClass[color]}" data-picker-direct-card="${card.id}" data-picker-direct-color="${color}" aria-label="${esc(card.name)}，${colorLabel[color]}色，直接加入">${colorLabel[color]}</button>`).join("")}</div></div>`).join("")}</div><p id="search-empty" aria-live="polite" ${visibleCards.length ? "hidden" : ""}>這個分類沒有可選卡片，請切換分類。</p></div>
+    <div class="picker-footer"><span>選好牌色後立即加入</span><div><button type="button" class="secondary-action" data-picker-cancel>取消</button></div></div>
   </dialog>`;
 }
 
@@ -323,7 +316,7 @@ function render() {
   captureDetails();
   const focused = document.activeElement as HTMLElement | null;
   const dialogFocus = Boolean(focused?.closest("dialog"));
-  const focusSelector = focused?.dataset.pickerCard ? `[data-picker-card="${focused.dataset.pickerCard}"]` : focused?.dataset.pickerColor ? `[data-picker-color="${focused.dataset.pickerColor}"]` : focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.editTowerProc ? `[data-edit-tower-proc="${focused.dataset.editTowerProc}"]` : focused?.dataset.editRemoveCard ? `[data-edit-remove-card="${focused.dataset.editRemoveCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.id ? `#${focused.id}` : null;
+  const focusSelector = focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.editTowerProc ? `[data-edit-tower-proc="${focused.dataset.editTowerProc}"]` : focused?.dataset.editRemoveCard ? `[data-edit-remove-card="${focused.dataset.editRemoveCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.id ? `#${focused.id}` : null;
   const pickerScroll = app.querySelector(".picker-dialog")?.scrollTop ?? 0;
   const bestMean = result ? [...result.ranked].sort((a, b) => b.meanScore - a.meanScore)[0]! : null;
   const ranked = result?.ranked ?? [];
@@ -399,7 +392,7 @@ function render() {
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     });
     const restoredFocus = dialogFocus && focusSelector ? app.querySelector<HTMLElement>(focusSelector) : null;
-    const nextFocus = restoredFocus ?? (pendingEditIndex !== null ? app.querySelector<HTMLElement>("[data-edit-tower-proc], [data-edit-remove-card], [data-edit-commit]") : pickerIndex !== null ? app.querySelector<HTMLElement>("#card-search") : pendingChoice && pendingOutcome && pendingChoice.cardId === "tower" ? app.querySelector<HTMLElement>('[data-tower-proc="false"]') : pendingChoice && pendingOutcome ? app.querySelector<HTMLElement>("[data-commit-outcome]") : pendingChoice ? app.querySelector<HTMLElement>('[data-outcome="success"]') : null);
+    const nextFocus = restoredFocus ?? (pendingEditIndex !== null ? app.querySelector<HTMLElement>("[data-edit-tower-proc], [data-edit-remove-card], [data-edit-commit]") : pickerIndex !== null ? app.querySelector<HTMLElement>(`[data-picker-category="${pickerCategory}"]`) : pendingChoice && pendingOutcome && pendingChoice.cardId === "tower" ? app.querySelector<HTMLElement>('[data-tower-proc="false"]') : pendingChoice && pendingOutcome ? app.querySelector<HTMLElement>("[data-commit-outcome]") : pendingChoice ? app.querySelector<HTMLElement>('[data-outcome="success"]') : null);
     nextFocus?.focus({ preventScroll: true });
     dialog.scrollTop = pickerScroll;
   }
@@ -500,7 +493,6 @@ function resetCurrentGame() {
   currentRecord = null;
   scoreEditing = false;
   pickerIndex = null;
-  pickerDraft = null;
   resetConfirmationOpen = false;
   restoredSession = false;
   targetError = "";
@@ -517,10 +509,10 @@ function closeResetConfirmation() {
 
 function applyPickerChoice(cardId: CardId, color: CardColor) {
   if (pickerIndex === null || usageLabelForPicker(cardId)) return;
-  if (pickerIndex === -1) { pendingChoice = { cardId, color }; pendingChoiceSource = "manual"; pickerIndex = null; pickerDraft = null; render(); return; }
+  if (pickerIndex === -1) { pendingChoice = { cardId, color }; pendingChoiceSource = "manual"; pickerIndex = null; render(); return; }
   candidates[pickerIndex] = { cardId, color };
   candidateColors[pickerIndex] = color;
-  pickerIndex = null; pickerDraft = null;
+  pickerIndex = null;
   calculate();
   app.querySelector<HTMLElement>(returnFocus)?.focus();
 }
@@ -533,14 +525,6 @@ function bindEvents() {
   app.querySelectorAll<HTMLButtonElement>("[data-edit-remove-card]").forEach(button => button.addEventListener("click", () => { pendingEditRemovedCardId = button.dataset.editRemoveCard as CardId; render(); }));
   app.querySelector<HTMLButtonElement>("[data-edit-commit]")?.addEventListener("click", commitEditResult);
   app.querySelector<HTMLButtonElement>("[data-edit-cancel]")?.addEventListener("click", closeEditDialog);
-  app.querySelector<HTMLInputElement>("#card-search")?.addEventListener("input", event => {
-    pickerSearch = (event.target as HTMLInputElement).value;
-    const matches = cardList.filter(card => !usageLabelForPicker(card.id) && (pickerCategory === "all" || card.category === pickerCategory) && card.name.includes(pickerSearch.trim()));
-    app.querySelectorAll<HTMLButtonElement>("[data-picker-card]").forEach(button => { const card = CARDS[button.dataset.pickerCard as CardId]; button.closest<HTMLElement>(".picker-card")!.hidden = Boolean(usageLabelForPicker(card.id)) || !(pickerCategory === "all" || card.category === pickerCategory) || !card.name.includes(pickerSearch.trim()); });
-    app.querySelector<HTMLElement>("#search-empty")!.hidden = matches.length > 0;
-    app.querySelector<HTMLButtonElement>("#clear-search")?.toggleAttribute("hidden", !pickerSearch);
-  });
-  app.querySelector<HTMLButtonElement>("#clear-search")?.addEventListener("click", () => { pickerSearch = ""; render(); app.querySelector<HTMLInputElement>("#card-search")?.focus(); });
   app.querySelectorAll<HTMLButtonElement>("[data-picker-category]").forEach(button => button.addEventListener("click", () => { pickerCategory = button.dataset.pickerCategory as typeof pickerCategory; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-objective]").forEach(button => button.addEventListener("click", () => { const kind = button.dataset.objective as Objective["kind"]; objective = kind === "threshold" ? { kind, target: targetThreshold } : { kind }; calculate(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-layout-mode]").forEach(button => button.addEventListener("click", () => {
@@ -580,14 +564,10 @@ function bindEvents() {
     calculate();
   });
   app.querySelectorAll<HTMLButtonElement>("[data-slot-color]").forEach(button => button.addEventListener("click", () => { const index = Number(button.dataset.slotIndex); const color = button.dataset.slotColor as CardColor; candidateColors[index] = color; if (candidates[index]) candidates[index] = { ...candidates[index]!, color }; calculate(); }));
-  app.querySelectorAll<HTMLElement>("[data-pick]").forEach(trigger => trigger.addEventListener("click", () => { pickerSearch = ""; pickerCategory = "all"; const index = Number(trigger.dataset.pick); returnFocus = `[data-pick="${index}"]`; const candidate = candidates[index]; pickerIndex = index; pickerDraft = { cardId: candidate?.cardId ?? "", color: candidate?.color ?? candidateColors[index]! }; render(); }));
-  app.querySelectorAll<HTMLButtonElement>("[data-picker-card]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, cardId: button.dataset.pickerCard as CardId }; render(); }));
-  app.querySelectorAll<HTMLButtonElement>("[data-picker-color]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, color: button.dataset.pickerColor as CardColor }; render(); }));
+  app.querySelectorAll<HTMLElement>("[data-pick]").forEach(trigger => trigger.addEventListener("click", () => { pickerCategory = "all"; const index = Number(trigger.dataset.pick); returnFocus = `[data-pick="${index}"]`; pickerIndex = index; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-picker-direct-card]").forEach(button => button.addEventListener("click", () => applyPickerChoice(button.dataset.pickerDirectCard as CardId, button.dataset.pickerDirectColor as CardColor)));
-  app.querySelector<HTMLButtonElement>("#clear-picker-choice")?.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, cardId: "" }; render(); });
   app.querySelectorAll<HTMLButtonElement>("[data-picker-cancel]").forEach(button => button.addEventListener("click", closeDialog));
-  app.querySelector<HTMLButtonElement>("[data-picker-apply]")?.addEventListener("click", () => { if (pickerDraft?.cardId) applyPickerChoice(pickerDraft.cardId, pickerDraft.color); });
-  app.querySelector<HTMLButtonElement>("#add-history")?.addEventListener("click", () => { pickerSearch = ""; pickerCategory = "all"; returnFocus = "#add-history"; pickerIndex = -1; pickerDraft = { cardId: "", color: "blue" }; render(); });
+  app.querySelector<HTMLButtonElement>("#add-history")?.addEventListener("click", () => { pickerCategory = "all"; returnFocus = "#add-history"; pickerIndex = -1; render(); });
   app.querySelectorAll<HTMLButtonElement>("[data-choose]").forEach(button => button.addEventListener("click", () => addHistory(button.dataset.choose as CardId, button.dataset.chooseColor as CardColor)));
   app.querySelectorAll<HTMLButtonElement>("[data-tower-proc]").forEach(button => button.addEventListener("click", () => { pendingTowerProc = button.dataset.towerProc === "true"; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-final-star-target]").forEach(button => button.addEventListener("click", () => { const index = unresolvedStarIndex(); const target = state.selected.find(card => card.cardId === button.dataset.finalStarTarget); if (index < 0 || !target || target.cardId === "star" || target.removed) return; startRecordCorrection(); target.removed = true; starTargetIds[index] = target.cardId; calculate(); app.querySelector<HTMLElement>("#completion-title")?.focus(); }));
@@ -877,7 +857,7 @@ function addHistory(cardId?: CardId, color?: CardColor) {
 }
 
 function closeDialog() {
-  pickerIndex = null; pickerDraft = null; pendingChoice = null; pendingChoiceSource = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
+  pickerIndex = null; pendingChoice = null; pendingChoiceSource = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
   render();
   app.querySelector<HTMLElement>(returnFocus)?.focus();
 }

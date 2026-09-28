@@ -467,4 +467,11 @@
 - Edge 154，`tests/browser-acceptance.cjs` 21/21 通過、0 page error；涵蓋 375／768／1024／1440px、牌庫搜尋／取消、目標切換、鍵盤焦點、重設確認／取消、計算錯誤重試與完整牌局。1024×768 活躍工作台：歷史列底部 y=423，候選列底部 y=760（保留 8px 底部空間）；1440×900：歷史列 y=433，候選列 y=769。牌面量測為 96×120px（4:5），外框維持 176px／240px。四種牌局進度（1／3／4 張與完成 5 張）均量測；完成局資訊底部在 1024×768 為 y=689、1440×900 為 y=699。截圖及測試 JSON 位於 `B_yuria-web-spec/artifacts/acceptance/`。
 - `npm run build`（TypeScript＋Vite）、`npm test`（10 個測試檔，43 passed、7 skipped）、`tests/history-special-edit.cjs`、`tests/real-game-flow.cjs` 與 `git diff --check` 通過。牌局紀錄測試已由舊版「兩組卡片等寬」改為檢查本節指定寬度範圍；特殊卡更正測試明確展開收合中的歷史細節再操作。
 - 使用者已確認桌機卡片外框尺寸（歷史牌 176px／候選牌 240px）可接受，並同意滿版工作區與候選牌面採 4:5；此確認僅涵蓋版面尺寸，不代表其他真人驗收通過。
-- 待真人驗收：第一次使用是否能不看說明完成首回合、真實觸控與短列辨識、螢幕閱讀器。此輪只完成本機驗收，未推送 Git／部署 Vercel；不要把瀏覽器自動測試視為真人驗收。
+- 待真人驗收：第一次使用是否能不看說明完成首回合、真實觸控與短列辨識、螢幕閱讀器。自動測試與正式站 smoke 不代表真人可用性已驗收。
+
+#### Git 推送與 Production 部署（2026-09-28）
+
+- UI 改版 commit `e0a9681790915eafa14a6f9ffba815df4881811a` 已推送 `origin/main`，遠端 SHA 與本機一致。
+- Git 自動部署建立 Vercel deployment `dpl_aTWRtPQ2tVEk2yePj7pmxX2f4YnS`，狀態 `READY`、target `production`，來源為 `main` 同一 SHA。正式 alias `https://dv3-yuria-web.vercel.app/` 回應 HTTP 200，載入 `/assets/index-z8Op2BD-.js` 與 `/assets/index-BG7t96lT.css`；兩個 asset HEAD 均回應 200。
+- 最近一小時 Vercel error-log 查詢回報沒有 log entries；此靜態 Vite 頁面沒有可供檢查的函式 log，不能據此推論不存在前端錯誤。
+- 真人驗收仍依上列項目待做；本機自動驗收及部署狀態不取代第一次使用者、觸控或螢幕閱讀器測試。

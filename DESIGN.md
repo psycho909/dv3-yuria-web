@@ -475,3 +475,11 @@
 - Git 自動部署建立 Vercel deployment `dpl_aTWRtPQ2tVEk2yePj7pmxX2f4YnS`，狀態 `READY`、target `production`，來源為 `main` 同一 SHA。正式 alias `https://dv3-yuria-web.vercel.app/` 回應 HTTP 200，載入 `/assets/index-z8Op2BD-.js` 與 `/assets/index-BG7t96lT.css`；兩個 asset HEAD 均回應 200。
 - 最近一小時 Vercel error-log 查詢回報沒有 log entries；此靜態 Vite 頁面沒有可供檢查的函式 log，不能據此推論不存在前端錯誤。
 - 真人驗收仍依上列項目待做；本機自動驗收及部署狀態不取代第一次使用者、觸控或螢幕閱讀器測試。
+
+## 20. 圖卡選牌（2026-09-28，本機施工）
+
+- 參考 [dv3.liowoir.cc 的選牌助手](https://dv3.liowoir.cc/guide/yuria)的「看圖辨牌、點圖選牌、已用牌變灰」方式；本站保留原搜尋、分類、顏色草稿、取消與套用流程。視窗新增「清除選擇」，只清除尚未套用的選牌草稿，不清空本局。桌機以 8 欄圖卡呈現，窄螢幕依寬度減為 6／4／3 欄；維持暖色亮底。
+- 22 張牌圖按參考站 `yuria.json` 的牌名與圖片路徑逐張核對後放入 `B_yuria-web-spec/public/cards/`；編號與本站 `CARDS` 順序不同的牌採明確對照表。圖像也顯示於已填入候選與已確定卡片，但保留文字名稱、顏色和狀態作為主要可存取資訊。圖檔來源與權利聲明見 `B_yuria-web-spec/public/cards/README.md`；專案負責人已於 2026-09-28 確認有公開使用授權。
+- **不採用參考站的推薦選法、模擬／計分公式、目標 3000 分預設或牌局資料。** 本站既有 `domain.ts` 與推薦 Worker 均未修改。
+- 本機驗證：`npm run build` 通過；`npm test` 43 passed、7 skipped。瀏覽器手動檢查 22 張圖檔均載入、圖卡選取／清除草稿／改色／套用、搜尋「月亮」、已用牌禁選與取消不改盤面。1024×768、四張已確定＋三張候選的底部 y=756，歷史底部 y=419；外框寬 176／240px。375×812 的選牌器為 3 欄、無橫向溢出。此為本機檢查，不是正式站或真人驗收。
+- 待真人驗收：實際使用者辨牌速度與螢幕閱讀器讀出；本機檢查不取代正式站驗證。

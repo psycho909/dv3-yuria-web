@@ -237,6 +237,31 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
   .candidate-card:not(.pending-card) > :is(details, .percentile, .activation, .edit-candidate, .choose-card) { grid-column: 1 / -1; margin: 0; }
   .candidate-card:not(.pending-card) .metric-main strong { font-size: 28px; }
 }
+
+/* Illustrated card picker: the artwork identifies a card before its small numeric details. */
+.picker-dialog { width: min(980px, calc(100% - 24px)); }
+.picker-card-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 9px; }
+.picker-card { position: relative; justify-items: center; align-content: start; gap: 3px; min-height: 158px; padding: 6px 4px 8px; color: var(--text); background: #fffaf1; }
+.picker-card img { display: block; width: min(100%, 76px); height: 96px; object-fit: contain; image-rendering: pixelated; }
+.picker-card strong { line-height: 1.2; }
+.picker-card small, .picker-card span { color: var(--text-muted); font-size: 12px; line-height: 1.2; }
+.picker-card.selected { background: #fff3dd; border-color: #ad6e1e; box-shadow: 0 0 0 2px #d59b48; }
+.picker-card.selected::after { content: "✓"; position: absolute; top: 5px; right: 6px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #a9691b; color: white; font-size: 14px; }
+.picker-card:focus-visible { outline: 3px solid #ad6e1e; outline-offset: 2px; }
+.picker-card:disabled { background: #eeeae3; }
+.picker-card:disabled img { opacity: .48; filter: grayscale(1); }
+.picker-footer > div { flex-wrap: wrap; }
+.card-art { display: block; width: 64px; height: 72px; object-fit: contain; image-rendering: pixelated; }
+.history-card-summary > :not(.history-card-art) { grid-column: 2; }
+.history-card-summary > span { grid-row: 1; }
+.history-card-summary > strong { grid-row: 2; }
+.history-card-summary > small { grid-row: 3; }
+.history-card-art { display: block; grid-column: 1; grid-row: 1 / 4; align-self: center; width: 42px; height: 50px; object-fit: contain; image-rendering: pixelated; }
+.candidate-card .card-art { width: 50px; height: 44px; }
+.pending-card .card-art { height: 32px; }
+@media (max-width: 999px) { .picker-card-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .picker-card-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 440px) { .picker-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .picker-card { min-height: 148px; } .picker-card img { height: 84px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
 
 /* Compact card grids, align live offers to the workspace edge, and let players
@@ -316,7 +341,7 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .history-hint { margin: 0 0 8px; line-height: 1.45; }
 .history-list { display: grid; grid-template-columns: repeat(5, minmax(0, 176px)); justify-content: start; align-items: stretch; gap: 10px; }
 .history-row { display: grid; grid-template-rows: auto auto; align-content: start; gap: 4px; width: 100%; max-width: 176px; min-width: 0; padding: 7px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); }
-.history-card-summary { display: flex; min-height: 60px; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 5px; border: 1px solid transparent; border-radius: 8px; text-align: center; line-height: 1.3; }
+.history-card-summary { display: grid; grid-template-columns: 42px minmax(0, 1fr); grid-template-rows: repeat(3, auto); min-height: 60px; align-content: center; gap: 0 4px; padding: 5px; border: 1px solid transparent; border-radius: 8px; text-align: left; line-height: 1.3; }
 .history-card-summary.blue { background: var(--blue); color: #225c89; }
 .history-card-summary.purple { background: var(--purple); color: #67418c; }
 .history-card-summary.red { background: var(--red); color: #963e36; }
@@ -422,3 +447,4 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
   .clear-run-action { margin-left: auto; white-space: normal; }
   .workspace-heading { align-items: flex-start; }
 }
+.pending-card > .candidate-slot-button.card-face { padding-top: 16px; }

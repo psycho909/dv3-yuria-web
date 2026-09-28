@@ -33,6 +33,7 @@ export interface RealRound {
 export interface RecordRevision {
   at: string;
   previousScore: number | null;
+  previousModelScore?: number | null;
   previousRounds: RealRound[];
 }
 export interface RealGameRecordV1 {
@@ -51,6 +52,7 @@ export interface RealGameRecordV1 {
   simulations: number;
   rounds: RealRound[];
   actualFinalScore: number | null;
+  modelFinalScore?: number | null;
   evidenceLevel: EvidenceLevel | null;
   revisions: RecordRevision[];
 }
@@ -119,8 +121,9 @@ export function isValidGameRecord(value: unknown): value is RealGameRecordV1 {
     !Array.isArray(value.rounds) || value.rounds.length > 5 || !value.rounds.every(isValidRound) ||
     !value.rounds.every((round, index) => round.turn === index + 1) || new Set(value.rounds.map(round => round.chosen.cardId)).size !== value.rounds.length ||
     (value.actualFinalScore !== null && (!Number.isSafeInteger(value.actualFinalScore) || !nonnegative(value.actualFinalScore))) ||
+    (value.modelFinalScore != null && (!Number.isSafeInteger(value.modelFinalScore) || !nonnegative(value.modelFinalScore) || value.actualFinalScore !== null)) ||
     (value.evidenceLevel !== null && value.evidenceLevel !== "player_report" && value.evidenceLevel !== "screen_verified") ||
-    !Array.isArray(value.revisions) || !value.revisions.every(item => record(item) && timestamp(item.at) && (item.previousScore === null || Number.isSafeInteger(item.previousScore) && nonnegative(item.previousScore)) && Array.isArray(item.previousRounds) && item.previousRounds.length === 5 && item.previousRounds.every(isValidRound))) return false;
+    !Array.isArray(value.revisions) || !value.revisions.every(item => record(item) && timestamp(item.at) && (item.previousScore === null || Number.isSafeInteger(item.previousScore) && nonnegative(item.previousScore)) && (item.previousModelScore == null || Number.isSafeInteger(item.previousModelScore) && nonnegative(item.previousModelScore)) && Array.isArray(item.previousRounds) && item.previousRounds.length === 5 && item.previousRounds.every(isValidRound))) return false;
   if (value.status === "recorded") {
     const rounds = value.rounds as RealRound[];
     const revisions = value.revisions as RecordRevision[];
@@ -129,13 +132,13 @@ export function isValidGameRecord(value: unknown): value is RealGameRecordV1 {
     const rulesSnapshot = value.rulesSnapshot as Rules;
     return isValidDeferredStarResolution(rounds, rulesSnapshot) && revisions.every(item => isValidDeferredStarResolution(item.previousRounds, rulesSnapshot));
   }
-  return value.completedAt === null && value.actualFinalScore === null && value.evidenceLevel === null;
+  return value.completedAt === null && value.actualFinalScore === null && value.modelFinalScore == null && value.evidenceLevel === null;
 }
 
 export function createGameRecord(seed: number, simulations: number, now = new Date().toISOString()): RealGameRecordV1 {
   return { id: crypto.randomUUID(), schemaVersion: RECORD_SCHEMA_VERSION, source: "real_manual", status: "draft", createdAt: now,
     updatedAt: now, completedAt: null, revision: 0, engineVersion: ENGINE_VERSION, cardCatalogVersion: CARD_CATALOG_VERSION,
-    rulesSnapshot: { ...RULES }, seed, simulations, rounds: [], actualFinalScore: null, evidenceLevel: null, revisions: [] };
+    rulesSnapshot: { ...RULES }, seed, simulations, rounds: [], actualFinalScore: null, modelFinalScore: null, evidenceLevel: null, revisions: [] };
 }
 
 export function parseExport(value: unknown): RealGameRecordV1[] {
@@ -152,6 +155,7 @@ export function exportEnvelope(games: RealGameRecordV1[]): ExportEnvelope {
 export function summarizeRealGames(games: RealGameRecordV1[]) {
   const recorded = games.filter(game => game.status === "recorded");
   const scored = recorded.filter(game => game.actualFinalScore !== null);
+  const modelScored = recorded.filter(game => game.actualFinalScore === null && game.modelFinalScore != null);
   const completeWithOffers = recorded.filter(game => game.rounds.every(round => round.offers !== null));
   const clickCounts = new Map<CardId, { success: number; total: number }>();
   const offerColors = { blue: 0, purple: 0, red: 0 };
@@ -164,13 +168,15 @@ export function summarizeRealGames(games: RealGameRecordV1[]) {
     if (round.offers) for (const offer of round.offers) { offerColors[offer.color]++; observedOffers++; }
   }
   const scores = scored.map(game => game.actualFinalScore!);
+  const modelScores = modelScored.map(game => game.modelFinalScore!);
   const predictions = scored.flatMap(game => {
     const last = game.rounds[4]!;
     const metric = last.predictions?.find(item => item.cardId === last.chosen.cardId);
     return metric ? [game.actualFinalScore! - metric.meanScore] : [];
   });
-  return { recordedCount: recorded.length, scoredCount: scored.length, completeWithOffersCount: completeWithOffers.length, totalCount: games.length,
+  return { recordedCount: recorded.length, scoredCount: scored.length, modelScoredCount: modelScored.length, completeWithOffersCount: completeWithOffers.length, totalCount: games.length,
     averageScore: scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null,
+    modelAverageScore: modelScores.length ? modelScores.reduce((sum, score) => sum + score, 0) / modelScores.length : null,
     scoreResidualMean: predictions.length ? predictions.reduce((sum, value) => sum + value, 0) / predictions.length : null,
     residualCount: predictions.length, clickCounts, offerColors, observedOffers };
 }

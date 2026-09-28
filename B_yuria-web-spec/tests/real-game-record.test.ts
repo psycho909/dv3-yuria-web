@@ -118,4 +118,23 @@ describe("real game record", () => {
     expect(summary.averageScore).toBe(840);
     expect(summary.clickCounts.get("fool")).toEqual({ success: 2, total: 2 });
   });
+
+  it("keeps a blank-input model score separate from verified actual scores", () => {
+    const auto = recorded(null);
+    auto.modelFinalScore = 468;
+    expect(isValidGameRecord(auto)).toBe(true);
+    expect(parseExport(exportEnvelope([auto]))).toEqual([auto]);
+    const summary = summarizeRealGames([auto, recorded(840)]);
+    expect(summary.recordedCount).toBe(2);
+    expect(summary.scoredCount).toBe(1);
+    expect(summary.modelScoredCount).toBe(1);
+    expect(summary.averageScore).toBe(840);
+    expect(summary.modelAverageScore).toBe(468);
+    expect(summary.residualCount).toBe(0);
+    const legacy = { ...auto };
+    delete legacy.modelFinalScore;
+    expect(parseExport(exportEnvelope([legacy]))).toEqual([legacy]);
+    expect(isValidGameRecord({ ...auto, modelFinalScore: -1 })).toBe(false);
+    expect(isValidGameRecord({ ...auto, actualFinalScore: 468, evidenceLevel: "player_report" })).toBe(false);
+  });
 });

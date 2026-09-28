@@ -590,6 +590,7 @@ function bindEvents() {
     if (!currentRecord) return;
     currentRecord.status = "recorded";
     currentRecord.actualFinalScore = value;
+    currentRecord.modelFinalScore = value === null ? Math.round(summarizeScore(state.selected, currentRecord.rulesSnapshot).meanScore) : null;
     currentRecord.evidenceLevel = value === null ? null : app.querySelector<HTMLSelectElement>("#score-evidence")!.value as EvidenceLevel;
     currentRecord.completedAt = new Date().toISOString();
     currentRecord.updatedAt = currentRecord.completedAt;
@@ -661,8 +662,11 @@ function bindArchiveEvents() {
 
 function renderActualScorePanel() {
   if (state.selected.length !== 5 || unresolvedStarIndex() !== -1) return "";
-  if (currentRecord?.status === "recorded" && !scoreEditing) return `<section class="real-score-panel panel"><h3>本局已記錄</h3><p>模型估算平均 ${summarizeScore(state.selected, RULES).meanScore.toFixed(1)} 分；遊戲實得 ${currentRecord.actualFinalScore === null ? "未填" : `${currentRecord.actualFinalScore.toLocaleString()} 分`}。兩者分開保存。</p><button type="button" class="secondary-action" id="edit-actual-score">更正本局紀錄</button></section>`;
-  return `<section class="real-score-panel panel"><h3>紀錄這一局</h3><p>五回合已完成；按下「紀錄本局」才加入本機紀錄。遊戲實得分數可留空，模型分數不會代填。</p><form id="actual-score-form"><label>遊戲實得分數（可留空） <input id="actual-final-score" type="number" min="0" step="1" value="${scoreEditing && currentRecord?.actualFinalScore !== null ? currentRecord?.actualFinalScore ?? "" : ""}" /></label><label>證據來源 <select id="score-evidence"><option value="player_report">玩家回報</option><option value="screen_verified">已核對遊戲畫面</option></select></label><button class="primary-action" type="submit">紀錄本局</button>${scoreEditing ? `<button class="text-action" type="button" id="cancel-score-edit">取消更正</button>` : ""}</form></section>`;
+  const summary = summarizeScore(state.selected, currentRecord?.rulesSnapshot ?? RULES);
+  const modelScore = Math.round(summary.meanScore);
+  const range = summary.minScore === summary.maxScore ? "" : `（可能 ${summary.minScore}–${summary.maxScore} 分；非實得分數）`;
+  if (currentRecord?.status === "recorded" && !scoreEditing) return `<section class="real-score-panel panel"><h3>本局已記錄</h3><p>模型估算平均 ${summary.meanScore.toFixed(1)} 分；${currentRecord.actualFinalScore !== null ? `遊戲實得 ${currentRecord.actualFinalScore.toLocaleString()} 分` : currentRecord.modelFinalScore != null ? `模型計算 ${currentRecord.modelFinalScore.toLocaleString()} 分${range}，實得分數未填` : "實得分數未填"}。</p><button type="button" class="secondary-action" id="edit-actual-score">更正本局紀錄</button></section>`;
+  return `<section class="real-score-panel panel"><h3>紀錄這一局</h3><p>五回合已完成；按下「紀錄本局」才加入本機紀錄。實得分數留白時，另記模型計算 ${modelScore.toLocaleString()} 分${range}，不當作實得分數。</p><form id="actual-score-form"><label>遊戲實得分數（可留空） <input id="actual-final-score" type="number" min="0" step="1" value="${scoreEditing && currentRecord?.actualFinalScore !== null ? currentRecord?.actualFinalScore ?? "" : ""}" /></label><label>實得分數的證據來源 <select id="score-evidence"><option value="player_report">玩家回報</option><option value="screen_verified">已核對遊戲畫面</option></select></label><button class="primary-action" type="submit">紀錄本局</button>${scoreEditing ? `<button class="text-action" type="button" id="cancel-score-edit">取消更正</button>` : ""}</form></section>`;
 }
 
 function wilsonInterval(success: number, total: number): string {
@@ -680,8 +684,8 @@ function renderArchiveBody() {
   const cardRows = [...summary.clickCounts].sort((a, b) => b[1].total - a[1].total).map(([id, count]) =>
     `<li>${esc(cardName(id))}：點選 ${count.total} 次、成功 ${count.success} 次；${count.total >= 30 ? `成功率 ${Math.round(count.success / count.total * 100)}%（95% 區間 ${wilsonInterval(count.success, count.total)}）` : "樣本不足，暫不校準機率"}</li>`).join("");
   const colorText = (color: CardColor) => `${colorLabel[color]} ${summary.offerColors[color]}`;
-  const entries = archiveGames.slice(0, 12).map(game => `<li><time>${esc(game.createdAt.slice(0, 10))}</time> · ${game.rounds.length}/5 回合 · ${game.actualFinalScore === null ? "實得分數未填" : `${game.actualFinalScore} 分`} · 修訂 ${game.revision}</li>`).join("");
-  return `<p role="status">${esc(archiveNotice)}</p><p>本機已記錄 ${summary.recordedCount} 局；有實得分數 ${summary.scoredCount} 局；五回合候選齊全 ${summary.completeWithOffersCount} 局。${summary.scoredCount < 30 ? "分數樣本不足，不顯示個人達標率。" : `實測平均 ${summary.averageScore!.toFixed(1)} 分。`}</p>
+  const entries = archiveGames.slice(0, 12).map(game => `<li><time>${esc(game.createdAt.slice(0, 10))}</time> · ${game.rounds.length}/5 回合 · ${game.actualFinalScore !== null ? `實得 ${game.actualFinalScore} 分` : game.modelFinalScore != null ? `模型計算 ${game.modelFinalScore} 分（非實得）` : "實得分數未填"} · 修訂 ${game.revision}</li>`).join("");
+  return `<p role="status">${esc(archiveNotice)}</p><p>本機已記錄 ${summary.recordedCount} 局；有實得分數 ${summary.scoredCount} 局；模型計算分數 ${summary.modelScoredCount} 局；五回合候選齊全 ${summary.completeWithOffersCount} 局。${summary.scoredCount < 30 ? "實得分數樣本不足，不顯示個人達標率。" : `實測平均 ${summary.averageScore!.toFixed(1)} 分。`}${summary.modelScoredCount ? `模型計算平均 ${summary.modelAverageScore!.toFixed(1)} 分（不併入實測）。` : ""}</p>
     <p>完成局中的候選顏色紀錄：${colorText("blue")}／${colorText("purple")}／${colorText("red")}（共 ${summary.observedOffers} 張）。</p>
     <p>終局預測與實得分數差：${summary.residualCount >= 30 ? `${summary.scoreResidualMean!.toFixed(1)} 分，n=${summary.residualCount}` : `樣本不足（${summary.residualCount}/30）`}。</p>
     <details><summary>查看點選後成功次數</summary><ul>${cardRows || "<li>尚無完整實測</li>"}</ul><small>未點選牌不計為失敗；模擬局與舊五局分數不在這裡。</small></details>
@@ -692,10 +696,11 @@ function renderArchiveBody() {
 
 function startRecordCorrection() {
   if (!currentRecord || currentRecord.status !== "recorded") return;
-  currentRecord.revisions.push({ at: new Date().toISOString(), previousScore: currentRecord.actualFinalScore, previousRounds: structuredClone(currentRecord.rounds) });
+  currentRecord.revisions.push({ at: new Date().toISOString(), previousScore: currentRecord.actualFinalScore, previousModelScore: currentRecord.modelFinalScore ?? null, previousRounds: structuredClone(currentRecord.rounds) });
   currentRecord.revision++;
   currentRecord.status = "draft";
   currentRecord.actualFinalScore = null;
+  currentRecord.modelFinalScore = null;
   currentRecord.evidenceLevel = null;
   currentRecord.completedAt = null;
   scoreEditing = false;

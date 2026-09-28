@@ -144,6 +144,15 @@ describe("deterministic score engine", () => {
     expect([summary.p10, summary.p50, summary.p90]).toEqual([172, 178, 184]);
   });
 
+  it("keeps a three-red auto score identifiable as an estimate", () => {
+    const summary = summarizeScore([
+      active("fool", "red"), active("hanged_man", "red"), active("chariot", "red"),
+      failed("temperance", "red"), failed("wheel_of_fortune", "red")
+    ], RULES);
+    expect([summary.minScore, summary.maxScore]).toEqual([450, 487]);
+    expect(Math.round(summary.meanScore)).toBe(468);
+  });
+
   it("marks a no-red integer summary as exact without duplicate samples", () => {
     expect(summarizeScore([active("fool", "blue")], RULES)).toEqual({
       meanScore: 75,

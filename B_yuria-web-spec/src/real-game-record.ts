@@ -1,7 +1,7 @@
 import { CARDS, RULES, type CardColor, type CardId, type Objective, type OfferedCard, type Rules } from "./domain";
 
 export const RECORD_SCHEMA_VERSION = 1;
-export const ENGINE_VERSION = "b-deterministic-2026-09-23";
+export const ENGINE_VERSION = "b-deterministic-2026-09-28-star-after-fifth";
 export const CARD_CATALOG_VERSION = "2026-09-23";
 const DB_NAME = "yuria-real-games";
 const STORE_NAME = "games";
@@ -98,6 +98,18 @@ export function isValidRound(value: unknown): value is RealRound {
   return true;
 }
 
+function isValidDeferredStarResolution(rounds: RealRound[], rulesSnapshot: Rules): boolean {
+  const legalTargetIds = new Set(rounds
+    .filter(round => round.chosen.cardId !== "star" && (rulesSnapshot.starRemovalPolicy === "uniformPresent" || round.activated))
+    .map(round => round.chosen.cardId));
+  return rounds.every(round => {
+    if (round.chosen.cardId !== "star" || !round.activated) return round.starRemovedCardId === null;
+    return legalTargetIds.size === 0
+      ? round.starRemovedCardId === null
+      : round.starRemovedCardId !== null && legalTargetIds.has(round.starRemovedCardId);
+  });
+}
+
 export function isValidGameRecord(value: unknown): value is RealGameRecordV1 {
   if (!record(value) || value.schemaVersion !== 1 || value.source !== "real_manual" || typeof value.id !== "string" || !/^[\w-]{8,100}$/.test(value.id) ||
     !["draft", "recorded"].includes(String(value.status)) || !timestamp(value.createdAt) || !timestamp(value.updatedAt) ||
@@ -109,7 +121,14 @@ export function isValidGameRecord(value: unknown): value is RealGameRecordV1 {
     (value.actualFinalScore !== null && (!Number.isSafeInteger(value.actualFinalScore) || !nonnegative(value.actualFinalScore))) ||
     (value.evidenceLevel !== null && value.evidenceLevel !== "player_report" && value.evidenceLevel !== "screen_verified") ||
     !Array.isArray(value.revisions) || !value.revisions.every(item => record(item) && timestamp(item.at) && (item.previousScore === null || Number.isSafeInteger(item.previousScore) && nonnegative(item.previousScore)) && Array.isArray(item.previousRounds) && item.previousRounds.length === 5 && item.previousRounds.every(isValidRound))) return false;
-  if (value.status === "recorded") return value.rounds.length === 5 && value.completedAt !== null && (value.actualFinalScore === null ? value.evidenceLevel === null : value.evidenceLevel !== null);
+  if (value.status === "recorded") {
+    const rounds = value.rounds as RealRound[];
+    const revisions = value.revisions as RecordRevision[];
+    const complete = rounds.length === 5 && value.completedAt !== null && (value.actualFinalScore === null ? value.evidenceLevel === null : value.evidenceLevel !== null);
+    if (!complete || value.engineVersion !== ENGINE_VERSION) return complete;
+    const rulesSnapshot = value.rulesSnapshot as Rules;
+    return isValidDeferredStarResolution(rounds, rulesSnapshot) && revisions.every(item => isValidDeferredStarResolution(item.previousRounds, rulesSnapshot));
+  }
   return value.completedAt === null && value.actualFinalScore === null && value.evidenceLevel === null;
 }
 

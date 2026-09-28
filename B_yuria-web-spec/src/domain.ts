@@ -154,7 +154,7 @@ export function generateOffer(rng: Rng, selected: SelectedCard[], turn: number, 
 }
 
 function starTargets(cards: SelectedCard[], rules: Rules): number[] { return cards.flatMap((card, i) => card.cardId !== "star" && !card.removed && (rules.starRemovalPolicy === "uniformPresent" || card.activated) ? [i] : []); }
-export function resolveSelection(rng: Rng, selected: SelectedCard[], offered: OfferedCard, rules: Rules = RULES): SelectedCard[] { const next = selected.map(c => ({ ...c })); const active = rng() < CARDS[offered.cardId].activationProbability; const card: SelectedCard = { ...offered, activated: active }; if (active && offered.cardId === "tower") card.towerProc = rng() < .5; next.push(card); if (active && offered.cardId === "star") { const targets = starTargets(next, rules); if (targets.length) { const i = pick(rng, targets); next[i] = { ...next[i]!, removed: true }; } } return next; }
+export function resolveSelection(rng: Rng, selected: SelectedCard[], offered: OfferedCard, rules: Rules = RULES): SelectedCard[] { const next = selected.map(c => ({ ...c })); const active = rng() < CARDS[offered.cardId].activationProbability; const card: SelectedCard = { ...offered, activated: active }; if (active && offered.cardId === "tower") card.towerProc = rng() < .5; next.push(card); if (next.length === 5 && next.some(c => c.cardId === "star" && c.activated) && !next.some(c => c.removed)) { const targets = starTargets(next, rules); if (targets.length) { const i = pick(rng, targets); next[i] = { ...next[i]!, removed: true }; } } return next; }
 
 function mean(values: number[]) { return values.reduce((a, b) => a + b, 0) / Math.max(1, values.length); }
 function percentile(values: number[], q: number) { return values[Math.min(values.length - 1, Math.floor((values.length - 1) * q))]!; }
@@ -202,19 +202,18 @@ function simulateOne(rng: Rng, state: GameState, candidate: OfferedCard, rules: 
 function finalTurnMetrics(selected: SelectedCard[], candidate: OfferedCard, threshold: number, rules: Rules): Metrics {
   const activation = CARDS[candidate.cardId].activationProbability;
   const branches: { cards: SelectedCard[]; probability: number }[] = [];
-  if (activation < 1) branches.push({ cards: [...selected, { ...candidate, activated: false }], probability: 1 - activation });
+  const addBranch = (cards: SelectedCard[], probability: number) => {
+    const targets = cards.some(card => card.cardId === "star" && card.activated) && !cards.some(card => card.removed) ? starTargets(cards, rules) : [];
+    if (!targets.length) branches.push({ cards, probability });
+    else for (const target of targets) branches.push({ cards: cards.map((card, index) => index === target ? { ...card, removed: true } : card), probability: probability / targets.length });
+  };
+  if (activation < 1) addBranch([...selected, { ...candidate, activated: false }], 1 - activation);
   if (activation > 0) {
     if (candidate.cardId === "tower") {
-      branches.push({ cards: [...selected, { ...candidate, activated: true, towerProc: false }], probability: activation / 2 });
-      branches.push({ cards: [...selected, { ...candidate, activated: true, towerProc: true }], probability: activation / 2 });
-    } else if (candidate.cardId === "star") {
-      const targets = starTargets(selected, rules);
-      if (!targets.length) branches.push({ cards: [...selected, { ...candidate, activated: true }], probability: activation });
-      for (const target of targets) {
-        branches.push({ cards: [...selected, { ...candidate, activated: true }].map((card, index) => index === target ? { ...card, removed: true } : card), probability: activation / targets.length });
-      }
+      addBranch([...selected, { ...candidate, activated: true, towerProc: false }], activation / 2);
+      addBranch([...selected, { ...candidate, activated: true, towerProc: true }], activation / 2);
     } else {
-      branches.push({ cards: [...selected, { ...candidate, activated: true }], probability: activation });
+      addBranch([...selected, { ...candidate, activated: true }], activation);
     }
   }
 

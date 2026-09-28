@@ -17,13 +17,14 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     try { const detail = await action(); report.checks.push({ name, pass: true, ...detail }); console.log(`PASS ${name}`); }
     catch (error) { report.checks.push({ name, pass: false, error: error.stack }); console.log(`FAIL ${name}: ${error.message}`); await page.screenshot({ path: path.join(out, `failure-${name}.png`) }).catch(() => {}); process.exitCode = 1; }
   };
-  const select = async (trigger, id, color = 'blue') => {
+  const openPicker = async trigger => {
     const details = page.locator('details').filter({ has: page.locator(trigger).first() });
     if (await details.count() && !await details.first().evaluate(el => el.open)) await details.first().locator('summary').first().click();
     await page.locator(trigger).first().click();
-    await page.locator(`[data-picker-card="${id}"]`).click();
-    await page.locator(`[data-picker-color="${color}"]`).click();
-    await page.locator('[data-picker-apply]').click();
+  };
+  const select = async (trigger, id, color = 'blue') => {
+    await openPicker(trigger);
+    await page.locator(`[data-picker-direct-card="${id}"][data-picker-direct-color="${color}"]`).click();
   };
   const add = async (id, outcome = 'success', color = 'blue', special) => {
     await select('#add-history', id, color);
@@ -32,6 +33,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     await page.locator('[data-commit-outcome]').click();
   };
   const stored = () => page.evaluate(() => JSON.parse(localStorage.getItem('yuria-web-session-v1')));
+  const waitForCardImages = () => page.waitForFunction(() => [...document.querySelectorAll('.game-card img')].every(image => image.complete && image.naturalWidth > 0), null, { timeout: 12000 });
   const fresh = async () => { await page.goto(url); await page.evaluate(() => localStorage.removeItem('yuria-web-session-v1')); await page.reload(); };
   try {
     await page.goto(url);
@@ -45,6 +47,22 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await page.locator('[data-layout-mode="full"]').click();
       await page.locator('.advanced-settings > summary').click();
     });
+    await fresh();
+    await check('direct-mini-color-and-used-card-hidden', async () => {
+      await page.locator('[data-pick="0"]').click();
+      const direct = page.locator('[data-picker-direct-card="moon"][data-picker-direct-color="purple"]');
+      assert.equal(await direct.count(), 1);
+      assert.equal(await direct.isVisible(), true);
+      await direct.click();
+      assert.deepEqual((await stored()).candidates[0], { cardId: 'moon', color: 'purple' });
+      assert.equal(await page.locator('dialog').count(), 0);
+      await page.locator('[data-pick="1"]').click();
+      assert.equal(await page.locator('[data-picker-card="moon"]').isVisible(), false);
+      assert.equal(await page.locator('[data-picker-direct-card="moon"][data-picker-direct-color="purple"]').isVisible(), false);
+      await page.keyboard.press('Escape');
+      return { direct: 'moon/purple', usedCardHidden: true };
+    });
+    await fresh();
     for (const width of [375, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       const layout = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: getComputedStyle(document.body).backgroundColor }));
@@ -92,6 +110,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
         for (const id of scenario.selected) await add(id);
         for (const [index, id] of scenario.candidates.entries()) await select('[data-pick="' + index + '"]', id, 'blue');
         await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
+        await waitForCardImages();
         for (const [width, height] of [[1024, 768], [1440, 900]]) {
           await page.setViewportSize({ width, height });
           await page.evaluate(() => scrollTo(0, 0));
@@ -114,6 +133,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       }
       await fresh();
       for (const id of ['fool', 'magician', 'moon', 'empress', 'emperor']) await add(id);
+      await waitForCardImages();
       assert.equal(await page.locator('.history-row').count(), 5);
       assert.equal(await page.locator('.candidate-card').count(), 0, 'completed game has no active candidate choices');
       const completed = [];
@@ -145,16 +165,29 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await add('fool');
       await add('magician', 'failure');
       await add('tower', 'success', 'purple', '[data-tower-proc="true"]');
-      await add('star', 'success', 'purple', '[data-remove-card="fool"]');
-      assert.equal((await stored()).state.selected[0].removed, true);
+      await add('star', 'success', 'purple');
+      let saved = await stored();
+      assert.equal(saved.state.selected[0].removed, undefined);
+      assert.equal(saved.state.selected[3].activated, true);
+      assert.equal(saved.starTargets[3], null);
+      assert.equal(await page.locator('.star-resolution').count(), 0);
       await page.reload();
       await page.locator('#undo').click();
-      const saved = await stored();
+      saved = await stored();
       assert.equal(saved.state.turn, 4);
       assert.equal(saved.state.selected.length, 3);
       assert.notEqual(saved.state.selected[0].removed, true);
-      await add('star', 'success', 'purple', '[data-remove-card="magician"]');
+      await add('star', 'success', 'purple');
       await add('moon', 'success', 'red');
+      assert.equal(await page.locator('.star-resolution').count(), 1);
+      assert.equal((await stored()).starTargets[3], null);
+      assert.equal(await page.locator('#actual-score-form').count(), 0);
+      await page.locator('[data-final-star-target="moon"]').click();
+      saved = await stored();
+      assert.equal(saved.starTargets[3], 'moon');
+      assert.equal(saved.state.selected[4].removed, true);
+      assert.equal(await page.locator('.star-resolution').count(), 0);
+      assert.equal(await page.locator('#actual-score-form').count(), 1);
       assert.equal(await page.locator('#completion-title').count(), 1);
       assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /本局完成/);
       assert.equal(await page.locator('[data-pick]').count(), 0);
@@ -165,11 +198,13 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     await check('worker-modes-fixed-slots-duplicate', async () => {
       await select('[data-pick="0"]', 'fool');
       await page.locator('[data-pick="1"]').click();
-      assert.equal(await page.locator('[data-picker-card="fool"]').isDisabled(), true);
+      assert.equal(await page.locator('[data-picker-card="fool"]').isVisible(), false);
+      assert.equal(await page.locator('[data-picker-direct-card="fool"][data-picker-direct-color="blue"]').isVisible(), false);
       await page.keyboard.press('Escape');
       await select('[data-pick="1"]', 'strength', 'purple');
       await select('[data-pick="2"]', 'moon', 'red');
       await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
+      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-pick')), '2', 'focus should remain on the selected candidate after Worker render');
       const ids = () => page.locator('[data-choose]').evaluateAll(els => els.map(el => el.dataset.choose));
       assert.deepEqual(await ids(), ['fool', 'strength', 'moon']);
       assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /比較推薦/);
@@ -279,11 +314,14 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
           const values = [luminance(foreground), luminance(bg)].sort((a, b) => b - a);
           return (values[0] + .05) / (values[1] + .05);
         };
-        const samples = ['h1', '.subhead', '.picker-card strong', '.picker-card small', '.picker-card span', '.picker-color', '.picker-categories button', '.picker-search label'].map(selector => ({ selector, ratio: contrast(document.querySelector(selector)) }));
-        const smallControls = [...document.querySelectorAll('dialog button:not(:disabled)')].filter(el => el.getClientRects().length).map(el => ({ text: el.textContent.trim(), width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height })).filter(el => el.width < 44 || el.height < 44);
-        return { samples, smallControls };
+        const samples = ['h1', '.subhead', '.picker-card strong', '.picker-card small', '.picker-color', '.picker-categories button', '.picker-search label'].map(selector => ({ selector, ratio: contrast(document.querySelector(selector)) }));
+        const smallControls = [...document.querySelectorAll('dialog button:not(:disabled):not(.mini-color)')].filter(el => el.getClientRects().length).map(el => ({ text: el.textContent.trim(), width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height })).filter(el => el.width < 44 || el.height < 44);
+        const miniColors = [...document.querySelectorAll('dialog .mini-color:not(:disabled)')].filter(el => el.getClientRects().length).map(el => ({ width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height }));
+        return { samples, smallControls, miniColors };
       });
       assert.equal(visual.smallControls.length, 0, JSON.stringify(visual.smallControls));
+      assert.ok(visual.miniColors.length >= 3, 'direct mini color controls are missing');
+      assert.ok(visual.miniColors.every(control => control.width >= 24 && control.height >= 30), JSON.stringify(visual.miniColors));
       assert.ok(visual.samples.every(sample => sample.ratio >= 4.5), JSON.stringify(visual.samples));
       await page.keyboard.press('Escape');
       return visual;
@@ -304,8 +342,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
         await fault.goto(url);
         for (const [i, id] of ['fool', 'magician', 'moon'].entries()) {
           await fault.locator(`[data-pick="${i}"]`).click();
-          await fault.locator(`[data-picker-card="${id}"]`).click();
-          await fault.locator('[data-picker-apply]').click();
+          await fault.locator(`[data-picker-direct-card="${id}"][data-picker-direct-color="blue"]`).click();
         }
         await fault.locator('#retry-calculation').waitFor();
         assert.equal(await fault.locator('[data-pick]').count(), 3);

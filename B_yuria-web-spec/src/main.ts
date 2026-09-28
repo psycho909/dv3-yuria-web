@@ -24,8 +24,8 @@ const cardArtNumber: Record<CardId, string> = {
 const cardArt = (id: CardId) => `/cards/frame_event_yuria_card_${cardArtNumber[id]}.png`;
 const colorOptions: CardColor[] = ["blue", "purple", "red"];
 let state: GameState = { turn: 1, selected: [] };
-let targetThreshold = 1500;
-let targetInput = "1500";
+let targetThreshold = 3000;
+let targetInput = "3000";
 let targetError = "";
 let objective: Objective = { kind: "threshold", target: targetThreshold };
 let candidates: Array<OfferedCard | null> = [null, null, null];
@@ -126,7 +126,7 @@ function isValidState(value: unknown): value is GameState {
 
 function isValidStarTargets(value: unknown, selected: SelectedCard[]): value is Array<CardId | null> {
   return Array.isArray(value) && value.length === selected.length && value.every((target, index) =>
-    target === null || (selected[index]?.cardId === "star" && isCardId(target) && target !== "star" && selected.slice(0, index).some(card => card.cardId === target))
+    target === null || (selected[index]?.cardId === "star" && isCardId(target) && target !== "star" && selected.some(card => card.cardId === target))
   );
 }
 
@@ -183,7 +183,7 @@ function loadSession() {
     turnSnapshots = (saved.turnSnapshots ?? []).map(cloneSnapshot).slice(-5);
     candidates = savedCandidates.map(card => card ? { cardId: card.cardId, color: card.color } : null);
     candidateColors = saved.candidateColors === undefined ? ["blue", "blue", "blue"] : saved.candidateColors.length === 3 && saved.candidateColors.every(isColor) ? [...saved.candidateColors] : ["blue", "blue", "blue"];
-    targetThreshold = typeof saved.targetThreshold === "number" && Number.isFinite(saved.targetThreshold) && Number.isInteger(saved.targetThreshold) && saved.targetThreshold >= 0 ? saved.targetThreshold : 1500;
+    targetThreshold = typeof saved.targetThreshold === "number" && Number.isFinite(saved.targetThreshold) && Number.isInteger(saved.targetThreshold) && saved.targetThreshold >= 0 ? saved.targetThreshold : 3000;
     if (saved.objective?.kind === "threshold" && Number.isInteger(saved.objective.target) && saved.objective.target >= 0) targetThreshold = saved.objective.target;
     objective = saved.objective?.kind === "expected" || saved.objective?.kind === "stability" ? { kind: saved.objective.kind } : { kind: "threshold", target: targetThreshold };
     targetInput = String(targetThreshold);
@@ -207,16 +207,18 @@ function objectiveMetric(metric: NonNullable<typeof result>["ranked"][number]) {
   return thresholdMetric(metric);
 }
 
-function cardFace(id: CardId) {
+function cardFace(id: CardId, color: CardColor) {
   const card = CARDS[id];
   const effect = card.specialEffect?.kind === "tower" ? `高塔：成功 +${card.specialEffect.procMultiplier} 倍，否則 +${card.specialEffect.fallbackMultiplier} 倍` : card.specialEffect?.kind === "removeOtherCard" ? `星星：成功移除一張牌，倍率 +${card.specialEffect.multiplier}` : card.specialEffect?.kind === "failedCardScore" ? `月亮：基礎 +${card.specialEffect.baseScore}，每張失敗 +${card.specialEffect.perFailedCard}` : card.specialEffect?.kind === "activeCountMultiplier" ? `太陽：倍率 +${card.specialEffect.baseMultiplier}，每張有效牌 +${card.specialEffect.perActiveCard}` : card.specialEffect?.kind === "highestActiveScore" ? `世界：最高成功分數 ×${card.specialEffect.factor}` : card.category === "score" ? `+${card.scoreValue} 分` : card.category === "multiplier" ? `倍率 +${card.multiplierValue}` : "特殊效果";
-  return `<span class="face-category">${card.category === "score" ? "分數卡" : card.category === "multiplier" ? "倍率卡" : "特殊卡"}</span><img class="card-art" src="${cardArt(id)}" alt="" /><strong>${esc(card.name)}</strong><small class="card-effect sr-only">${effect}</small><small>啟用 ${Math.round(card.activationProbability * 100)}%</small>`;
+  const frameColor = color === "red" ? "yellow" : color;
+  const badge = card.category === "score" ? `+${card.scoreValue}` : card.category === "multiplier" ? `+${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊";
+  return `<span class="game-card" aria-hidden="true"><img class="game-card-frame" src="/cards/frame_event_yuria_${frameColor}_frame_01.png" alt="" /><img class="game-card-art" src="${cardArt(id)}" alt="" /><span class="game-card-label" style="background-image:url('/cards/frame_event_yuria_${frameColor}_frame_02.png')">${badge}</span><span class="game-card-ribbon" style="background-image:url('/cards/frame_event_yuria_${frameColor}_ribbon_01.png')">${esc(card.name)}</span></span><span class="sr-only">${esc(card.name)}，${colorLabel[color]}色，${effect}，啟用 ${Math.round(card.activationProbability * 100)}%</span>`;
 }
 
 function renderHistory() {
   const cards = state.selected.map((card, index) => `<article class="history-row ${colorClass[card.color]} ${card.removed ? "is-removed" : ""}">
     <div class="history-card-summary ${colorClass[card.color]} ${card.activated ? "" : "is-failed"}" aria-label="第 ${index + 1} 回合，${esc(cardName(card.cardId))}，${colorLabel[card.color]}色，${card.removed ? "已移除" : card.activated ? "成功" : "失敗"}">
-      <span>第 ${index + 1} 回合</span><img class="history-card-art" src="${cardArt(card.cardId)}" alt="" /><strong>${esc(cardName(card.cardId))}</strong><small>${colorLabel[card.color]}色 · ${card.removed ? "已移除" : card.activated ? "成功" : "失敗"}</small>
+      ${cardFace(card.cardId, card.color)}<small>第 ${index + 1} 回合 · ${card.removed ? "已移除" : card.activated ? "成功" : "失敗"}</small>
     </div>
     <details class="history-edit" data-detail-key="history-edit-${index}"${detailAttribute(`history-edit-${index}`)}><summary>更正記錄</summary><div class="history-edit-fields">
       <label>牌色<select data-history-color="${index}" aria-label="${esc(cardName(card.cardId))} 牌色" ${targetError ? "disabled" : ""}>${colorOptions.map(color => `<option value="${color}" ${color === card.color ? "selected" : ""}>${colorLabel[color]}色</option>`).join("")}</select></label>
@@ -245,28 +247,30 @@ function renderPendingCandidate(index: number, candidate: OfferedCard | null, is
   const color = candidate?.color ?? candidateColors[index]!;
   return `<article class="candidate-card pending-card ${colorClass[color]}">
     <div class="candidate-top"><span class="rank">${String(index + 1).padStart(2, "0")}</span>${colorBadge(color)}<span class="category">候選槽</span></div>
-    <button type="button" class="candidate-slot-button ${candidate ? `card-face ${colorClass[color]}` : isNext ? "is-next-slot" : ""}" data-pick="${index}" aria-label="搜尋或選擇第 ${index + 1} 張候選牌">${candidate ? cardFace(candidate.cardId) : `<span class="slot-plus">＋</span><strong>搜尋或選擇卡片</strong><small>填入第 ${index + 1} 張候選牌</small>`}</button>
+    <button type="button" class="candidate-slot-button ${candidate ? `card-face ${colorClass[color]}` : isNext ? "is-next-slot" : ""}" data-pick="${index}" aria-label="${candidate ? `修改第 ${index + 1} 張候選牌：${esc(cardName(candidate.cardId))}，${colorLabel[color]}色` : `搜尋或選擇第 ${index + 1} 張候選牌`}">${candidate ? cardFace(candidate.cardId, color) : `<span class="slot-plus">＋</span><strong>搜尋或選擇卡片</strong><small>填入第 ${index + 1} 張候選牌</small>`}</button>
     <div class="candidate-color-buttons" role="group" aria-label="第 ${index + 1} 張候選牌顏色">${colorOptions.map(option => `<button type="button" class="candidate-color-button ${colorClass[option]} ${color === option ? "selected" : ""}" data-slot-color="${option}" data-slot-index="${index}" aria-pressed="${color === option}">${colorLabel[option]}</button>`).join("")}</div>
     <div class="pending-copy">${candidate ? "已填入候選牌" : "請選擇候選牌"}</div>
   </article>`;
 }
 
+function usageLabelForPicker(id: CardId) {
+  if (state.selected.some(card => card.cardId === id)) return "本局已選";
+  const slot = candidates.findIndex((candidate, index) => index !== pickerIndex && candidate?.cardId === id);
+  return slot >= 0 ? `候選 ${slot + 1} 已使用` : "";
+}
+
 function renderPicker() {
   if (pickerIndex === null || !pickerDraft) return "";
   const selectedCard = pickerDraft.cardId ? CARDS[pickerDraft.cardId] : null;
-  const visibleCards = cardList.filter(card => (pickerCategory === "all" || card.category === pickerCategory) && card.name.includes(pickerSearch.trim()));
+  const visibleCards = cardList.filter(card => !usageLabelForPicker(card.id) && (pickerCategory === "all" || card.category === pickerCategory) && card.name.includes(pickerSearch.trim()));
   const categories = [["all", "全部"], ["score", "分數卡"], ["multiplier", "倍率卡"], ["special", "特殊卡"]] as const;
   const categoryCount = (value: typeof categories[number][0]) => value === "all" ? cardList.length : cardList.filter(card => card.category === value).length;
-  const usageLabel = (id: CardId) => {
-    if (state.selected.some(card => card.cardId === id)) return "本局已選";
-    const slot = candidates.findIndex((candidate, index) => index !== pickerIndex && candidate?.cardId === id);
-    return slot >= 0 ? `候選 ${slot + 1} 已使用` : "";
-  };
+  const usageLabel = usageLabelForPicker;
   return `<dialog class="picker-dialog" aria-labelledby="picker-title">
     <div class="picker-header"><div><p class="eyebrow">CARD PICKER</p><h2 id="picker-title">${pickerIndex === -1 ? "加入已確定卡片" : `選擇第 ${pickerIndex + 1} 張候選牌`}</h2></div><button type="button" class="picker-close" data-picker-cancel aria-label="關閉選擇器">×</button></div>
     <div class="picker-search"><label for="card-search">搜尋 22 張卡片</label><div class="search-control"><input id="card-search" type="search" placeholder="搜尋卡片名稱，例如：月亮" value="${esc(pickerSearch)}" autocomplete="off" /><button type="button" id="clear-search" class="secondary-action" aria-label="清除搜尋" ${pickerSearch ? "" : "hidden"}>清除</button></div></div>
-    <div class="picker-section"><div class="picker-section-heading"><strong>1. 選擇卡片</strong><small>${selectedCard ? `目前：${esc(selectedCard.name)}` : "點圖卡選擇；灰色為已使用"}</small></div><div class="picker-categories" role="group" aria-label="牌庫分類">${categories.map(([value, label]) => `<button type="button" data-picker-category="${value}" aria-pressed="${pickerCategory === value}" class="${pickerCategory === value ? "selected" : ""}">${label} <span>${categoryCount(value)}</span></button>`).join("")}</div><div class="picker-card-grid">${cardList.map(card => { const usage = usageLabel(card.id); return `<button type="button" class="picker-card ${pickerDraft!.cardId === card.id ? "selected" : ""}" data-picker-card="${card.id}" aria-pressed="${pickerDraft!.cardId === card.id}" ${usage ? "disabled" : ""} ${visibleCards.includes(card) ? "" : "hidden"}><img src="${cardArt(card.id)}" alt="" loading="lazy" /><strong>${esc(card.name)}</strong><small>${card.category === "score" ? `+${card.scoreValue} 分` : card.category === "multiplier" ? `倍率 +${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊卡"}</small><span>${usage || `啟用 ${Math.round(card.activationProbability * 100)}%`}</span></button>`; }).join("")}</div><p id="search-empty" aria-live="polite" ${visibleCards.length ? "hidden" : ""}>找不到卡片，請換個名稱或分類。</p></div>
-    <div class="picker-section"><div class="picker-section-heading"><strong>2. 選擇卡牌顏色</strong><small>${colorLabel[pickerDraft.color]}</small></div><div class="picker-color-options">${colorOptions.map(color => `<button type="button" class="picker-color ${colorClass[color]} ${pickerDraft!.color === color ? "selected" : ""}" data-picker-color="${color}" aria-pressed="${pickerDraft!.color === color}">${colorLabel[color]}</button>`).join("")}</div></div>
+    <div class="picker-section"><div class="picker-section-heading"><strong>直接點卡片下方的藍／紫／紅，即可加入</strong><small>${selectedCard ? `目前：${esc(selectedCard.name)}` : "已使用的牌不顯示"}</small></div><div class="picker-categories" role="group" aria-label="牌庫分類">${categories.map(([value, label]) => `<button type="button" data-picker-category="${value}" aria-pressed="${pickerCategory === value}" class="${pickerCategory === value ? "selected" : ""}">${label} <span>${categoryCount(value)}</span></button>`).join("")}</div><div class="picker-card-grid">${cardList.map(card => { const usage = usageLabel(card.id); return `<div class="picker-card ${pickerDraft!.cardId === card.id ? "selected" : ""}" ${visibleCards.includes(card) ? "" : "hidden"}><button type="button" class="picker-card-choice" data-picker-card="${card.id}" aria-pressed="${pickerDraft!.cardId === card.id}" ${usage ? "disabled" : ""}><img src="${cardArt(card.id)}" alt="" loading="lazy" /><strong>${esc(card.name)}</strong><small>${card.category === "score" ? `+${card.scoreValue} 分` : card.category === "multiplier" ? `+${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊卡"}</small></button><div class="picker-card-colors" role="group" aria-label="${esc(card.name)}牌色">${colorOptions.map(color => `<button type="button" class="mini-color ${colorClass[color]}" data-picker-direct-card="${card.id}" data-picker-direct-color="${color}" aria-label="${esc(card.name)}，${colorLabel[color]}色，直接加入" ${usage ? "disabled" : ""}>${colorLabel[color]}</button>`).join("")}</div></div>`; }).join("")}</div><p id="search-empty" aria-live="polite" ${visibleCards.length ? "hidden" : ""}>找不到卡片，請換個名稱或分類。</p></div>
+    <div class="picker-section picker-manual-color"><div class="picker-section-heading"><strong>或先選圖卡，再選顏色</strong><small>${colorLabel[pickerDraft.color]}</small></div><div class="picker-color-options">${colorOptions.map(color => `<button type="button" class="picker-color ${colorClass[color]} ${pickerDraft!.color === color ? "selected" : ""}" data-picker-color="${color}" aria-pressed="${pickerDraft!.color === color}">${colorLabel[color]}</button>`).join("")}</div></div>
     <div class="picker-footer"><span>${selectedCard ? `${esc(selectedCard.name)}／${colorLabel[pickerDraft.color]}` : "請先選擇一張卡片"}</span><div><button type="button" class="secondary-action" id="clear-picker-choice" ${selectedCard ? "" : "disabled"}>清除選擇</button><button type="button" class="secondary-action" data-picker-cancel>取消</button><button type="button" class="primary-action" data-picker-apply ${selectedCard ? "" : "disabled"}>${pickerIndex === -1 ? "下一步：記錄結果" : "套用候選"}</button></div></div>
   </dialog>`;
 }
@@ -307,7 +311,7 @@ function renderCandidate(slotIndex: number, metric: NonNullable<typeof result>["
   const comparison = objective.kind === "threshold" ? { label: "平均分", value: metric.meanScore.toFixed(1), detail: `預期最終分數 ${metric.meanScore.toFixed(1)}` } : thresholdMetric(metric);
   return `<article class="candidate-card ${isTop ? "is-top" : ""} ${colorClass[metric.candidate.color]}">
     <div class="candidate-top"><span class="rank">候選 ${slotIndex + 1}</span>${colorBadge(metric.candidate.color)}<span class="category">${card.category === "score" ? "分數" : card.category === "multiplier" ? "倍率" : "特殊"}</span>${isTop ? `<span class="recommend-badge">推薦 #1</span>` : `<span class="rank">排名 #${rank}</span>`}</div>
-    <button type="button" class="card-face ${colorClass[metric.candidate.color]}" data-pick="${slotIndex}" aria-label="修改${esc(card.name)}">${cardFace(card.id)}</button>
+    <button type="button" class="card-face ${colorClass[metric.candidate.color]}" data-pick="${slotIndex}" aria-label="修改第 ${slotIndex + 1} 張候選牌：${esc(card.name)}，${colorLabel[metric.candidate.color]}色">${cardFace(card.id, metric.candidate.color)}</button>
     <div class="candidate-color-buttons" role="group" aria-label="候選 ${slotIndex + 1} 顏色">${colorOptions.map(color => `<button type="button" class="candidate-color-button ${colorClass[color]} ${color === metric.candidate.color ? "selected" : ""}" data-slot-color="${color}" data-slot-index="${slotIndex}" aria-pressed="${color === metric.candidate.color}">${colorLabel[color]}</button>`).join("")}</div>
     <div class="metric-main"><span>${primary.label}</span><strong title="${esc(primary.detail)}">${esc(primary.value)}</strong><span class="sr-only">${esc(primary.detail)}</span></div>
     <div class="metric-row"><span>${comparison.label}</span><strong title="${esc(comparison.detail)}">${esc(comparison.value)}</strong><span class="sr-only">${esc(comparison.detail)}</span></div>
@@ -328,6 +332,7 @@ function render() {
   const exactZero = Boolean(result && result.ranked.length > 0 && result.ranked.every(metric => metric.method === "exact" && metric.thresholdProbability === 0));
   const currentScore = calculateScore(state.selected, () => .5, RULES);
   const scoreSummary = summarizeScore(state.selected, RULES);
+  const starPending = state.selected.some((card, index) => card.cardId === "star" && card.activated && !starTargetIds[index]);
   const workflowStep = state.selected.length === 5 ? 3 : candidatesReady() ? 2 : 1;
   const workspaceTitle = state.selected.length === 5 ? "本局已完成" : resultReady ? "比較推薦；先在遊戲選牌，再回來記錄結果" : calculationStatus === "calculating" ? "正在計算推薦" : calculationStatus === "error" ? "推薦暫時無法更新" : "填入遊戲中的 3 張候選牌";
   const statusText = calculationStatus === "calculating" ? "計算中…" : calculationStatus === "error" ? "需要重試" : `${candidates.filter(Boolean).length} / 3 已填入`;
@@ -335,7 +340,7 @@ function render() {
   app.innerHTML = `<main class="shell ${layoutMode === "narrow" ? "layout-narrow" : "layout-full"}">
     <header class="header">
       <div><p class="eyebrow">YURIA / 選牌助手</p><h1>尤里亞的占卜計算器</h1><p class="subhead">填入三張牌 → 比較推薦 → 記錄遊戲結果</p></div>
-      <div class="header-meta" ${state.selected.length ? "" : "hidden"}><span>目前估算平均</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div>
+      <div class="header-meta" ${state.selected.length ? "" : "hidden"}><span>${starPending ? "星星待結算，暫估平均" : "目前估算平均"}</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div>
     </header>
     ${restoredSession ? `<div class="restored-note" role="status"><span>已恢復這台裝置上的上一局資料。</span><button type="button" class="text-action" id="dismiss-restored">知道了</button></div>` : ""}
     <ol class="workflow" aria-label="操作順序">
@@ -349,11 +354,12 @@ function render() {
       <button class="primary-action" id="calculate" aria-live="polite" ${!candidatesReady() || state.selected.length === 5 || calculationStatus === "calculating" || targetError ? "disabled" : ""}>${calculationStatus === "error" ? "重試計算" : calculationStatus === "calculating" ? "計算中…" : "更新推薦"}</button>
     </section></details>
     <div class="layout">
-      <section class="panel history-panel" aria-labelledby="history-title"><div class="section-heading history-heading"><div><p class="eyebrow">CURRENT RUN</p><h2 id="history-title">已確定卡片</h2></div><div class="history-actions"><span class="turn-counter" aria-label="已確定 ${state.selected.length} 張，共 5 張">${state.selected.length} / 5</span><button type="button" class="secondary-action" id="undo" ${state.selected.length ? "" : "hidden"}>撤回上一回合</button><button type="button" class="secondary-action" id="add-history" ${state.selected.length < 5 && !targetError ? "" : "hidden"}>＋ 補登已玩卡片</button><button type="button" class="clear-run-action" id="reset">清空本局，重新開始</button></div></div>
+      <section class="panel history-panel" aria-labelledby="history-title"><div class="section-heading history-heading"><button type="button" class="clear-run-action" id="reset">清空本局，重新開始</button><div><p class="eyebrow">CURRENT RUN</p><h2 id="history-title">已確定卡片</h2></div><div class="history-actions"><span class="turn-counter" aria-label="已確定 ${state.selected.length} 張，共 5 張">${state.selected.length} / 5</span><button type="button" class="secondary-action" id="undo" ${state.selected.length ? "" : "hidden"}>撤回上一回合</button><button type="button" class="secondary-action" id="add-history" ${state.selected.length < 5 && !targetError ? "" : "hidden"}>＋ 補登已玩卡片</button></div></div>
         <p class="history-hint">${state.selected.length ? "按「更正記錄」可調整顏色與結果；如要重做最後一步，使用「撤回上一回合」。" : "新牌局不用補登，直接填下方候選牌；接續牌局才需要補登。"}</p><div class="history-list">${renderHistory()}</div>
       </section>
       <section class="workspace"><div class="workspace-heading"><div><p class="eyebrow">第 ${state.turn} / 5 回合</p><h2>${workspaceTitle}</h2></div><span class="calculation-time" aria-live="polite">${statusText}</span></div>
-        ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>可撤回上一回合修正，或重設本局重新開始。</p></section>` : `<div class="candidate-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
+        ${renderStarResolution()}
+        ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>可撤回上一回合修正，或清空本局重新開始。</p></section>` : `<div class="candidate-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
         ${renderActualScorePanel()}
         ${resultReady ? renderCandidateRiskDetails() : ""}
         <section class="decision-panel panel ${resultReady ? "" : "pending-decision"}" ${state.selected.length === 5 ? "hidden" : ""}><div><p class="eyebrow">${resultReady ? "選牌建議" : calculationStatus === "error" ? "計算錯誤" : calculationStatus === "calculating" ? "正在計算" : "操作提示"}</p><h2>${resultReady ? (fallback ? exactZero ? "依目前模型，達標機率為 0%" : "達標率皆為零，改看預期分數" : "依你的目標比較推薦") : calculationStatus === "error" ? "輸入已保留，請重試" : calculationStatus === "calculating" ? "正在整理三張牌的比較結果" : "先選擇本回合三張候選牌"}</h2><p>${resultReady ? (fallback ? exactZero ? "目前精確模型沒有支援達標的結果，系統仍以預期最終分數最高者排序。" : "目前抽樣沒有達到目標，系統改以預期最終分數最高者排序。" : "先在遊戲中選牌，再按「選擇這張」記錄啟用結果。") : calculationStatus === "error" ? calculationError : calculationStatus === "calculating" ? "計算完成後會在原本的候選槽顯示指標，不會改變牌的順序。" : candidateInputHint()}</p></div>${resultReady && bestMean ? `<div class="decision-values"><div><span>目前目標推薦</span><strong>${esc(CARDS[result!.ranked[0]!.candidate.cardId].name)}／${colorLabel[result!.ranked[0]!.candidate.color]}</strong></div><div><span>預期分數最高</span><strong>${esc(CARDS[bestMean.candidate.cardId].name)}／${colorLabel[bestMean.candidate.color]}</strong></div></div>` : calculationStatus === "error" ? `<button type="button" class="secondary-action retry-action" id="retry-calculation">重新計算</button>` : ""}</section>
@@ -368,7 +374,7 @@ function render() {
         </details>
       </aside>
     </div>
-    <section class="score-breakdown" aria-label="目前計分" ${state.selected.length ? "" : "hidden"}><strong>目前分數組成</strong><span>分數 ${currentScore.sum} × 倍率 ${currentScore.multiplier.toFixed(2)} × 紅色加成 ${(1 + currentScore.redBonus).toFixed(2)} = <b>${currentScore.finalScore}</b></span><small>組成列取紅色中間值；上方估算平均使用${scoreMethod}，祝福尚未納入。</small></section>
+    <section class="score-breakdown" aria-label="目前計分" ${state.selected.length ? "" : "hidden"}><strong>目前分數組成</strong><span>分數 ${currentScore.sum} × 倍率 ${currentScore.multiplier.toFixed(2)} × 紅色加成 ${(1 + currentScore.redBonus).toFixed(2)} = <b>${currentScore.finalScore}</b></span><small>組成列取紅色中間值；上方估算平均使用${scoreMethod}，祝福尚未納入。${starPending ? "星星移除牌尚未確認，分數暫估。" : ""}</small></section>
     ${renderKnowledgePanels()}
     <footer class="footer"><span>數學結果由本機 deterministic engine 計算</span><span>特殊卡、顏色級距與失敗補償已納入</span><span>祝福尚未建模</span></footer>
     ${renderPicker()}
@@ -393,7 +399,7 @@ function render() {
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     });
     const restoredFocus = dialogFocus && focusSelector ? app.querySelector<HTMLElement>(focusSelector) : null;
-    const nextFocus = restoredFocus ?? (pendingEditIndex !== null ? app.querySelector<HTMLElement>("[data-edit-tower-proc], [data-edit-remove-card], [data-edit-commit]") : pickerIndex !== null ? app.querySelector<HTMLElement>("#card-search") : pendingChoice && pendingOutcome && pendingChoice.cardId === "tower" ? app.querySelector<HTMLElement>('[data-tower-proc="false"]') : pendingChoice && pendingOutcome && pendingChoice.cardId === "star" ? app.querySelector<HTMLElement>("[data-remove-card]") : pendingChoice ? app.querySelector<HTMLElement>('[data-outcome="success"]') : null);
+    const nextFocus = restoredFocus ?? (pendingEditIndex !== null ? app.querySelector<HTMLElement>("[data-edit-tower-proc], [data-edit-remove-card], [data-edit-commit]") : pickerIndex !== null ? app.querySelector<HTMLElement>("#card-search") : pendingChoice && pendingOutcome && pendingChoice.cardId === "tower" ? app.querySelector<HTMLElement>('[data-tower-proc="false"]') : pendingChoice && pendingOutcome ? app.querySelector<HTMLElement>("[data-commit-outcome]") : pendingChoice ? app.querySelector<HTMLElement>('[data-outcome="success"]') : null);
     nextFocus?.focus({ preventScroll: true });
     dialog.scrollTop = pickerScroll;
   }
@@ -419,6 +425,13 @@ function cancelPendingCalculation() {
   replaceWorker();
 }
 
+function renderAfterWorker() {
+  if (pickerIndex !== null) return;
+  const activePick = document.activeElement?.getAttribute("data-pick");
+  render();
+  if (activePick !== null) app.querySelector<HTMLElement>(`[data-pick="${activePick}"]`)?.focus();
+}
+
 function handleWorkerMessage(source: Worker, event: MessageEvent<WorkerMessage>) {
   const message = event.data;
   if (source !== worker || message.requestId !== requestId) return;
@@ -430,7 +443,7 @@ function handleWorkerMessage(source: Worker, event: MessageEvent<WorkerMessage>)
     result = message.result;
     calculationStatus = "ready";
   }
-  if (pickerIndex === null) render();
+  renderAfterWorker();
 }
 
 function handleWorkerError(source: Worker) {
@@ -441,7 +454,7 @@ function handleWorkerError(source: Worker) {
   result = null;
   calculationStatus = "error";
   calculationError = "推薦計算執行失敗，輸入仍保留，請重試。";
-  if (pickerIndex === null) render();
+  renderAfterWorker();
 }
 
 function calculate() {
@@ -502,6 +515,16 @@ function closeResetConfirmation() {
   app.querySelector<HTMLElement>("#reset")?.focus();
 }
 
+function applyPickerChoice(cardId: CardId, color: CardColor) {
+  if (pickerIndex === null || usageLabelForPicker(cardId)) return;
+  if (pickerIndex === -1) { pendingChoice = { cardId, color }; pendingChoiceSource = "manual"; pickerIndex = null; pickerDraft = null; render(); return; }
+  candidates[pickerIndex] = { cardId, color };
+  candidateColors[pickerIndex] = color;
+  pickerIndex = null; pickerDraft = null;
+  calculate();
+  app.querySelector<HTMLElement>(returnFocus)?.focus();
+}
+
 function bindEvents() {
   app.querySelectorAll<HTMLSelectElement>("[data-history-color]").forEach(select => select.addEventListener("change", () => { startRecordCorrection(); state.selected[Number(select.dataset.historyColor)]!.color = select.value as CardColor; calculate(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-history-result]").forEach(button => button.addEventListener("click", () => editHistoryResult(Number(button.dataset.historyResult), button.dataset.activated === "true")));
@@ -512,8 +535,8 @@ function bindEvents() {
   app.querySelector<HTMLButtonElement>("[data-edit-cancel]")?.addEventListener("click", closeEditDialog);
   app.querySelector<HTMLInputElement>("#card-search")?.addEventListener("input", event => {
     pickerSearch = (event.target as HTMLInputElement).value;
-    const matches = cardList.filter(card => (pickerCategory === "all" || card.category === pickerCategory) && card.name.includes(pickerSearch.trim()));
-    app.querySelectorAll<HTMLButtonElement>("[data-picker-card]").forEach(button => { const card = CARDS[button.dataset.pickerCard as CardId]; button.hidden = !(pickerCategory === "all" || card.category === pickerCategory) || !card.name.includes(pickerSearch.trim()); });
+    const matches = cardList.filter(card => !usageLabelForPicker(card.id) && (pickerCategory === "all" || card.category === pickerCategory) && card.name.includes(pickerSearch.trim()));
+    app.querySelectorAll<HTMLButtonElement>("[data-picker-card]").forEach(button => { const card = CARDS[button.dataset.pickerCard as CardId]; button.closest<HTMLElement>(".picker-card")!.hidden = Boolean(usageLabelForPicker(card.id)) || !(pickerCategory === "all" || card.category === pickerCategory) || !card.name.includes(pickerSearch.trim()); });
     app.querySelector<HTMLElement>("#search-empty")!.hidden = matches.length > 0;
     app.querySelector<HTMLButtonElement>("#clear-search")?.toggleAttribute("hidden", !pickerSearch);
   });
@@ -560,13 +583,14 @@ function bindEvents() {
   app.querySelectorAll<HTMLElement>("[data-pick]").forEach(trigger => trigger.addEventListener("click", () => { pickerSearch = ""; pickerCategory = "all"; const index = Number(trigger.dataset.pick); returnFocus = `[data-pick="${index}"]`; const candidate = candidates[index]; pickerIndex = index; pickerDraft = { cardId: candidate?.cardId ?? "", color: candidate?.color ?? candidateColors[index]! }; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-picker-card]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, cardId: button.dataset.pickerCard as CardId }; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-picker-color]").forEach(button => button.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, color: button.dataset.pickerColor as CardColor }; render(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-picker-direct-card]").forEach(button => button.addEventListener("click", () => applyPickerChoice(button.dataset.pickerDirectCard as CardId, button.dataset.pickerDirectColor as CardColor)));
   app.querySelector<HTMLButtonElement>("#clear-picker-choice")?.addEventListener("click", () => { if (!pickerDraft) return; pickerDraft = { ...pickerDraft, cardId: "" }; render(); });
   app.querySelectorAll<HTMLButtonElement>("[data-picker-cancel]").forEach(button => button.addEventListener("click", closeDialog));
-  app.querySelector<HTMLButtonElement>("[data-picker-apply]")?.addEventListener("click", () => { if (pickerIndex === null || !pickerDraft?.cardId) return; if (pickerIndex === -1) { pendingChoice = { cardId: pickerDraft.cardId, color: pickerDraft.color }; pendingChoiceSource = "manual"; pickerIndex = null; pickerDraft = null; render(); return; } candidates[pickerIndex] = { cardId: pickerDraft.cardId, color: pickerDraft.color }; candidateColors[pickerIndex] = pickerDraft.color; pickerIndex = null; pickerDraft = null; calculate(); app.querySelector<HTMLElement>(returnFocus)?.focus(); });
+  app.querySelector<HTMLButtonElement>("[data-picker-apply]")?.addEventListener("click", () => { if (pickerDraft?.cardId) applyPickerChoice(pickerDraft.cardId, pickerDraft.color); });
   app.querySelector<HTMLButtonElement>("#add-history")?.addEventListener("click", () => { pickerSearch = ""; pickerCategory = "all"; returnFocus = "#add-history"; pickerIndex = -1; pickerDraft = { cardId: "", color: "blue" }; render(); });
   app.querySelectorAll<HTMLButtonElement>("[data-choose]").forEach(button => button.addEventListener("click", () => addHistory(button.dataset.choose as CardId, button.dataset.chooseColor as CardColor)));
   app.querySelectorAll<HTMLButtonElement>("[data-tower-proc]").forEach(button => button.addEventListener("click", () => { pendingTowerProc = button.dataset.towerProc === "true"; render(); }));
-  app.querySelectorAll<HTMLButtonElement>("[data-remove-card]").forEach(button => button.addEventListener("click", () => { pendingRemovedCardId = button.dataset.removeCard as CardId; render(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-final-star-target]").forEach(button => button.addEventListener("click", () => { const index = unresolvedStarIndex(); const target = state.selected.find(card => card.cardId === button.dataset.finalStarTarget); if (index < 0 || !target || target.cardId === "star" || target.removed) return; startRecordCorrection(); target.removed = true; starTargetIds[index] = target.cardId; calculate(); app.querySelector<HTMLElement>("#completion-title")?.focus(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-outcome]").forEach(button => button.addEventListener("click", () => {
     if (button.dataset.outcome === "cancel") { closeDialog(); return; }
     if (!pendingChoice || state.selected.length >= 5) return;
@@ -574,10 +598,10 @@ function bindEvents() {
     pendingOutcome = outcome;
     render();
   }));
-  app.querySelector<HTMLButtonElement>("[data-commit-outcome]")?.addEventListener("click", () => { if (!pendingOutcome || (pendingOutcome === "success" && pendingChoice?.cardId === "tower" && pendingTowerProc === null) || (pendingOutcome === "success" && pendingChoice?.cardId === "star" && removableCards().length && pendingRemovedCardId === null)) return; commitOutcome(pendingOutcome); });
+  app.querySelector<HTMLButtonElement>("[data-commit-outcome]")?.addEventListener("click", () => { if (!pendingOutcome || (pendingOutcome === "success" && pendingChoice?.cardId === "tower" && pendingTowerProc === null)) return; commitOutcome(pendingOutcome); });
   app.querySelector<HTMLFormElement>("#actual-score-form")?.addEventListener("submit", event => {
     event.preventDefault();
-    if (state.selected.length !== 5) return;
+    if (state.selected.length !== 5 || unresolvedStarIndex() !== -1) return;
     const raw = app.querySelector<HTMLInputElement>("#actual-final-score")!.value.trim();
     const value = raw === "" ? null : Number(raw);
     if (value !== null && (!Number.isSafeInteger(value) || value < 0)) { archiveNotice = "實得分數請填 0 或以上的整數，或留空。"; refreshArchiveBody(); return; }
@@ -656,7 +680,7 @@ function bindArchiveEvents() {
 }
 
 function renderActualScorePanel() {
-  if (state.selected.length !== 5) return "";
+  if (state.selected.length !== 5 || unresolvedStarIndex() !== -1) return "";
   if (currentRecord?.status === "recorded" && !scoreEditing) return `<section class="real-score-panel panel"><h3>本局已記錄</h3><p>模型估算平均 ${summarizeScore(state.selected, RULES).meanScore.toFixed(1)} 分；遊戲實得 ${currentRecord.actualFinalScore === null ? "未填" : `${currentRecord.actualFinalScore.toLocaleString()} 分`}。兩者分開保存。</p><button type="button" class="secondary-action" id="edit-actual-score">更正本局紀錄</button></section>`;
   return `<section class="real-score-panel panel"><h3>紀錄這一局</h3><p>五回合已完成；按下「紀錄本局」才加入本機紀錄。遊戲實得分數可留空，模型分數不會代填。</p><form id="actual-score-form"><label>遊戲實得分數（可留空） <input id="actual-final-score" type="number" min="0" step="1" value="${scoreEditing && currentRecord?.actualFinalScore !== null ? currentRecord?.actualFinalScore ?? "" : ""}" /></label><label>證據來源 <select id="score-evidence"><option value="player_report">玩家回報</option><option value="screen_verified">已核對遊戲畫面</option></select></label><button class="primary-action" type="submit">紀錄本局</button>${scoreEditing ? `<button class="text-action" type="button" id="cancel-score-edit">取消更正</button>` : ""}</form></section>`;
 }
@@ -767,7 +791,7 @@ async function loadArchive() {
 
 function starEditTargets(index: number): SelectedCard[] {
   const currentTarget = starTargetIds[index];
-  return state.selected.slice(0, index).filter(card =>
+  return state.selected.filter(card => card.cardId !== "star" &&
     (!card.removed || card.cardId === currentTarget) && (RULES.starRemovalPolicy === "uniformPresent" || card.activated)
   );
 }
@@ -775,6 +799,9 @@ function starEditTargets(index: number): SelectedCard[] {
 function editHistoryResult(index: number, activated: boolean) {
   const card = state.selected[index];
   if (!card) return;
+  if (activated && card.cardId === "star" && state.selected.length < 5) {
+    startRecordCorrection(); card.activated = true; calculate(); return;
+  }
   if (activated && (card.cardId === "star" || card.cardId === "tower")) {
     pendingEditIndex = index;
     pendingEditTowerProc = card.cardId === "tower" && card.activated ? card.towerProc ?? null : null;
@@ -859,29 +886,35 @@ function removableCards() {
   return state.selected.filter(card => card.cardId !== "star" && !card.removed && (RULES.starRemovalPolicy === "uniformPresent" || card.activated));
 }
 
+function unresolvedStarIndex() {
+  return state.selected.length === 5 && removableCards().length ? state.selected.findIndex((card, index) => card.cardId === "star" && card.activated && !starTargetIds[index]) : -1;
+}
+
+function renderStarResolution() {
+  if (unresolvedStarIndex() === -1) return "";
+  return `<section class="panel star-resolution" aria-labelledby="star-resolution-title"><h3 id="star-resolution-title" tabindex="-1">最後一步：星星移除了哪張牌？</h3><p>五張牌都記錄後，依遊戲結算畫面選擇；選擇前分數只是暫估。</p><div class="star-targets">${removableCards().map(card => `<button type="button" class="secondary-action" data-final-star-target="${card.cardId}">${esc(cardName(card.cardId))}／${colorLabel[card.color]}</button>`).join("")}</div></section>`;
+}
+
 function commitOutcome(outcome: "success" | "failure") {
   if (!pendingChoice || state.selected.length >= 5) return;
   syncCurrentRecord();
   currentRecord ??= createGameRecord(CALCULATION_SEED, simulationCount);
   currentRecord.rounds.push(captureChosenRound(pendingChoice, outcome === "success"));
   snapshotCurrentState();
-  if (pendingRemovedCardId) state.selected = state.selected.map(card => card.cardId === pendingRemovedCardId ? { ...card, removed: true } : card);
   state.selected.push({ ...pendingChoice, activated: outcome === "success", ...(outcome === "success" && pendingChoice.cardId === "tower" ? { towerProc: pendingTowerProc! } : {}) });
-  starTargetIds = [...starTargetIds, pendingChoice.cardId === "star" ? pendingRemovedCardId : null];
+  starTargetIds = [...starTargetIds, null];
   state.turn = Math.min(5, state.selected.length + 1) as GameState["turn"];
   pendingChoice = null; pendingChoiceSource = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
   candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"];
   calculate();
-  app.querySelector<HTMLElement>(state.selected.length === 5 ? "#completion-title" : '[data-pick="0"]')?.focus();
+  app.querySelector<HTMLElement>(state.selected.length === 5 ? unresolvedStarIndex() !== -1 ? "#star-resolution-title" : "#completion-title" : '[data-pick="0"]')?.focus();
 }
 
 function renderOutcomeDialog() {
   const card = pendingChoice!;
   const needsTower = card.cardId === "tower" && pendingOutcome === "success";
-  const targets = removableCards();
-  const needsStar = card.cardId === "star" && pendingOutcome === "success" && targets.length > 0;
-  const detail = needsTower ? `<fieldset><legend>高塔實際倍率</legend><div class="outcome-choice-row"><button type="button" data-tower-proc="false" class="${pendingTowerProc === false ? "selected" : ""}">低倍率 +0.25</button><button type="button" data-tower-proc="true" class="${pendingTowerProc === true ? "selected" : ""}">高倍率 +2.0</button></div></fieldset>` : needsStar ? `<fieldset><legend>星星移除哪張牌？</legend><div class="outcome-choice-row">${targets.map(target => `<button type="button" data-remove-card="${target.cardId}" class="${pendingRemovedCardId === target.cardId ? "selected" : ""}">${esc(cardName(target.cardId))}／${colorLabel[target.color]}</button>`).join("")}</div></fieldset>` : "";
-  return `<dialog class="picker-dialog outcome-dialog" aria-labelledby="outcome-title"><h2 id="outcome-title">記錄 ${esc(cardName(card.cardId))}／${colorLabel[card.color]}</h2>${pendingOutcome ? `<p>請完成必要的實際結果，再提交這一回合。</p>${detail}<button type="button" class="primary-action" data-commit-outcome ${needsTower && pendingTowerProc === null || needsStar && pendingRemovedCardId === null ? "disabled" : ""}>完成記錄</button>` : `<p>請依遊戲畫面選擇；取消不會記錄。</p><div class="outcome-actions"><button type="button" class="primary-action" data-outcome="success">成功啟用</button><button type="button" class="secondary-action" data-outcome="failure">啟用失敗</button></div>`}<button type="button" class="text-action" data-outcome="cancel">取消，繼續比較</button></dialog>`;
+  const detail = needsTower ? `<fieldset><legend>高塔實際倍率</legend><div class="outcome-choice-row"><button type="button" data-tower-proc="false" class="${pendingTowerProc === false ? "selected" : ""}">低倍率 +0.25</button><button type="button" data-tower-proc="true" class="${pendingTowerProc === true ? "selected" : ""}">高倍率 +2.0</button></div></fieldset>` : card.cardId === "star" && pendingOutcome === "success" ? `<p>星星移除的牌會在五張牌記錄完後確認。</p>` : "";
+  return `<dialog class="picker-dialog outcome-dialog" aria-labelledby="outcome-title"><h2 id="outcome-title">記錄 ${esc(cardName(card.cardId))}／${colorLabel[card.color]}</h2>${pendingOutcome ? `<p>請完成必要的實際結果，再提交這一回合。</p>${detail}<button type="button" class="primary-action" data-commit-outcome ${needsTower && pendingTowerProc === null ? "disabled" : ""}>完成記錄</button>` : `<p>請依遊戲畫面選擇；取消不會記錄。</p><div class="outcome-actions"><button type="button" class="primary-action" data-outcome="success">成功啟用</button><button type="button" class="secondary-action" data-outcome="failure">啟用失敗</button></div>`}<button type="button" class="text-action" data-outcome="cancel">取消，繼續比較</button></dialog>`;
 }
 
 worker = createWorker();

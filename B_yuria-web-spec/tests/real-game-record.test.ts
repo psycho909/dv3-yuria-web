@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGameRecord, exportEnvelope, isValidGameRecord, parseExport, summarizeRealGames, type RealGameRecordV1, type RealRound } from "../src/real-game-record";
+import { createGameRecord, ENGINE_VERSION, exportEnvelope, isValidGameRecord, parseExport, summarizeRealGames, type RealGameRecordV1, type RealRound } from "../src/real-game-record";
 import type { CardId } from "../src/domain";
 
 const ids: CardId[] = ["fool", "magician", "empress", "emperor", "hermit"];
@@ -23,6 +23,18 @@ const recorded = (score: number | null): RealGameRecordV1 => ({
   actualFinalScore: score,
   evidenceLevel: score === null ? null : "player_report"
 });
+const starGame = (engineVersion = ENGINE_VERSION): RealGameRecordV1 => {
+  const game = recorded(null);
+  game.engineVersion = engineVersion;
+  game.rounds = [
+    { ...round(1), chosen: { cardId: "star", color: "blue" }, activated: true },
+    { ...round(2), chosen: { cardId: "fool", color: "blue" }, activated: true },
+    { ...round(3), chosen: { cardId: "magician", color: "blue" }, activated: false },
+    { ...round(4), chosen: { cardId: "empress", color: "blue" }, activated: true },
+    { ...round(5), chosen: { cardId: "emperor", color: "blue" }, activated: true }
+  ];
+  return game;
+};
 
 describe("real game record", () => {
   it("keeps an unsubmitted run as a draft and permits an optional actual score", () => {
@@ -47,6 +59,49 @@ describe("real game record", () => {
     game.rounds[0]!.chosen.cardId = "fool";
     game.rounds[0]!.towerProc = true;
     expect(isValidGameRecord(game)).toBe(false);
+  });
+
+  it("uses the new engine version and validates deferred Star targets in complete records", () => {
+    expect(createGameRecord(20260922, 10000).engineVersion).toBe(ENGINE_VERSION);
+
+    const valid = starGame();
+    valid.rounds[0]!.starRemovedCardId = "emperor";
+    expect(isValidGameRecord(valid)).toBe(true);
+
+    const missingTarget = starGame();
+    expect(isValidGameRecord(missingTarget)).toBe(false);
+
+    const selfTarget = starGame();
+    selfTarget.rounds[0]!.starRemovedCardId = "star";
+    expect(isValidGameRecord(selfTarget)).toBe(false);
+
+    const outsideTarget = starGame();
+    outsideTarget.rounds[0]!.starRemovedCardId = "world";
+    expect(isValidGameRecord(outsideTarget)).toBe(false);
+
+    const inactiveTarget = starGame();
+    inactiveTarget.rulesSnapshot = { ...inactiveTarget.rulesSnapshot, starRemovalPolicy: "uniformActive" };
+    inactiveTarget.rounds[0]!.starRemovedCardId = "magician";
+    expect(isValidGameRecord(inactiveTarget)).toBe(false);
+
+    const invalidRevision = starGame();
+    invalidRevision.revisions = [{ at: new Date().toISOString(), previousScore: null, previousRounds: structuredClone(invalidRevision.rounds) }];
+    invalidRevision.revisions[0]!.previousRounds[0]!.starRemovedCardId = "star";
+    expect(isValidGameRecord(invalidRevision)).toBe(false);
+  });
+
+  it("allows a new-version active Star to have no target when no legal target exists", () => {
+    const game = starGame();
+    game.rulesSnapshot = { ...game.rulesSnapshot, starRemovalPolicy: "uniformActive" };
+    game.rounds.forEach((currentRound, index) => { if (index > 0) currentRound.activated = false; });
+    expect(isValidGameRecord(game)).toBe(true);
+  });
+
+  it("keeps legacy records readable under their existing target constraints", () => {
+    const legacy = starGame("b-deterministic-2026-09-23");
+    legacy.rounds[0]!.starRemovedCardId = "world";
+    expect(isValidGameRecord(legacy)).toBe(true);
+    expect(parseExport(exportEnvelope([legacy]))).toEqual([legacy]);
   });
 
   it("imports only recorded real games and counts optional scores separately", () => {

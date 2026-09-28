@@ -448,3 +448,79 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
   .workspace-heading { align-items: flex-start; }
 }
 .pending-card > .candidate-slot-button.card-face { padding-top: 16px; }
+
+/* The game's layered card artwork stays a card, not a stretched panel. */
+.game-card { position: relative; display: block; flex: none; width: 88px; aspect-ratio: 224 / 308; image-rendering: pixelated; }
+.game-card-frame, .game-card-art { position: absolute; display: block; pointer-events: none; image-rendering: pixelated; }
+.game-card-frame { inset: 0; width: 100%; height: 100%; }
+.game-card-art { left: 1.8%; top: 1.3%; width: 96.4%; height: auto; }
+.game-card-label, .game-card-ribbon { position: absolute; display: grid; place-items: center; background-size: 100% 100%; background-repeat: no-repeat; font-weight: 800; white-space: nowrap; line-height: 1; }
+.game-card-label { left: 15%; top: -7%; width: 70%; aspect-ratio: 152 / 52; color: white; font-size: 12px; }
+.game-card-ribbon { left: -2%; right: -2%; bottom: 3%; aspect-ratio: 224 / 60; color: #25201a; font-size: 12px; }
+.history-card-summary { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 0; padding: 10px 2px 2px; background: transparent !important; border: 0; text-align: center; }
+.history-card-summary.is-failed .game-card { filter: grayscale(.7) brightness(.55); }
+.history-card-summary > small { font-size: 12px; color: var(--text-muted); }
+.history-heading { justify-content: flex-start; }
+.history-heading .history-actions { margin-left: auto; }
+.history-row { grid-template-columns: minmax(0, 1fr) 60px; grid-template-rows: auto; align-items: center; }
+.history-card-summary { grid-column: 1; grid-row: 1; }
+.history-edit { grid-column: 2; grid-row: 1; }
+.history-edit[open] { grid-column: 1 / -1; grid-row: 2; }
+.history-row.is-removed .game-card { opacity: .6; }
+.candidate-card > .card-face, .pending-card > .candidate-slot-button.card-face { display: grid; place-items: center; min-height: 0; padding: 14px 4px 4px; background: transparent; border: 0; }
+.candidate-card > .card-face .game-card { width: 70px; }
+.candidate-card > .card-face:hover .game-card, .candidate-card > .card-face:focus-visible .game-card { filter: drop-shadow(0 0 5px #cc8b34); }
+.candidate-card > .card-face:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+/* One color click on a mini card applies it to the current slot. */
+.picker-dialog { width: min(1120px, calc(100% - 24px)); }
+.picker-card-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.picker-card { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-height: 0; padding: 5px; background: #fffaf1; }
+.picker-card.is-used { opacity: .4; }
+.picker-card-choice { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; min-height: 124px; padding: 2px; border: 0; color: var(--text); background: transparent; cursor: pointer; }
+.picker-card-choice img { width: 60px; height: 83px; object-fit: contain; image-rendering: pixelated; }
+.picker-card-choice strong { font-size: 14px; line-height: 1.2; }
+.picker-card-choice small { color: var(--text-muted); font-size: 11px; }
+.picker-card-choice:focus-visible, .mini-color:focus-visible { outline: 3px solid #8d5a14; outline-offset: 2px; }
+.picker-card-colors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.mini-color { min-width: 0; min-height: 32px; border: 2px solid #fff; border-radius: 6px; cursor: pointer; }
+.mini-color.blue { background: #2d78d9; }.mini-color.purple { background: #8a3fe0; }.mini-color.red { background: #dd3d42; }
+.mini-color:hover:not(:disabled) { box-shadow: 0 0 0 2px #88530f; }
+.mini-color:disabled { cursor: not-allowed; }
+.star-resolution { padding: 16px; border: 2px solid #b86a1d; background: #fff6e6; }
+.star-resolution h3 { margin: 0 0 4px; font-size: 18px; }
+.star-resolution p { margin: 0 0 10px; }
+.star-targets { display: flex; flex-wrap: wrap; gap: 8px; }
+.star-targets button { min-height: 44px; }
+@media (max-width: 440px) { .picker-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }.picker-card { padding: 3px; }.picker-card-choice img { width: 50px; height: 70px; }.picker-card-choice { min-height: 112px; }.mini-color { min-height: 30px; } }
+
+/* Keep the PC workbench inside the first viewport without stretching artwork. */
+.history-card-summary > .game-card { width: 70px; }
+.history-list { padding-block: 12px; }
+.picker-footer #clear-picker-choice:disabled,
+.picker-footer [data-picker-apply]:disabled { display: none; }
+@media (max-width: 599px) { .clear-run-action { margin-left: 0; } }
+@media (min-width: 1000px) {
+  .goal-settings .control-bar { align-items: center; gap: 12px; padding: 5px 12px; }
+  .goal-settings .control-group { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; min-width: 0; }
+  .goal-settings .control-group > label { white-space: nowrap; }
+  .goal-settings .segmented { min-width: 0; margin-top: 0; }
+  .goal-settings .goal-help { display: none; }
+  .goal-settings .target-field { flex-direction: row; align-items: center; gap: 8px; white-space: nowrap; }
+}
+
+/* Keep direct color actions readable and close to the 44px touch target. */
+.picker-card-grid { grid-template-columns: repeat(auto-fill, minmax(144px, 1fr)); }
+.mini-color {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 0 1px 1px #0008;
+}

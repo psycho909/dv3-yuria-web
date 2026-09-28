@@ -22,9 +22,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
   }));
   const add = async (id, color = 'blue', outcome = 'success') => {
     await page.locator('#add-history').click();
-    await page.locator(`[data-picker-card="${id}"]`).click();
-    await page.locator(`[data-picker-color="${color}"]`).click();
-    await page.locator('[data-picker-apply]').click();
+    await page.locator(`[data-picker-direct-card="${id}"][data-picker-direct-color="${color}"]`).click();
     await page.locator(`[data-outcome="${outcome}"]`).click();
     await page.locator('[data-commit-outcome]').click();
   };
@@ -108,9 +106,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     assert.equal((await records()).length, 1, 'new run must retain archive');
     for (const [index, id, color] of [[0, 'fool', 'blue'], [1, 'magician', 'purple'], [2, 'empress', 'red']]) {
       await page.locator(`[data-pick="${index}"]`).click();
-      await page.locator(`[data-picker-card="${id}"]`).click();
-      await page.locator(`[data-picker-color="${color}"]`).click();
-      await page.locator('[data-picker-apply]').click();
+      await page.locator(`[data-picker-direct-card="${id}"][data-picker-direct-color="${color}"]`).click();
     }
     await page.locator('[data-choose="fool"]').waitFor();
     await page.locator('[data-choose="fool"]').click();

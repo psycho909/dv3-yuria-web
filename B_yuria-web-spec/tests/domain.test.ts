@@ -36,18 +36,34 @@ describe("deterministic score engine", () => {
   });
 
   it("removes a star target from both score and color counts", () => {
-    const selected = resolveSelection(
+    const beforeFinish = resolveSelection(
       () => 0,
       [active("fool", "blue")],
       { cardId: "star", color: "blue" },
       RULES
     );
+    expect(beforeFinish.find(card => card.cardId === "fool")?.removed).not.toBe(true);
+    const withFourth = resolveSelection(() => 0, [...beforeFinish, active("magician", "purple")], { cardId: "empress", color: "red" }, RULES);
+    const selected = resolveSelection(() => 0, withFourth, { cardId: "emperor", color: "blue" }, RULES);
     const result = calculateScore(selected, () => 0, RULES);
 
     expect(selected.find(card => card.cardId === "fool")?.removed).toBe(true);
-    expect(result.activeColorCounts.blue).toBe(1);
-    expect(result.sum).toBe(0);
+    expect(result.activeColorCounts.blue).toBe(2);
+    expect(result.sum).toBeGreaterThan(0);
     expect(result.multiplier).toBe(3.4); // base 1 + Star 2.4
+  });
+
+  it("includes the fifth card when resolving an earlier Star", () => {
+    const selected = [active("fool", "blue"), active("star", "blue"), active("magician", "blue"), active("empress", "blue")];
+    const candidate = { cardId: "emperor" as const, color: "blue" as const };
+    const metric = recommend({ turn: 5, selected }, [candidate], { kind: "expected" }, 80, 42).ranked[0]!;
+    const meanAfterStar = (activated: boolean) => {
+      const completed = [...selected, { ...candidate, activated }];
+      return [0, 2, 3, 4].reduce((sum, index) => sum + calculateScore(completed.map((card, i) => i === index ? { ...card, removed: true } : card), () => 0, RULES).finalScore, 0) / 4;
+    };
+    const expected = CARDS.emperor.activationProbability * meanAfterStar(true) + (1 - CARDS.emperor.activationProbability) * meanAfterStar(false);
+    expect(metric.method).toBe("exact");
+    expect(metric.meanScore).toBeCloseTo(expected, 9);
   });
 
   it("records Tower proc and special cards as executable rules", () => {
@@ -179,9 +195,9 @@ describe("recommendation reproducibility", () => {
       p90: metric.p90,
       thresholdProbability: metric.thresholdProbability
     }))).toEqual([
-      { cardId: "death", meanScore: 980.575, p10: 390, p50: 901, p90: 1672, thresholdProbability: .225 },
-      { cardId: "magician", meanScore: 1021.4083333333333, p10: 408, p50: 966, p90: 1678, thresholdProbability: 26 / 120 },
-      { cardId: "lovers", meanScore: 1001.5583333333333, p10: 360, p50: 960, p90: 1607, thresholdProbability: 26 / 120 }
+      { cardId: "death", meanScore: 980.5916666666667, p10: 390, p50: 903, p90: 1672, thresholdProbability: .225 },
+      { cardId: "magician", meanScore: 1021.5833333333334, p10: 408, p50: 951, p90: 1678, thresholdProbability: 26 / 120 },
+      { cardId: "lovers", meanScore: 978.8166666666667, p10: 364, p50: 900, p90: 1603, thresholdProbability: 23 / 120 }
     ]);
   });
 

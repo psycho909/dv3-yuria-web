@@ -37,10 +37,10 @@ const samples = 30;
     await page.reload();
     for (const [slot, card] of ['magician', 'death', 'lovers'].entries()) {
       await page.locator(`[data-pick="${slot}"]`).click();
-      await page.locator(`[data-picker-card="${card}"]`).click();
-      await page.locator('[data-picker-apply]').click();
+      await page.locator(`[data-picker-direct-card="${card}"][data-picker-direct-color="blue"]`).click();
     }
     await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
+    await page.locator('.goal-settings > summary').click();
     // Warm up once; count only completed, three-candidate recommendation requests.
     await page.evaluate(() => { window.__workerDurations = []; });
     for (let i = 0; i < samples; i++) {

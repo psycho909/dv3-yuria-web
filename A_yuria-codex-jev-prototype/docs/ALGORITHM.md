@@ -46,7 +46,7 @@ Candidate random streams are keyed by card identity and color: rearranging an of
 
 ## 3. Known assumptions
 
-- The user reported a blue/purple/purple offer, contradicting exactly one card per color. `futureColorModel` now defaults to `independentUniform`: each future slot samples a color independently and uniformly. This supports repeated colors but its distribution is unverified. `oneEach` remains available only for comparison with the superseded model. Current supplied colors are used as given.
+- Historical A-model note: the user once reported a blue/purple/purple offer, so this prototype defaults to `independentUniform`; that report was not screenshot-verified. Later B-model evidence (30 recorded games, 150 complete offers) shows one blue, purple, and red each round, so the production B engine now defaults to `oneEach`. The A prototype retains its old model for reproducibility; current supplied colors are used as given.
 - Published category weights are used; within each category, remaining card identities are assumed uniform.
 - Red bonus is modeled as an integer percentage uniformly sampled inside the published range.
 - New observed final score 1648 on a two-red board implies approximately +18.221% under SUM 340 and MULT 4.1. This falls inside the stated +10%～+20% range but is not an integer-percent outcome (integer +18% gives 1644; +19% gives 1658). Continuous red rolls or an intermediate rounding rule are now explicit competing hypotheses; the reproducible integer mode remains default until more observations distinguish them.

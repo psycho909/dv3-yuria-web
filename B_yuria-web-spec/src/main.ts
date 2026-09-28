@@ -469,7 +469,7 @@ function calculate() {
   calculationTimer = window.setTimeout(() => {
     calculationTimer = undefined;
     try {
-      worker?.postMessage({ type: "RECOMMEND", requestId: currentRequest, state: cloneState(state), candidates: candidates as OfferedCard[], objective, simulations: simulationCount, seed: CALCULATION_SEED, rules: RULES, targetThreshold });
+      worker?.postMessage({ type: "RECOMMEND", requestId: currentRequest, state: cloneState(state), candidates: candidates as OfferedCard[], objective, simulations: simulationCount, seed: CALCULATION_SEED, rules: currentRecord?.rulesSnapshot ?? RULES, targetThreshold });
     } catch {
       handleWorkerError(worker!);
     }

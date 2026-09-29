@@ -1,11 +1,17 @@
 {
   "url": "http://127.0.0.1:4174",
   "browser": "154.0.4258.37",
-  "date": "2026-09-28T03:29:35.264Z",
+  "date": "2026-09-29T03:35:20.887Z",
   "checks": [
     {
       "name": "guided-settings",
       "pass": true
+    },
+    {
+      "name": "direct-mini-color-and-used-card-hidden",
+      "pass": true,
+      "direct": "moon/purple",
+      "usedCardHidden": true
     },
     {
       "name": "empty-375",
@@ -59,23 +65,23 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 196,
-            "bottom": 354,
+            "top": 194,
+            "bottom": 322,
             "width": 983
           },
           "candidates": {
-            "top": 424,
-            "bottom": 641,
+            "top": 382,
+            "bottom": 599,
             "width": 983
           },
           "historyCard": {
-            "top": 274,
-            "bottom": 338,
+            "top": 255,
+            "bottom": 319,
             "width": 176
           },
           "candidateCard": {
-            "top": 424,
-            "bottom": 641,
+            "top": 382,
+            "bottom": 599,
             "width": 240
           },
           "scrollY": 0
@@ -85,22 +91,22 @@
           "height": 900,
           "history": {
             "top": 205,
-            "bottom": 363,
+            "bottom": 355,
             "width": 1382
           },
           "candidates": {
-            "top": 434,
-            "bottom": 651,
+            "top": 426,
+            "bottom": 643,
             "width": 1382
           },
           "historyCard": {
-            "top": 283,
-            "bottom": 347,
+            "top": 279,
+            "bottom": 343,
             "width": 176
           },
           "candidateCard": {
-            "top": 434,
-            "bottom": 651,
+            "top": 426,
+            "bottom": 643,
             "width": 240
           },
           "scrollY": 0
@@ -116,32 +122,32 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 196,
-            "bottom": 423,
+            "top": 194,
+            "bottom": 432,
             "width": 983,
-            "height": 227
+            "height": 238
           },
           "candidates": {
-            "top": 493,
-            "bottom": 760,
+            "top": 492,
+            "bottom": 758,
             "width": 983,
             "height": 266
           },
           "historyCard": {
-            "top": 274,
-            "bottom": 407,
+            "top": 255,
+            "bottom": 429,
             "width": 176,
-            "height": 133
+            "height": 174
           },
           "candidateCard": {
-            "top": 493,
-            "bottom": 760,
+            "top": 492,
+            "bottom": 758,
             "width": 240,
             "height": 266
           },
           "candidateFace": {
-            "top": 581,
-            "bottom": 702,
+            "top": 580,
+            "bottom": 700,
             "width": 96,
             "height": 120
           },
@@ -153,31 +159,31 @@
           "height": 900,
           "history": {
             "top": 205,
-            "bottom": 433,
+            "bottom": 477,
             "width": 1382,
-            "height": 227
+            "height": 272
           },
           "candidates": {
-            "top": 503,
-            "bottom": 769,
+            "top": 547,
+            "bottom": 814,
             "width": 1382,
             "height": 266
           },
           "historyCard": {
-            "top": 283,
-            "bottom": 417,
+            "top": 279,
+            "bottom": 465,
             "width": 176,
-            "height": 133
+            "height": 186
           },
           "candidateCard": {
-            "top": 503,
-            "bottom": 769,
+            "top": 547,
+            "bottom": 814,
             "width": 240,
             "height": 266
           },
           "candidateFace": {
-            "top": 591,
-            "bottom": 711,
+            "top": 635,
+            "bottom": 756,
             "width": 96,
             "height": 120
           },
@@ -188,32 +194,32 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 196,
-            "bottom": 423,
+            "top": 194,
+            "bottom": 432,
             "width": 983,
-            "height": 227
+            "height": 238
           },
           "candidates": {
-            "top": 493,
-            "bottom": 760,
+            "top": 492,
+            "bottom": 758,
             "width": 983,
             "height": 266
           },
           "historyCard": {
-            "top": 274,
-            "bottom": 407,
+            "top": 255,
+            "bottom": 429,
             "width": 176,
-            "height": 133
+            "height": 174
           },
           "candidateCard": {
-            "top": 493,
-            "bottom": 760,
+            "top": 492,
+            "bottom": 758,
             "width": 240,
             "height": 266
           },
           "candidateFace": {
-            "top": 581,
-            "bottom": 702,
+            "top": 580,
+            "bottom": 700,
             "width": 96,
             "height": 120
           },
@@ -225,31 +231,31 @@
           "height": 900,
           "history": {
             "top": 205,
-            "bottom": 433,
+            "bottom": 477,
             "width": 1382,
-            "height": 227
+            "height": 272
           },
           "candidates": {
-            "top": 503,
-            "bottom": 769,
+            "top": 547,
+            "bottom": 814,
             "width": 1382,
             "height": 266
           },
           "historyCard": {
-            "top": 283,
-            "bottom": 417,
+            "top": 279,
+            "bottom": 465,
             "width": 176,
-            "height": 133
+            "height": 186
           },
           "candidateCard": {
-            "top": 503,
-            "bottom": 769,
+            "top": 547,
+            "bottom": 814,
             "width": 240,
             "height": 266
           },
           "candidateFace": {
-            "top": 591,
-            "bottom": 711,
+            "top": 635,
+            "bottom": 756,
             "width": 96,
             "height": 120
           },
@@ -260,32 +266,32 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 196,
-            "bottom": 423,
+            "top": 194,
+            "bottom": 432,
             "width": 983,
-            "height": 227
+            "height": 238
           },
           "candidates": {
-            "top": 493,
-            "bottom": 760,
+            "top": 492,
+            "bottom": 758,
             "width": 983,
             "height": 266
           },
           "historyCard": {
-            "top": 274,
-            "bottom": 407,
+            "top": 255,
+            "bottom": 429,
             "width": 176,
-            "height": 133
+            "height": 174
           },
           "candidateCard": {
-            "top": 493,
-            "bottom": 760,
+            "top": 492,
+            "bottom": 758,
             "width": 240,
             "height": 266
           },
           "candidateFace": {
-            "top": 582,
-            "bottom": 702,
+            "top": 581,
+            "bottom": 700,
             "width": 95,
             "height": 119
           },
@@ -297,31 +303,31 @@
           "height": 900,
           "history": {
             "top": 205,
-            "bottom": 433,
+            "bottom": 477,
             "width": 1382,
-            "height": 227
+            "height": 272
           },
           "candidates": {
-            "top": 503,
-            "bottom": 769,
+            "top": 547,
+            "bottom": 814,
             "width": 1382,
             "height": 266
           },
           "historyCard": {
-            "top": 283,
-            "bottom": 417,
+            "top": 279,
+            "bottom": 465,
             "width": 176,
-            "height": 133
+            "height": 186
           },
           "candidateCard": {
-            "top": 503,
-            "bottom": 769,
+            "top": 547,
+            "bottom": 814,
             "width": 240,
             "height": 266
           },
           "candidateFace": {
-            "top": 592,
-            "bottom": 711,
+            "top": 637,
+            "bottom": 756,
             "width": 95,
             "height": 119
           },
@@ -333,13 +339,13 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 196,
-            "bottom": 423,
+            "top": 194,
+            "bottom": 432,
             "width": 983
           },
           "completion": {
-            "top": 493,
-            "bottom": 689,
+            "top": 492,
+            "bottom": 688,
             "width": 983
           },
           "scrollY": 0
@@ -349,12 +355,12 @@
           "height": 900,
           "history": {
             "top": 205,
-            "bottom": 433,
+            "bottom": 477,
             "width": 1382
           },
           "completion": {
-            "top": 503,
-            "bottom": 699,
+            "top": 547,
+            "bottom": 744,
             "width": 1382
           },
           "scrollY": 0
@@ -378,7 +384,7 @@
       "pass": true
     },
     {
-      "name": "keyboard-picker-search-category-focus",
+      "name": "keyboard-picker-category-focus",
       "pass": true
     },
     {
@@ -407,30 +413,288 @@
         },
         {
           "selector": ".picker-card strong",
-          "ratio": 12.180563192984753
+          "ratio": 13.28742267611411
         },
         {
           "selector": ".picker-card small",
-          "ratio": 5.519624921557971
-        },
-        {
-          "selector": ".picker-card span",
-          "ratio": 5.289686334220293
-        },
-        {
-          "selector": ".picker-color",
-          "ratio": 7.094347089263068
+          "ratio": 5.633389388516439
         },
         {
           "selector": ".picker-categories button",
           "ratio": 6.2774305900705
         },
         {
-          "selector": ".picker-search label",
-          "ratio": 6.260772181873033
+          "selector": ".picker-section-heading strong",
+          "ratio": 13.816107485915985
         }
       ],
-      "smallControls": []
+      "smallControls": [],
+      "miniColors": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ]
     },
     {
       "name": "worker-error-retry-preserves-input",

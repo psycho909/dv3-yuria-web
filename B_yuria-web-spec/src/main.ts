@@ -32,7 +32,7 @@ let candidateColors: CardColor[] = defaultSlotColors();
 // Candidate slot whose "改色" buttons are open; only one at a time.
 let colorEditIndex: number | null = null;
 let pickerIndex: number | null = null;
-let simulationCount = 10000;
+let simulationCount = 20000;
 let result: ReturnType<typeof recommend> | null = null;
 let pendingChoice: OfferedCard | null = null;
 let pendingOutcome: "success" | "failure" | null = null;
@@ -94,13 +94,15 @@ const THEMES: ReadonlyArray<{ id: Theme; label: string; page: string }> = [
   { id: "amber", label: "琥珀", page: "#f3e4c4" },
   { id: "night", label: "夜紫", page: "#1b1024" }
 ];
+const DEFAULT_THEME: Theme = "amber";
 function readTheme(): Theme {
-  try { const stored = localStorage.getItem(THEME_KEY); return stored === "amber" || stored === "night" ? stored : "mist"; }
-  catch { return "mist"; }
+  try { const stored = localStorage.getItem(THEME_KEY); return stored === "mist" || stored === "night" ? stored : DEFAULT_THEME; }
+  catch { return DEFAULT_THEME; }
 }
 function applyTheme(next: Theme) {
-  if (next === "mist") delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = next;
+  // Always set the attribute explicitly (never omit it): :root only carries 霧藍's tokens, so a missing
+  // attribute must not silently mean "amber" once amber is the default rather than the base rule.
+  document.documentElement.dataset.theme = next;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEMES.find(item => item.id === next)!.page);
 }
 let theme: Theme = readTheme();
@@ -212,7 +214,7 @@ function loadSession() {
     if (saved.objective?.kind === "threshold" && Number.isInteger(saved.objective.target) && saved.objective.target >= 0) targetThreshold = saved.objective.target;
     objective = saved.objective?.kind === "expected" || saved.objective?.kind === "stability" ? { kind: saved.objective.kind } : { kind: "threshold", target: targetThreshold };
     targetInput = String(targetThreshold);
-    simulationCount = saved.simulationCount === 5000 || saved.simulationCount === 20000 ? saved.simulationCount : 10000;
+    simulationCount = saved.simulationCount === 5000 || saved.simulationCount === 10000 || saved.simulationCount === 20000 ? saved.simulationCount : 20000;
     currentRecord = saved.currentRecord && isValidGameRecord(saved.currentRecord) && saved.currentRecord.rounds.length === state.selected.length &&
       saved.currentRecord.rounds.every((round, index) => round.chosen.cardId === state.selected[index]!.cardId && round.chosen.color === state.selected[index]!.color && round.activated === state.selected[index]!.activated) ? saved.currentRecord : null;
     restoredSession = Boolean(state.selected.length || candidates.some(Boolean));

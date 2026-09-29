@@ -163,3 +163,10 @@ npm --prefix "d:\Codex\dv3\_publish\B_yuria-web-spec" run build
 - 新增霧藍（預設）、琥珀、夜紫三種色系，切換鈕放在標題右側；tokens、驗收數字與設計理由見 `DESIGN.md`「頁面色系切換」一節。
 - 改動檔案：`src/app.css`（色系 tokens，寫死的顏色改成 tokens）、`src/main.ts`（切換鈕、記憶、theme-color）、`index.html`（首次繪製前套用色系，並修正殘留的 theme-color）。
 - 三種色系的 DOM 稽核與既有瀏覽器流程都通過。使用者已授權 commit、push、部署：以包含本段的 commit 推送到 `main`，由 Vercel 部署；SHA 以 `git log` 為準。
+
+## 12. UI 微調（2026-09-29）
+
+- 修正 `.more-panel h3` 貼邊（改用 `margin-block`，不再用簡寫蓋掉父層的左右邊距）。
+- 預設色系改為琥珀；霧藍、夜紫仍可切換。
+- 模擬次數預設 10,000 → 20,000；目標分數預設維持 3000。
+- 改動檔案：`src/app.css`、`src/main.ts`、`index.html`。typecheck、build、全套 Vitest（64 passed、8 skipped）與四個既有瀏覽器流程都通過；commit、push、部署待使用者授權。

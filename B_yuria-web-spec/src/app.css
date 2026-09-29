@@ -41,9 +41,10 @@
   font-synthesis: none;
 }
 
-/* Page palettes, one per card-frame asset: 霧藍 (blue frame, default above), 琥珀 (gold frame: honey paper,
-   ribbon red-brown ink) and 夜紫 (purple frame at night). Only the page tokens change; gold still means
-   the recommendation and blue / purple / red still mean card colors. Chosen in the header, stored locally. */
+/* Page palettes, one per card-frame asset: 霧藍 (blue frame, base :root above), 琥珀 (gold frame: honey
+   paper, ribbon red-brown ink — the default; see DEFAULT_THEME in main.ts) and 夜紫 (purple frame at
+   night). Only the page tokens change; gold still means the recommendation and blue / purple / red still
+   mean card colors. Chosen in the header, stored locally. */
 :root[data-theme="amber"] {
   --mist: #f3e4c4;
   --mist-deep: #e6d0a2;
@@ -281,7 +282,9 @@ label { color: var(--ink); font-size: 14px; font-weight: 600; }
 .more-panel[open] > summary { border-bottom: 1px solid var(--line); }
 .more-panel > :not(summary) { margin-inline: 16px; }
 .more-panel > :last-child:not(summary) { margin-bottom: 16px; }
-.more-panel h3 { margin: 16px 0 8px; font-size: 16px; }
+/* margin-block only: the inline (left/right) gap comes from `.more-panel > :not(summary)` above, so h3
+   must not reset it with a margin shorthand — that was why headings sat flush against the panel edge. */
+.more-panel h3 { margin-block: 20px 10px; font-size: 16px; }
 .more-panel h3 small { margin-left: 8px; color: var(--ink-soft); font-size: 14px; font-weight: 400; }
 .more-panel p, .more-panel li { max-width: 44em; line-height: 1.6; }
 .more-panel details > summary { display: flex; align-items: center; font-size: 15px; }

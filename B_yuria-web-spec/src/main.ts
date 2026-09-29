@@ -86,6 +86,25 @@ const detailOpen = new Map<string, boolean>();
 
 const STORAGE_KEY = "yuria-web-session-v1";
 const LAYOUT_MODE_KEY = "yuria-web-layout-mode-v1";
+// Page palette; index.html applies the stored value before first paint, keep the key in sync there.
+const THEME_KEY = "yuria-web-theme-v1";
+type Theme = "mist" | "amber" | "night";
+const THEMES: ReadonlyArray<{ id: Theme; label: string; page: string }> = [
+  { id: "mist", label: "霧藍", page: "#edf3f4" },
+  { id: "amber", label: "琥珀", page: "#f3e4c4" },
+  { id: "night", label: "夜紫", page: "#1b1024" }
+];
+function readTheme(): Theme {
+  try { const stored = localStorage.getItem(THEME_KEY); return stored === "amber" || stored === "night" ? stored : "mist"; }
+  catch { return "mist"; }
+}
+function applyTheme(next: Theme) {
+  if (next === "mist") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = next;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEMES.find(item => item.id === next)!.page);
+}
+let theme: Theme = readTheme();
+applyTheme(theme);
 type LayoutMode = "full" | "narrow";
 function readLayoutMode(): LayoutMode {
   try { return localStorage.getItem(LAYOUT_MODE_KEY) === "narrow" ? "narrow" : "full"; }
@@ -409,7 +428,7 @@ function render() {
   captureDetails();
   const focused = document.activeElement as HTMLElement | null;
   const dialogFocus = Boolean(focused?.closest("dialog"));
-  const focusSelector = focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.editTowerProc ? `[data-edit-tower-proc="${focused.dataset.editTowerProc}"]` : focused?.dataset.editRemoveCard ? `[data-edit-remove-card="${focused.dataset.editRemoveCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.id ? `#${focused.id}` : null;
+  const focusSelector = focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.editTowerProc ? `[data-edit-tower-proc="${focused.dataset.editTowerProc}"]` : focused?.dataset.editRemoveCard ? `[data-edit-remove-card="${focused.dataset.editRemoveCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.dataset.themeChoice ? `[data-theme-choice="${focused.dataset.themeChoice}"]` : focused?.id ? `#${focused.id}` : null;
   const pickerScroll = app.querySelector(".picker-dialog")?.scrollTop ?? 0;
   const ranked = result?.ranked ?? [];
   const resultReady = calculationStatus === "ready" && Boolean(result);
@@ -423,7 +442,7 @@ function render() {
   const scoreMethod = scoreSummary.method === "exact" ? "紅色整數百分比完整枚舉" : "紅色效果取樣估算";
   app.innerHTML = `<main class="shell ${layoutMode === "narrow" ? "layout-narrow" : "layout-full"}">
     <header class="header">
-      <div class="header-title"><h1>尤里亞的占卜計算器</h1><p class="subhead">照遊戲填入三張候選牌，比較推薦，再記錄結果。</p></div>
+      <div class="header-title"><div class="title-row"><h1>尤里亞的占卜計算器</h1><div class="theme-switch" role="group" aria-label="頁面色系">${THEMES.map(item => `<button type="button" data-theme-choice="${item.id}" aria-pressed="${theme === item.id}" aria-label="${item.label}色系" title="${item.label}色系"><span class="theme-chip ${item.id}" aria-hidden="true"></span></button>`).join("")}</div></div><p class="subhead">照遊戲填入三張候選牌，比較推薦，再記錄結果。</p></div>
       <div class="run-status"><strong class="turn-progress">${state.selected.length === 5 ? "五回合完成" : `第 ${state.turn} / 5 回合`}</strong><div class="header-meta" ${state.selected.length ? "" : "hidden"}><span>${starPending ? "星星待結算，暫估平均" : "目前估算平均"}</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div><button type="button" class="clear-run-action" id="reset" ${runActive ? "" : "hidden"}>清空本局，重新開始</button></div>
     </header>
     ${restoredSession ? `<div class="restored-note" role="status"><span>已恢復這台裝置上的上一局資料。</span><button type="button" class="text-action" id="dismiss-restored">知道了</button></div>` : ""}
@@ -610,6 +629,13 @@ function bindEvents() {
   app.querySelector<HTMLButtonElement>("[data-edit-cancel]")?.addEventListener("click", closeEditDialog);
   app.querySelectorAll<HTMLButtonElement>("[data-picker-category]").forEach(button => button.addEventListener("click", () => { pickerCategory = button.dataset.pickerCategory as typeof pickerCategory; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-objective]").forEach(button => button.addEventListener("click", () => { const kind = button.dataset.objective as Objective["kind"]; objective = kind === "threshold" ? { kind, target: targetThreshold } : { kind }; calculate(); }));
+  // Switching palettes only touches <html data-theme> and the pressed states, so focus and open panels stay put.
+  app.querySelectorAll<HTMLButtonElement>("[data-theme-choice]").forEach(button => button.addEventListener("click", () => {
+    theme = button.dataset.themeChoice === "amber" || button.dataset.themeChoice === "night" ? button.dataset.themeChoice : "mist";
+    try { localStorage.setItem(THEME_KEY, theme); } catch { /* keep the palette for this session */ }
+    applyTheme(theme);
+    app.querySelectorAll<HTMLButtonElement>("[data-theme-choice]").forEach(item => item.setAttribute("aria-pressed", String(item.dataset.themeChoice === theme)));
+  }));
   app.querySelectorAll<HTMLButtonElement>("[data-layout-mode]").forEach(button => button.addEventListener("click", () => {
     layoutMode = button.dataset.layoutMode === "narrow" ? "narrow" : "full";
     try { localStorage.setItem(LAYOUT_MODE_KEY, layoutMode); } catch { /* keep the current view for this session */ }

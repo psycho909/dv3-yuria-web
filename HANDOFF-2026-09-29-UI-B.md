@@ -156,4 +156,10 @@ npm --prefix "d:\Codex\dv3\_publish\B_yuria-web-spec" run build
 - 對照 A 版 DOM 稽核後修正了 3 個 B 回歸，改動只在 `src/app.css`：更正浮層「已被移除」折行、主要數字從中間斷行、1024×768 首屏超出。細節與驗收數字見 `DESIGN.md` B 段落。
 - 修正後的結果：font、typecheck、全套 Vitest（64 passed、8 skipped）、build 通過；`browser-acceptance.cjs`、`real-game-flow.cjs`、`keyboard-flow.cjs`、`history-special-edit.cjs` 也都通過（用 no-op shim 攔截 screenshot，沒有產生任何影像）。
 - 仍未做：真人、觸控、螢幕閱讀器驗證。
-- 使用者已授權 commit、push、部署：B 以包含本檔的 commit 推送到 `main`，由 Vercel Git 整合部署。實際 SHA 與正式站驗證結果以 `git log` 及部署後的檢查為準。
+- 使用者已授權 commit、push、部署：B 為 `3a28090`，已推送到 `main` 並由 Vercel 部署。正式站煙霧測試（字體、48px、單行數字、1024×768 首屏、keyboard／history 流程）通過。
+
+## 11. 頁面色系切換（2026-09-29）
+
+- 新增霧藍（預設）、琥珀、夜紫三種色系，切換鈕放在標題右側；tokens、驗收數字與設計理由見 `DESIGN.md`「頁面色系切換」一節。
+- 改動檔案：`src/app.css`（色系 tokens，寫死的顏色改成 tokens）、`src/main.ts`（切換鈕、記憶、theme-color）、`index.html`（首次繪製前套用色系，並修正殘留的 theme-color）。
+- 三種色系的 DOM 稽核與既有瀏覽器流程都通過。使用者已授權 commit、push、部署：以包含本段的 commit 推送到 `main`，由 Vercel 部署；SHA 以 `git log` 為準。

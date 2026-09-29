@@ -165,21 +165,6 @@ function generateOffer(
 限制：
 - 不保證全局最佳策略
 
-### V2 — Expectimax
-
-狀態價值：
-
-```text
-V(state) = E_offer [ max_action Q(state, action) ]
-```
-
-```text
-Q(state, action)
-= Σ outcome P(outcome | action) × V(nextState)
-```
-
-用 memoization 對 canonical state hash 快取。
-
 ### V3 — MCTS / sampled Expectimax
 
 當 Future-offer distribution 已透過實測確認後，再比較：

@@ -1,5 +1,7 @@
 # 尤里亞網頁版：目前推薦演算法
 
+> 正式版使用 V1：`src/main.ts` 建立 `src/recommend.worker.ts`，再呼叫 `src/domain.ts` 的 `recommend()`。V2／V2.1 僅留在研究程式與測試，沒有接入正式推薦。正式邏輯測試位於 `tests/domain.test.ts` 與 `tests/performance.test.ts`；研究版測試位於 `tests/recommendation-v2.test.ts`、`tests/recommendation-v21.test.ts`、`tests/recommendation-v21-regression.test.ts`、`tests/v21-runtime.test.ts` 和 `tests/experiments/`。
+
 > 實作基準：`src/domain.ts`、`src/main.ts`、`src/recommend.worker.ts`、`src/real-game-record.ts`。本文描述目前**已實作**的行為，供日後依真實遊玩資料調整；較早的 `ALGORITHM-DATA-STRUCTURE.md` 包含尚未實作的規劃，不能代替本文判定現況。
 
 ## 1. 這個推薦回答什麼

@@ -32,3 +32,11 @@ Run `git status --short --branch` and `git ls-remote origin refs/heads/main`; co
 - `resume-repository-work` for the next-session Git/workspace audit.
 - `vercel:deployments-cicd` only if a deployment is requested.
 - `matt-skills-curated:ml-best-practices` when planning the prospective comparison.
+## 2026-09-29 production follow-through
+
+- The auto-score implementation from commit dabd143 was already included in GitHub main at 27831b7db0af6a5c317b7f7fac82eb109eb74533. Local HEAD and origin/main matched before release verification.
+- Release checks on the pulled tree: npm.cmd test passed 50 tests with 7 intentional skips; npm.cmd run build passed (TypeScript and Vite). The focused 24 tests and typecheck also passed in the takeover turn.
+- The local browser acceptance script could not be rerun in this checkout because the optional playwright module is absent (MODULE_NOT_FOUND). Its two earlier successful runs remain recorded above; this turn did not claim a fresh browser-flow pass.
+- Vercel Git integration automatically deployed commit 27831b7 to production. Deployment dpl_6dH35SCGucdgdqwiKxCTG46M5nUt was Ready / Production and listed dv3-yuria-web.vercel.app as a current domain.
+- Production browser smoke: https://dv3-yuria-web.vercel.app/ loaded; the archive panel separately displayed actual-score and model-score counts; captured browser error logs were empty. Served assets index-BKhAs87k.js and index-BynrW3K6.css matched the local production build names. This was a smoke check, not a live cloud-sync or full five-round acceptance test.
+- The earlier statement that production remained unchanged was true at handoff time and is superseded by this deployment verification.

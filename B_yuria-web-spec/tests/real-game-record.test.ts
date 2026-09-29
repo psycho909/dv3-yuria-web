@@ -74,6 +74,7 @@ describe("real game record", () => {
     const missingTarget = starGame();
     expect(isValidGameRecord(missingTarget)).toBe(false);
     expect(isValidGameRecord(starGame("b-deterministic-2026-09-28-star-after-fifth"))).toBe(false);
+    expect(isValidGameRecord(starGame("b-deterministic-2026-09-28-one-each-color"))).toBe(false);
 
     const selfTarget = starGame();
     selfTarget.rounds[0]!.starRemovedCardId = "star";

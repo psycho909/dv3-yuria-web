@@ -4,10 +4,12 @@ import {
   RULES,
   calculateScore,
   generateOffer,
+  LEGACY_V1_OPTIONS,
   mulberry32,
   recommend,
   resolveSelection,
   summarizeScore,
+  type OfferedCard,
   type SelectedCard
 } from "../src/domain";
 
@@ -196,7 +198,7 @@ describe("deterministic score engine", () => {
 });
 
 describe("recommendation reproducibility", () => {
-  it("preserves the seeded turn-one score distribution and ranking", () => {
+  it("replays the 2026-09-28 engine exactly with legacy options", () => {
     const result = recommend(
       { turn: 1, selected: [] },
       [
@@ -206,7 +208,10 @@ describe("recommendation reproducibility", () => {
       ],
       { kind: "threshold", target: 1500 },
       120,
-      42
+      42,
+      RULES,
+      1500,
+      LEGACY_V1_OPTIONS
     );
 
     expect(result.mode).toBe("objective");
@@ -253,6 +258,65 @@ describe("recommendation reproducibility", () => {
     expect(result.mode).toBe("highest_expected_score_fallback");
     expect(result.ranked[0]?.meanScore).toBeGreaterThanOrEqual(result.ranked[1]?.meanScore ?? 0);
     expect(result.ranked.every(metric => metric.thresholdProbability === 0)).toBe(true);
+  });
+
+  it("gives each candidate the same metrics regardless of candidate order", () => {
+    const candidates: OfferedCard[] = [
+      { cardId: "magician", color: "purple" },
+      { cardId: "death", color: "blue" },
+      { cardId: "lovers", color: "red" }
+    ];
+    const byId = (order: OfferedCard[]) => new Map(recommend({ turn: 1, selected: [] }, order, { kind: "threshold", target: 1500 }, 120, 42).ranked.map(metric => [metric.candidate.cardId, metric]));
+    const forward = byId(candidates);
+    const backward = byId([...candidates].reverse());
+    for (const candidate of candidates) expect(backward.get(candidate.cardId)).toEqual(forward.get(candidate.cardId));
+    expect([...forward.values()].every(metric => metric.method === "monte_carlo" && metric.simulations === 120)).toBe(true);
+  });
+
+  it("keeps the exact final step consistent with sampling the fifth card", () => {
+    const state = { turn: 4 as const, selected: [active("fool", "blue"), active("strength", "purple"), active("magician", "blue")] };
+    const candidate: OfferedCard = { cardId: "empress", color: "blue" };
+    const objective = { kind: "threshold" as const, target: 800 };
+    const sampled = recommend(state, [candidate], objective, 8000, 11, RULES, 800, LEGACY_V1_OPTIONS).ranked[0]!;
+    const exact = recommend(state, [candidate], objective, 8000, 11).ranked[0]!;
+    // Same rollout policy; only the estimator differs, so both estimate the same quantities.
+    expect(Math.abs(exact.meanScore - sampled.meanScore)).toBeLessThan(sampled.meanScore * .03);
+    expect(Math.abs(exact.thresholdProbability - sampled.thresholdProbability)).toBeLessThan(.03);
+    expect(exact.thresholdProbability).toBeGreaterThan(0);
+    expect(exact.thresholdProbability).toBeLessThan(1);
+  });
+
+  it("picks the rollout's fifth card by the screen objective", () => {
+    const state = { turn: 3 as const, selected: [active("fool", "blue"), active("strength", "purple")] };
+    const candidates: OfferedCard[] = [
+      { cardId: "magician", color: "blue" },
+      { cardId: "justice", color: "red" },
+      { cardId: "hermit", color: "purple" }
+    ];
+    const byObjective = recommend(state, candidates, { kind: "expected" }, 500, 5, RULES, 1500);
+    const byTarget = recommend(state, candidates, { kind: "expected" }, 500, 5, RULES, 1500, { finalChoice: "threshold" });
+    // Rollouts share every random draw, so choosing the best mean at the last step can only raise the mean.
+    for (const metric of byObjective.ranked) {
+      const legacy = byTarget.ranked.find(item => item.candidate.cardId === metric.candidate.cardId)!;
+      expect(metric.meanScore).toBeGreaterThanOrEqual(legacy.meanScore - 1e-6);
+    }
+  });
+
+  it("offers experimental zero-target fallbacks without changing the default", () => {
+    const state = { turn: 5 as const, selected: [active("devil", "purple")] };
+    const candidates: OfferedCard[] = [
+      { cardId: "magician", color: "blue" },
+      { cardId: "fool", color: "red" },
+      { cardId: "strength", color: "purple" }
+    ];
+    const objective = { kind: "threshold" as const, target: 1_000_000 };
+    const order = (options: Parameters<typeof recommend>[7]) => recommend(state, candidates, objective, 80, 7, RULES, 1500, options);
+    expect(order({}).mode).toBe("highest_expected_score_fallback");
+    const upperTail = order({ zeroTargetFallback: "upperTail" });
+    expect(upperTail.mode).toBe("zero_target_fallback");
+    expect(upperTail.ranked.map(metric => metric.candidate.cardId)).toEqual(["strength", "magician", "fool"]);
+    // 200 is the highest reward tier any option can reach: Fool and Strength always do, Magician 95%.
+    expect(order({ zeroTargetFallback: "rewardTier" }).ranked.map(metric => metric.candidate.cardId)).toEqual(["strength", "fool", "magician"]);
   });
 
   it("keeps the seeded RNG stable across calls", () => {

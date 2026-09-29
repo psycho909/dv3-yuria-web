@@ -1,5 +1,12 @@
 # ALGORITHM-DATA-STRUCTURE.md
 
+> **狀態：早期規劃，不是目前實作。** 現況以 `RECOMMENDATION-ALGORITHM.md` 為準，程式本體是 `src/domain.ts`。本文保留作設計脈絡，不再同步更新。與實作的主要差異：
+>
+> - 規則設定沒有 `blessingMode`、`withinCategoryWeightMode`、`redRollMode: "empirical"`；類別權重是 `CATEGORY_WEIGHTS` 常數，不在設定內。
+> - 目標是單一自訂門檻（預設 3000），不是 1400／2000／2700；「穩定」先比 P10 再比平均；三張達標率都是 0 時改依預期分數排序。
+> - 策略另含第 5 回合精確列舉；V2／V2.1 深度搜尋已試過、未採用（見 `HANDOFF-2026-09-22.md` 2026-09-24 段）。
+> - 牌局紀錄已實作為 `RealGameRecordV1`（`src/real-game-record.ts`）；Worker 訊息為 `RESULT`／`ERROR`；B 版不呼叫 Jev。
+
 ## 1. Domain types
 
 ```ts

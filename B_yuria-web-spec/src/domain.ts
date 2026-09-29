@@ -105,31 +105,51 @@ const pick = <T>(rng: Rng, items: T[]) => items[Math.min(items.length - 1, Math.
 export interface ScoreBreakdown { sum: number; multiplier: number; redBonus: number; finalScore: number; activeColorCounts: Record<CardColor, number>; failedCount: number; }
 
 export function calculateScore(cards: SelectedCard[], rng: Rng, rules: Rules = RULES): ScoreBreakdown {
-  const present = cards.filter(c => !c.removed);
-  const active = present.filter(c => c.activated);
-  const failed = present.filter(c => !c.activated);
+  // One pass without temporary arrays (this is the hottest function in simulations). Multipliers are
+  // added in the same order as before (active cards in order, then Tower, Star, Sun, purple tier), so
+  // floating-point results are unchanged.
   const counts: Record<CardColor, number> = { blue: 0, purple: 0, red: 0 };
-  active.forEach(c => { counts[c.color]++; });
-  let sum = failed.length * rules.failureScore;
-  const scoreValues: number[] = [];
-  for (const card of active) { const def = CARDS[card.cardId]; if (def.category === "score" && def.scoreValue != null) { sum += def.scoreValue; scoreValues.push(def.scoreValue); } }
-  sum += BLUE[counts.blue] ?? 0;
-  const moon = active.find(c => c.cardId === "moon");
-  if (moon && CARDS.moon.specialEffect?.kind === "failedCardScore") sum += CARDS.moon.specialEffect.baseScore + failed.length * CARDS.moon.specialEffect.perFailedCard;
-  const world = active.find(c => c.cardId === "world");
-  if (world && scoreValues.length && CARDS.world.specialEffect?.kind === "highestActiveScore") sum += Math.max(...scoreValues) * CARDS.world.specialEffect.factor;
+  let failedCount = 0;
+  let activeCount = 0;
+  let scoreSum = 0;
+  let highestScore = 0;
+  let hasScoreCard = false;
   let multiplierAdd = 0;
-  for (const card of active) { const def = CARDS[card.cardId]; if (def.category === "multiplier" && def.multiplierValue != null) multiplierAdd += def.multiplierValue; }
-  const tower = active.find(c => c.cardId === "tower");
+  let moon = false;
+  let world = false;
+  let star = false;
+  let sun = false;
+  let tower: SelectedCard | undefined;
+  for (const card of cards) {
+    if (card.removed) continue;
+    if (!card.activated) { failedCount++; continue; }
+    activeCount++;
+    counts[card.color]++;
+    const def = CARDS[card.cardId];
+    if (def.category === "score" && def.scoreValue != null) {
+      scoreSum += def.scoreValue;
+      if (!hasScoreCard || def.scoreValue > highestScore) highestScore = def.scoreValue;
+      hasScoreCard = true;
+    }
+    if (def.category === "multiplier" && def.multiplierValue != null) multiplierAdd += def.multiplierValue;
+    if (card.cardId === "moon") moon = true;
+    else if (card.cardId === "world") world = true;
+    else if (card.cardId === "star") star = true;
+    else if (card.cardId === "sun") sun = true;
+    else if (card.cardId === "tower" && !tower) tower = card;
+  }
+  let sum = failedCount * rules.failureScore + scoreSum;
+  sum += BLUE[counts.blue] ?? 0;
+  if (moon && CARDS.moon.specialEffect?.kind === "failedCardScore") sum += CARDS.moon.specialEffect.baseScore + failedCount * CARDS.moon.specialEffect.perFailedCard;
+  if (world && hasScoreCard && CARDS.world.specialEffect?.kind === "highestActiveScore") sum += highestScore * CARDS.world.specialEffect.factor;
   if (tower && CARDS.tower.specialEffect?.kind === "tower") multiplierAdd += tower.towerProc ? CARDS.tower.specialEffect.procMultiplier : CARDS.tower.specialEffect.fallbackMultiplier;
-  if (active.some(c => c.cardId === "star")) multiplierAdd += CARDS.star.specialEffect?.kind === "removeOtherCard" ? CARDS.star.specialEffect.multiplier : 0;
-  const sun = active.find(c => c.cardId === "sun");
-  if (sun && CARDS.sun.specialEffect?.kind === "activeCountMultiplier") { const activeCount = active.length - (rules.sunCountsSelf ? 0 : 1); multiplierAdd += CARDS.sun.specialEffect.baseMultiplier + Math.max(0, activeCount) * CARDS.sun.specialEffect.perActiveCard; }
+  if (star) multiplierAdd += CARDS.star.specialEffect?.kind === "removeOtherCard" ? CARDS.star.specialEffect.multiplier : 0;
+  if (sun && CARDS.sun.specialEffect?.kind === "activeCountMultiplier") { const sunCount = activeCount - (rules.sunCountsSelf ? 0 : 1); multiplierAdd += CARDS.sun.specialEffect.baseMultiplier + Math.max(0, sunCount) * CARDS.sun.specialEffect.perActiveCard; }
   multiplierAdd += PURPLE[counts.purple] ?? 0;
   const range = RED[counts.red];
   const redBonus = range ? rules.redRollMode === "continuous" ? range[0] + rng() * (range[1] - range[0]) : randomInt(rng, Math.round(range[0] * 100), Math.round(range[1] * 100)) / 100 : 0;
   const multiplier = 1 + multiplierAdd;
-  return { sum, multiplier, redBonus, finalScore: Math.floor(sum * multiplier * (1 + redBonus)), activeColorCounts: counts, failedCount: failed.length };
+  return { sum, multiplier, redBonus, finalScore: Math.floor(sum * multiplier * (1 + redBonus)), activeColorCounts: counts, failedCount };
 }
 
 function category(rng: Rng, turn: number): CardCategory {
@@ -160,48 +180,124 @@ export function resolveSelection(rng: Rng, selected: SelectedCard[], offered: Of
 
 function mean(values: number[]) { return values.reduce((a, b) => a + b, 0) / Math.max(1, values.length); }
 function percentile(values: number[], q: number) { return values[Math.min(values.length - 1, Math.floor((values.length - 1) * q))]!; }
-function immediate(selected: SelectedCard[], offer: OfferedCard, rules: Rules): number {
+/** Expected value of taking `offer`, averaging activation, the Tower proc, and Star targets over `evaluate`. */
+function offerValue(selected: SelectedCard[], offer: OfferedCard, rules: Rules, evaluate: (cards: SelectedCard[]) => number): number {
   const def = CARDS[offer.cardId];
-  const score = (cards: SelectedCard[]) => calculateScore(cards, () => .5, rules).finalScore;
   const active = [...selected, { ...offer, activated: true }];
-  let activeScore = score(active);
+  let activeScore = evaluate(active);
   if (offer.cardId === "tower") {
-    activeScore = (score([...selected, { ...offer, activated: true, towerProc: false }]) + score([...selected, { ...offer, activated: true, towerProc: true }])) / 2;
+    activeScore = (evaluate([...selected, { ...offer, activated: true, towerProc: false }]) + evaluate([...selected, { ...offer, activated: true, towerProc: true }])) / 2;
   } else if (offer.cardId === "star") {
     const targets = starTargets(selected, rules);
-    if (targets.length) activeScore = mean(targets.map(target => score(active.map((card, index) => index === target ? { ...card, removed: true } : card))));
+    if (targets.length) activeScore = mean(targets.map(target => evaluate(active.map((card, index) => index === target ? { ...card, removed: true } : card))));
   }
-  const failureScore = score([...selected, { ...offer, activated: false }]);
+  const failureScore = evaluate([...selected, { ...offer, activated: false }]);
   return def.activationProbability * activeScore + (1 - def.activationProbability) * failureScore;
 }
-function chooseFuture(selected: SelectedCard[], offers: OfferedCard[], rules: Rules, target: number): OfferedCard {
-  if (selected.length === 4 && rules.redRollMode === "integerPercent") {
-    let best = finalTurnMetrics(selected, offers[0]!, target, rules);
-    for (let i = 1; i < offers.length; i++) {
-      const next = finalTurnMetrics(selected, offers[i]!, target, rules);
-      if (next.thresholdProbability > best.thresholdProbability ||
-        (next.thresholdProbability === best.thresholdProbability && next.meanScore > best.meanScore)) best = next;
-    }
-    return best.candidate;
+/** Production rollout value: the score right after taking the card, with the red roll at its midpoint. */
+function immediate(selected: SelectedCard[], offer: OfferedCard, rules: Rules): number {
+  return offerValue(selected, offer, rules, cards => calculateScore(cards, () => .5, rules).finalScore);
+}
+
+// Experimental "projected" rollout: representative future picks (a mid score card and a mid multiplier
+// card in each color). Only their relative gains matter; they are not a prediction of the card pool.
+const PROJECTION_PICKS: OfferedCard[] = COLORS.flatMap(color => [{ cardId: "emperor" as const, color }, { cardId: "justice" as const, color }]);
+/** Current score plus `remaining` copies of the best expected gain one more pick could add from here. */
+function projectedValue(cards: SelectedCard[], remaining: number, rules: Rules): number {
+  const score = (list: SelectedCard[]) => calculateScore(list, () => .5, rules).finalScore;
+  const base = score(cards);
+  if (remaining <= 0) return base;
+  let bestGain = 0;
+  for (const pick of PROJECTION_PICKS) {
+    const probability = CARDS[pick.cardId].activationProbability;
+    const gain = probability * score([...cards, { ...pick, activated: true }]) + (1 - probability) * score([...cards, { ...pick, activated: false }]) - base;
+    if (gain > bestGain) bestGain = gain;
   }
+  return base + remaining * bestGain;
+}
+function projected(selected: SelectedCard[], offer: OfferedCard, rules: Rules): number {
+  const remaining = 4 - selected.length; // picks still to come after this one
+  return offerValue(selected, offer, rules, cards => projectedValue(cards, remaining, rules));
+}
+
+function chooseEarly(selected: SelectedCard[], offers: OfferedCard[], rules: Rules, policy: RolloutPolicy): OfferedCard {
+  const value = policy === "projected" ? (offer: OfferedCard) => projected(selected, offer, rules) : (offer: OfferedCard) => immediate(selected, offer, rules);
   let best = offers[0]!;
-  let bestScore = immediate(selected, best, rules);
+  let bestScore = value(best);
   for (let i = 1; i < offers.length; i++) {
-    const score = immediate(selected, offers[i]!, rules);
+    const score = value(offers[i]!);
     if (score > bestScore) { best = offers[i]!; bestScore = score; }
   }
   return best;
 }
-function simulateOne(rng: Rng, state: GameState, candidate: OfferedCard, rules: Rules, target: number) {
-  let selected = resolveSelection(rng, state.selected, candidate, rules);
-  for (let turn = state.turn + 1; turn <= 5; turn++) {
-    const chosen = chooseFuture(selected, generateOffer(rng, selected, turn, rules), rules, target);
-    selected = resolveSelection(rng, selected, chosen, rules);
+/** Picks the rollout's fifth card by exact distributions; ties keep the earlier offer. */
+function chooseFinal(selected: SelectedCard[], offers: OfferedCard[], rules: Rules, objective: Objective, target: number, fallback: ZeroTargetFallback): OfferedCard {
+  if (fallback === "expected" && objective.kind !== "stability") {
+    // Fast path: only the mean and target rate decide, so no distribution is built.
+    let best = offers[0]!;
+    let bestStats = finalTurnStats(selected, best, target, rules);
+    for (let i = 1; i < offers.length; i++) {
+      const stats = finalTurnStats(selected, offers[i]!, target, rules);
+      const better = objective.kind === "expected" ? stats.meanScore > bestStats.meanScore
+        : stats.thresholdProbability > bestStats.thresholdProbability || (stats.thresholdProbability === bestStats.thresholdProbability && stats.meanScore > bestStats.meanScore);
+      if (better) { best = offers[i]!; bestStats = stats; }
+    }
+    return best;
   }
-  return calculateScore(selected, rng, rules).finalScore;
+  const items = offers.map(offer => {
+    const outcomes = finalTurnOutcomes(selected, offer, rules);
+    return { metrics: outcomeMetrics(offer, outcomes, target, 0, "exact"), outcomes };
+  });
+  return rankEvaluated(items, objective, fallback).ordered[0]!.metrics.candidate;
 }
 
-function finalTurnMetrics(selected: SelectedCard[], candidate: OfferedCard, threshold: number, rules: Rules): Metrics {
+interface RolloutStreams { offer: Rng; activation: Rng; red: Rng }
+// Per-simulation seeds so every candidate faces the same random future (common random numbers).
+const streamSeed = (seed: number, simulation: number, stream: number) =>
+  (Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(simulation + 1, 0xc2b2ae35) ^ Math.imul(stream, 0x27d4eb2f)) >>> 0;
+
+/**
+ * One rollout. With `mixture`, the chosen fifth card's exact distribution is added there (total weight 1)
+ * and null is returned; otherwise the fifth card is sampled and one final score is returned.
+ */
+function simulateOne(streams: RolloutStreams, state: GameState, candidate: OfferedCard, rules: Rules, finalObjective: Objective, target: number, engine: Required<RecommendOptions>, mixture: Map<number, number> | null): number | null {
+  let selected = resolveSelection(streams.activation, state.selected, candidate, rules);
+  for (let turn = state.turn + 1; turn <= 5; turn++) {
+    const offers = generateOffer(streams.offer, selected, turn, rules);
+    if (selected.length === 4 && rules.redRollMode === "integerPercent") {
+      const chosen = chooseFinal(selected, offers, rules, finalObjective, target, engine.zeroTargetFallback);
+      if (mixture) {
+        forEachFinalOutcome(selected, chosen, rules, (score, probability) => mixture.set(score, (mixture.get(score) ?? 0) + probability));
+        return null;
+      }
+      selected = resolveSelection(streams.activation, selected, chosen, rules);
+    } else {
+      selected = resolveSelection(streams.activation, selected, chooseEarly(selected, offers, rules, engine.rolloutPolicy), rules);
+    }
+  }
+  return calculateScore(selected, streams.red, rules).finalScore;
+}
+
+type Outcomes = Array<[score: number, probability: number]>;
+
+/** Exact final-score distribution when `candidate` is the fifth card, under integer red rolls; sorted by score. */
+function finalTurnOutcomes(selected: SelectedCard[], candidate: OfferedCard, rules: Rules): Outcomes {
+  const mass = new Map<number, number>();
+  forEachFinalOutcome(selected, candidate, rules, (score, probability) => mass.set(score, (mass.get(score) ?? 0) + probability));
+  return [...mass].sort((a, b) => a[0] - b[0]);
+}
+
+/** Exact mean and target rate for `candidate` as the fifth card, without building the distribution. */
+function finalTurnStats(selected: SelectedCard[], candidate: OfferedCard, target: number, rules: Rules): { meanScore: number; thresholdProbability: number } {
+  let total = 0;
+  let weighted = 0;
+  let hit = 0;
+  forEachFinalOutcome(selected, candidate, rules, (score, probability) => { total += probability; weighted += score * probability; if (score >= target) hit += probability; });
+  return { meanScore: weighted / total, thresholdProbability: hit / total };
+}
+
+/** Visits every exact final outcome (not merged by score) when `candidate` is the fifth card, under integer red rolls. */
+function forEachFinalOutcome(selected: SelectedCard[], candidate: OfferedCard, rules: Rules, visit: (score: number, probability: number) => void): void {
   const activation = CARDS[candidate.cardId].activationProbability;
   const branches: { cards: SelectedCard[]; probability: number }[] = [];
   const addBranch = (cards: SelectedCard[], probability: number) => {
@@ -219,7 +315,6 @@ function finalTurnMetrics(selected: SelectedCard[], candidate: OfferedCard, thre
     }
   }
 
-  const mass = new Map<number, number>();
   for (const branch of branches) {
     // The red roll is the only random part of the final score for this branch.
     // Keep the exact integer-percent enumeration, but derive its fixed SUM and
@@ -230,11 +325,12 @@ function finalTurnMetrics(selected: SelectedCard[], candidate: OfferedCard, thre
     const redStart = RED[redCount] ? Math.round(RED[redCount]![0] * 100) : 0;
     for (let i = 0; i < rolls; i++) {
       const redBonus = redCount >= 2 ? (redStart + i) / 100 : 0;
-      const score = Math.floor(fixed.sum * fixed.multiplier * (1 + redBonus));
-      mass.set(score, (mass.get(score) ?? 0) + branch.probability / rolls);
+      visit(Math.floor(fixed.sum * fixed.multiplier * (1 + redBonus)), branch.probability / rolls);
     }
   }
-  const outcomes = [...mass].sort((a, b) => a[0] - b[0]);
+}
+
+function outcomeMetrics(candidate: OfferedCard, outcomes: Outcomes, threshold: number, simulations: number, method: Metrics["method"]): Metrics {
   const total = outcomes.reduce((sum, [, weight]) => sum + weight, 0);
   const meanScore = outcomes.reduce((sum, [score, weight]) => sum + score * weight, 0) / total;
   const quantile = (q: number) => { let cumulative = 0; for (const [score, weight] of outcomes) { cumulative += weight / total; if (cumulative + 1e-12 >= q) return score; } return outcomes.at(-1)![0]; };
@@ -243,23 +339,97 @@ function finalTurnMetrics(selected: SelectedCard[], candidate: OfferedCard, thre
     thresholdProbability: outcomes.reduce((sum, [score, weight]) => sum + (score >= threshold ? weight : 0), 0) / total,
     minScore: outcomes[0]![0], maxScore: outcomes.at(-1)![0],
     standardDeviation: Math.sqrt(outcomes.reduce((sum, [score, weight]) => sum + (score - meanScore) ** 2 * weight, 0) / total),
-    simulations: 0, method: "exact"
+    simulations, method
   };
 }
 
 export interface Metrics { candidate: OfferedCard; meanScore: number; p10: number; p50: number; p90: number; threshold: number; thresholdProbability: number; minScore: number; maxScore: number; standardDeviation: number; simulations: number; method: "exact" | "monte_carlo"; }
 
-export function recommend(state: GameState, candidates: OfferedCard[], objective: Objective, simulations = 10000, seed = 20260922, rules: Rules = RULES, fallbackTarget = 1500): { ranked: Metrics[]; mode: "objective" | "highest_expected_score_fallback" } {
+/** Engine switches. Defaults are the production engine; LEGACY_V1_OPTIONS replays the 2026-09-28 engine for paired comparisons. */
+export interface RecommendOptions {
+  /** Inside rollouts, use the exact fifth-card distribution instead of sampling its activation and red roll. */
+  exactFinalStep?: boolean;
+  /** Every candidate uses the same per-simulation offer, activation, and red streams. */
+  commonRandomNumbers?: boolean;
+  /** How a rollout picks its fifth card: by the screen objective, or always by target rate (legacy). */
+  finalChoice?: "objective" | "threshold";
+  /** Ranking when every option has a zero target rate. Only "expected" is wired to the UI. */
+  zeroTargetFallback?: "expected" | "upperTail" | "rewardTier";
+  /** Rollout policy before the fifth card. "projected" is experimental. */
+  rolloutPolicy?: "immediate" | "projected";
+}
+type ZeroTargetFallback = NonNullable<RecommendOptions["zeroTargetFallback"]>;
+type RolloutPolicy = NonNullable<RecommendOptions["rolloutPolicy"]>;
+export type RecommendMode = "objective" | "highest_expected_score_fallback" | "zero_target_fallback";
+export const LEGACY_V1_OPTIONS: Readonly<RecommendOptions> = { exactFinalStep: false, commonRandomNumbers: false, finalChoice: "threshold" };
+const DEFAULT_OPTIONS: Required<RecommendOptions> = { exactFinalStep: true, commonRandomNumbers: true, finalChoice: "objective", zeroTargetFallback: "expected", rolloutPolicy: "immediate" };
+
+type Evaluated = { metrics: Metrics; outcomes: Outcomes };
+function reachProbability(outcomes: Outcomes, level: number) {
+  let total = 0;
+  let hit = 0;
+  for (const [score, weight] of outcomes) { total += weight; if (score >= level) hit += weight; }
+  return total ? hit / total : 0;
+}
+const compareKeys = (x: number[], y: number[]) => { for (let i = 0; i < x.length; i++) { const difference = x[i]! - y[i]!; if (difference) return difference; } return 0; };
+/** Orders options by the objective (stable for ties) and reports whether the zero-target fallback applied. */
+function rankEvaluated(items: Evaluated[], objective: Objective, fallback: ZeroTargetFallback): { ordered: Evaluated[]; zeroTarget: boolean } {
+  const zeroTarget = objective.kind === "threshold" && items.every(item => item.metrics.thresholdProbability === 0);
+  let key = (item: Evaluated): number[] => objective.kind === "expected" ? [item.metrics.meanScore]
+    : objective.kind === "stability" ? [item.metrics.p10, item.metrics.meanScore]
+    : [item.metrics.thresholdProbability, item.metrics.meanScore];
+  if (zeroTarget && fallback === "upperTail") key = item => [item.metrics.p90, item.metrics.meanScore];
+  if (zeroTarget && fallback === "rewardTier") {
+    // Aim for the highest reward tier below the target that any option can still reach.
+    const target = items[0]?.metrics.threshold ?? 0;
+    const level = [...REWARD_THRESHOLDS].reverse().find(tier => tier < target && items.some(item => reachProbability(item.outcomes, tier) > 0)) ?? 0;
+    key = item => [reachProbability(item.outcomes, level), item.metrics.meanScore];
+  }
+  const keyed = items.map(item => ({ item, key: key(item) }));
+  keyed.sort((a, b) => compareKeys(b.key, a.key));
+  return { ordered: keyed.map(entry => entry.item), zeroTarget };
+}
+function countOutcomes(sortedScores: number[]): Outcomes {
+  const outcomes: Outcomes = [];
+  for (const score of sortedScores) {
+    const last = outcomes.at(-1);
+    if (last && last[0] === score) last[1]++;
+    else outcomes.push([score, 1]);
+  }
+  return outcomes;
+}
+
+export function recommend(state: GameState, candidates: OfferedCard[], objective: Objective, simulations = 10000, seed = 20260922, rules: Rules = RULES, fallbackTarget = 1500, options: RecommendOptions = {}): { ranked: Metrics[]; mode: RecommendMode } {
+  const engine: Required<RecommendOptions> = { ...DEFAULT_OPTIONS, ...options };
   const target = objective.kind === "threshold" ? objective.target : fallbackTarget;
-  const ranked = candidates.map((candidate, index) => {
-    if (state.turn === 5 && rules.redRollMode === "integerPercent") return finalTurnMetrics(state.selected, candidate, target, rules);
-    const scores: number[] = []; const cardKey = Object.keys(CARDS).indexOf(candidate.cardId) * COLORS.length + COLORS.indexOf(candidate.color); const rng = mulberry32(seed + cardKey * 100003);
-    for (let i = 0; i < simulations; i++) scores.push(simulateOne(rng, state, candidate, rules, target));
+  const finalObjective: Objective = engine.finalChoice === "objective" ? objective : { kind: "threshold", target };
+  const evaluated = candidates.map((candidate): Evaluated => {
+    if (state.turn === 5 && rules.redRollMode === "integerPercent") {
+      const outcomes = finalTurnOutcomes(state.selected, candidate, rules);
+      return { metrics: outcomeMetrics(candidate, outcomes, target, 0, "exact"), outcomes };
+    }
+    const cardKey = Object.keys(CARDS).indexOf(candidate.cardId) * COLORS.length + COLORS.indexOf(candidate.color);
+    const shared = engine.commonRandomNumbers ? null : mulberry32(seed + cardKey * 100003);
+    const scores: number[] = [];
+    const mixture = engine.exactFinalStep && rules.redRollMode === "integerPercent" ? new Map<number, number>() : null;
+    for (let i = 0; i < simulations; i++) {
+      const streams: RolloutStreams = shared ? { offer: shared, activation: shared, red: shared }
+        : { offer: mulberry32(streamSeed(seed, i, 1)), activation: mulberry32(streamSeed(seed, i, 2)), red: mulberry32(streamSeed(seed, i, 3)) };
+      const result = simulateOne(streams, state, candidate, rules, finalObjective, target, engine, mixture);
+      if (result !== null) scores.push(result);
+    }
+    if (mixture?.size) {
+      // Each rollout contributes its exact remaining distribution (weight 1 in total).
+      const outcomes: Outcomes = [...mixture].sort((a, b) => a[0] - b[0]);
+      return { metrics: outcomeMetrics(candidate, outcomes, target, simulations, "monte_carlo"), outcomes };
+    }
     scores.sort((a, b) => a - b); const avg = mean(scores); const hit = scores.filter(s => s >= target).length / simulations;
-    return { candidate, meanScore: avg, p10: percentile(scores, .1), p50: percentile(scores, .5), p90: percentile(scores, .9), threshold: target, thresholdProbability: hit, minScore: scores[0]!, maxScore: scores.at(-1)!, standardDeviation: Math.sqrt(mean(scores.map(s => (s - avg) ** 2))), simulations, method: "monte_carlo" as const };
+    const metrics: Metrics = { candidate, meanScore: avg, p10: percentile(scores, .1), p50: percentile(scores, .5), p90: percentile(scores, .9), threshold: target, thresholdProbability: hit, minScore: scores[0]!, maxScore: scores.at(-1)!, standardDeviation: Math.sqrt(mean(scores.map(s => (s - avg) ** 2))), simulations, method: "monte_carlo" };
+    return { metrics, outcomes: countOutcomes(scores) };
   });
-  const byObjective = (a: Metrics, b: Metrics) => objective.kind === "expected" ? b.meanScore - a.meanScore : objective.kind === "stability" ? b.p10 - a.p10 || b.meanScore - a.meanScore : b.thresholdProbability - a.thresholdProbability || b.meanScore - a.meanScore;
-  ranked.sort(byObjective); const mode = objective.kind === "threshold" && ranked.every(m => m.thresholdProbability === 0) ? "highest_expected_score_fallback" : "objective"; if (mode === "highest_expected_score_fallback") ranked.sort((a, b) => b.meanScore - a.meanScore); return { ranked, mode };
+  const { ordered, zeroTarget } = rankEvaluated(evaluated, objective, engine.zeroTargetFallback);
+  const mode: RecommendMode = !zeroTarget ? "objective" : engine.zeroTargetFallback === "expected" ? "highest_expected_score_fallback" : "zero_target_fallback";
+  return { ranked: ordered.map(item => item.metrics), mode };
 }
 
 export interface ScoreSummary {

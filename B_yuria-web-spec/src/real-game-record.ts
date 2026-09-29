@@ -1,7 +1,9 @@
 import { CARDS, RULES, type CardColor, type CardId, type Objective, type OfferedCard, type Rules } from "./domain";
 
 export const RECORD_SCHEMA_VERSION = 1;
-export const ENGINE_VERSION = "b-deterministic-2026-09-28-one-each-color";
+export const ENGINE_VERSION = "b-deterministic-2026-09-29-exact-final-step";
+// Engines that resolve Star after the fifth card; older records keep their original target constraints.
+const DEFERRED_STAR_ENGINES = new Set([ENGINE_VERSION, "b-deterministic-2026-09-28-one-each-color", "b-deterministic-2026-09-28-star-after-fifth"]);
 export const CARD_CATALOG_VERSION = "2026-09-23";
 const DB_NAME = "yuria-real-games";
 const STORE_NAME = "games";
@@ -128,7 +130,7 @@ export function isValidGameRecord(value: unknown): value is RealGameRecordV1 {
     const rounds = value.rounds as RealRound[];
     const revisions = value.revisions as RecordRevision[];
     const complete = rounds.length === 5 && value.completedAt !== null && (value.actualFinalScore === null ? value.evidenceLevel === null : value.evidenceLevel !== null);
-    if (!complete || (value.engineVersion !== ENGINE_VERSION && value.engineVersion !== "b-deterministic-2026-09-28-star-after-fifth")) return complete;
+    if (!complete || !DEFERRED_STAR_ENGINES.has(value.engineVersion as string)) return complete;
     const rulesSnapshot = value.rulesSnapshot as Rules;
     return isValidDeferredStarResolution(rounds, rulesSnapshot) && revisions.every(item => isValidDeferredStarResolution(item.previousRounds, rulesSnapshot));
   }

@@ -1,2 +1,4 @@
 .vercel
 .env*
+# Downloaded source font for `npm run font`; only the renamed subset in public/fonts is committed.
+.cache

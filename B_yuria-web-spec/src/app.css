@@ -1,0 +1,373 @@
+/* Yuria calculator — single stylesheet (stage B, 2026-09-29).
+   Palette is sampled from the game's own card assets: frame blue / purple / red, the shared gold rim,
+   the ribbon's pale blue and the pixel-art outline ink. Blue, purple and red only ever mean a card color;
+   actions use ink, and gold only marks the recommendation. Pixel type is used at 12px multiples only. */
+
+@font-face {
+  font-family: "Yuria Pixel";
+  src: url("/fonts/yuria-pixel.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+  --mist: #edf3f4;        /* page: the ribbon's pale blue, lifted */
+  --mist-deep: #dce7ea;   /* card-back checker, quiet fills */
+  --vellum: #fbfbf6;      /* card and panel surface */
+  --line: #cbd5d7;        /* decorative borders only */
+  --ink: #282020;         /* pixel outline color: text, actions, focus */
+  --ink-soft: #5b5e63;    /* secondary text and control borders (≥ 6:1 on vellum) */
+  --gold: #f8c838;        /* the card rim: recommendation only */
+  --gold-wash: #fdf1c4;
+  --card-blue: #186088;
+  --card-purple: #800098;
+  --card-red: #c00800;
+  --font-body: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", system-ui, sans-serif;
+  --font-pixel: "Yuria Pixel", var(--font-body);
+  color: var(--ink);
+  background: var(--mist);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-synthesis: none;
+}
+
+/* ---------- Base ---------- */
+* { box-sizing: border-box; }
+body { min-width: 320px; margin: 0; background: var(--mist); }
+.modal-open { overflow: hidden; }
+[hidden] { display: none !important; } /* the attribute must win over component display rules */
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { letter-spacing: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { min-width: 44px; min-height: 44px; cursor: pointer; touch-action: manipulation; transition: background-color 150ms, border-color 150ms; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+summary { min-height: 44px; cursor: pointer; }
+input, select { min-height: 44px; padding: 8px 10px; border: 1px solid var(--ink-soft); border-radius: 4px; background: var(--vellum); font-size: 16px; }
+label { color: var(--ink); font-size: 14px; font-weight: 600; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.pixel { font-family: var(--font-pixel); font-weight: 400; }
+
+.primary-action, .secondary-action, .danger-action { display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: 4px; font-size: 15px; font-weight: 700; }
+.primary-action, .danger-action { border: 2px solid var(--ink); background: var(--ink); color: var(--vellum); }
+.primary-action:hover:not(:disabled), .danger-action:hover { background: #453838; }
+.secondary-action { border: 1.5px solid var(--ink-soft); background: var(--vellum); color: var(--ink); }
+.secondary-action:hover:not(:disabled) { border-color: var(--ink); }
+.text-action { padding: 0 6px; border: 0; background: transparent; color: var(--ink); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.panel { border: 1px solid var(--line); border-radius: 6px; background: var(--vellum); }
+.field-error { color: var(--ink); font-size: 14px; font-weight: 700; }
+.field-error::before { content: "⚠ "; }
+
+.color-chip { display: inline-grid; place-items: center; min-width: 28px; height: 24px; padding: 0 6px; border-radius: 2px; color: var(--vellum); font-size: 13px; font-weight: 700; }
+.color-chip.blue { background: var(--card-blue); }
+.color-chip.purple { background: var(--card-purple); }
+.color-chip.red { background: var(--card-red); }
+
+.segmented { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.segmented button { padding: 6px 14px; border: 1.5px solid var(--ink-soft); border-radius: 4px; background: var(--vellum); font-size: 14px; }
+.segmented button.active { border-color: var(--ink); background: var(--ink); color: var(--vellum); font-weight: 700; }
+
+/* ---------- Page frame ---------- */
+.shell { width: 100%; margin: 0 auto; padding: 16px clamp(12px, 2vw, 32px) 32px; }
+.layout-narrow { max-width: 1180px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); }
+.workspace { min-width: 0; }
+
+.header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; padding: 4px 4px 12px; }
+.header-title h1 { margin: 0 0 2px; font-family: var(--font-pixel); font-size: 36px; font-weight: 400; line-height: 1.34; }
+.subhead { margin: 0; color: var(--ink-soft); font-size: 15px; }
+.run-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 16px; }
+.turn-progress { font-family: var(--font-pixel); font-size: 24px; font-weight: 400; white-space: nowrap; }
+.header-meta { display: inline-flex; align-items: baseline; gap: 8px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--vellum); color: var(--ink-soft); font-size: 14px; white-space: nowrap; }
+.score-total { color: var(--ink); font-family: var(--font-pixel); font-size: 24px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.clear-run-action { padding: 8px 14px; border: 1.5px solid var(--ink-soft); border-radius: 4px; background: transparent; font-size: 15px; font-weight: 700; white-space: nowrap; }
+.clear-run-action:hover { border-color: var(--ink); background: var(--vellum); }
+.restored-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 0 0 10px; padding: 6px 14px; border: 1px dashed var(--ink-soft); border-radius: 6px; background: var(--vellum); font-size: 15px; }
+
+/* Goal settings: one line until opened. */
+.goal-settings > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 16px; font-size: 15px; font-weight: 700; list-style: none; }
+.goal-settings > summary::-webkit-details-marker { display: none; }
+.goal-edit { font-weight: 400; text-decoration: underline; text-underline-offset: 3px; }
+.control-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; padding: 12px 16px 16px; border-top: 1px solid var(--line); }
+.control-group { flex: 1 1 320px; }
+.control-group > label { display: block; }
+.goal-help, .metric-help { display: block; margin-top: 6px; color: var(--ink-soft); font-size: 14px; font-weight: 400; }
+.target-field, .simulation-field { display: grid; gap: 6px; }
+.target-field input { width: 120px; }
+
+/* ---------- Confirmed cards: five small slots; each mini card opens its correction panel ---------- */
+.run-strip { margin-top: 10px; }
+.run-strip-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-bottom: 8px; }
+.run-strip-heading h2 { margin: 0; font-size: 18px; }
+.run-strip-hint { margin: 0; color: var(--ink-soft); font-size: 14px; }
+.run-strip-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.run-strip-actions .secondary-action { padding: 6px 12px; font-size: 14px; white-space: nowrap; }
+.run-strip-list { position: relative; display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--vellum); }
+.run-card-face { display: grid; justify-items: center; gap: 4px; width: 76px; padding: 10px 4px 4px; border-radius: 4px; list-style: none; }
+.run-card-face::-webkit-details-marker { display: none; }
+.run-card-face .game-card { width: 60px; }
+.run-card-face small { color: var(--ink-soft); font-size: 13px; line-height: 1.3; }
+.run-card.is-failed .run-card-face small { color: var(--ink); font-weight: 700; }
+.run-card.is-failed .game-card { filter: grayscale(.75) brightness(.6); }
+.run-card.is-removed .game-card { opacity: .45; }
+.run-card-face:hover, .run-edit[open] > .run-card-face { background: var(--mist); box-shadow: inset 0 0 0 2px var(--ink-soft); }
+.run-edit-fields { position: absolute; z-index: 20; top: calc(100% + 6px); left: 12px; right: 12px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; padding: 14px 16px; border: 2px solid var(--ink); border-radius: 6px; background: var(--vellum); box-shadow: 0 10px 28px #28202033; }
+.run-edit-fields > strong { flex: 1 1 100%; font-size: 15px; }
+.run-edit-fields label { display: grid; gap: 4px; }
+.run-edit-fields select { min-width: 120px; }
+.history-result { display: flex; gap: 6px; }
+.history-result button { min-width: 72px; border: 1.5px solid var(--ink-soft); border-radius: 4px; background: var(--vellum); font-size: 15px; }
+.history-result button.selected { border-color: var(--ink); background: var(--ink); color: var(--vellum); font-weight: 700; }
+.run-edit-fields .removed-toggle { display: flex; align-items: center; gap: 6px; } /* must outrank `.run-edit-fields label` */
+.removed-toggle input { width: 18px; min-height: 44px; margin: 0; accent-color: var(--ink); }
+.history-special-link { flex: 1 1 100%; color: var(--ink-soft); font-size: 14px; }
+.run-slot { display: grid; justify-items: center; width: 76px; padding: 10px 4px 4px; }
+.run-slot > span { display: grid; place-items: center; width: 60px; aspect-ratio: 224 / 308; border: 2px dashed #9aa5a8; border-radius: 2px; background: repeating-conic-gradient(var(--mist-deep) 0 25%, var(--mist) 0 50%) 0 0 / 8px 8px; color: var(--ink-soft); font-family: var(--font-pixel); font-size: 24px; }
+.run-slot.is-current > span { border-color: var(--ink); color: var(--ink); }
+
+/* ---------- The answer band ---------- */
+.verdict { display: grid; gap: 2px; margin: 12px 0 18px; padding: 10px 16px; border: 1px dashed var(--ink-soft); border-radius: 6px; background: var(--vellum); }
+.verdict h2 { margin: 0; font-family: var(--font-pixel); font-size: 24px; font-weight: 400; line-height: 1.5; }
+.verdict p { max-width: 44em; margin: 0; font-size: 15px; line-height: 1.6; }
+.verdict small { color: var(--ink-soft); font-size: 14px; line-height: 1.5; }
+.verdict.is-ready { border: 2px solid var(--ink); background: var(--gold-wash); }
+.verdict.is-ready small { color: var(--ink); }
+.verdict.is-warning { border: 2px dashed var(--ink); background: var(--vellum); }
+.verdict .secondary-action { justify-self: start; margin-top: 4px; }
+
+/* ---------- Candidate cards (fixed slot order) ---------- */
+.offer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.offer-card {
+  position: relative; display: grid; grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-areas: "top top" "colors colors" "face metrics" "choose choose"; grid-template-rows: auto auto 1fr auto;
+  align-items: start; gap: 6px 14px; min-width: 0; padding: 10px 14px 14px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--vellum);
+}
+.offer-card.is-empty, .offer-card.is-filled { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "colors" "face" "wait"; }
+/* The one bold element: the recommended card wears the game's gold rim with stepped pixel corners. */
+.offer-card.is-top {
+  border-color: var(--vellum); border-radius: 0;
+  box-shadow:
+    0 -4px 0 0 var(--gold), 0 4px 0 0 var(--gold), -4px 0 0 0 var(--gold), 4px 0 0 0 var(--gold),
+    0 -8px 0 0 var(--ink), 0 8px 0 0 var(--ink), -8px 0 0 0 var(--ink), 8px 0 0 0 var(--ink),
+    -4px -4px 0 0 var(--ink), 4px -4px 0 0 var(--ink), -4px 4px 0 0 var(--ink), 4px 4px 0 0 var(--ink);
+}
+.offer-top { grid-area: top; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 44px; }
+.offer-slot { font-size: 15px; font-weight: 700; }
+.offer-color-toggle { min-height: 44px; }
+.offer-badge { margin-left: auto; padding: 4px 8px; background: var(--ink); color: var(--gold); font-family: var(--font-pixel); font-size: 12px; line-height: 1.34; }
+.offer-rank { margin-left: auto; color: var(--ink-soft); font-size: 14px; }
+.offer-colors { grid-area: colors; display: flex; gap: 8px; }
+.offer-color { flex: 1 1 0; border: 1.5px solid currentColor; border-radius: 4px; background: var(--vellum); font-size: 15px; font-weight: 700; }
+.offer-color.blue { color: var(--card-blue); } .offer-color.purple { color: var(--card-purple); } .offer-color.red { color: var(--card-red); }
+.offer-color.blue.selected { background: var(--card-blue); } .offer-color.purple.selected { background: var(--card-purple); } .offer-color.red.selected { background: var(--card-red); }
+.offer-color.selected { border-color: var(--ink); color: var(--vellum); }
+.offer-color.selected::before { content: "✓ "; }
+.offer-face { grid-area: face; display: grid; place-items: center; width: 96px; padding: 10px 0 2px; border: 0; border-radius: 4px; background: transparent; }
+.offer-face .game-card { width: 88px; }
+.offer-face:hover .game-card, .offer-face:focus-visible .game-card { filter: drop-shadow(0 0 4px var(--gold)); }
+.offer-card.is-filled .offer-face { width: 100%; min-height: 176px; }
+.offer-empty-face { align-content: center; gap: 4px; width: 100%; min-height: 176px; border: 2px dashed #9aa5a8; border-radius: 4px; background: repeating-conic-gradient(var(--mist-deep) 0 25%, var(--mist) 0 50%) 0 0 / 8px 8px; color: var(--ink); }
+.offer-empty-face.is-next { border: 2px solid var(--ink); background: var(--gold-wash); }
+.offer-empty-face strong { font-size: 18px; }
+.offer-empty-face small { color: var(--ink-soft); font-size: 14px; }
+.offer-plus { font-family: var(--font-pixel); font-size: 24px; line-height: 1; }
+.offer-waiting { grid-area: wait; min-height: 20px; margin: 0; color: var(--ink-soft); font-size: 14px; text-align: center; }
+.offer-metrics { grid-area: metrics; display: grid; align-content: start; gap: 8px; padding-top: 12px; container-type: inline-size; }
+.offer-primary, .offer-secondary { display: grid; gap: 2px; min-width: 0; }
+.offer-primary > span, .offer-secondary > span { color: var(--ink-soft); font-size: 14px; }
+.offer-primary strong { font-family: var(--font-pixel); font-size: 36px; font-weight: 400; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.offer-card.is-top .offer-primary strong { font-size: 48px; }
+.offer-secondary strong { font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.offer-choose { grid-area: choose; min-height: 48px; border: 1.5px solid var(--ink-soft); border-radius: 4px; background: var(--vellum); font-size: 16px; font-weight: 700; }
+.offer-choose:hover { border-color: var(--ink); }
+.offer-card.is-top .offer-choose { border-color: var(--ink); background: var(--ink); color: var(--vellum); }
+.offer-card.is-top .offer-choose:hover { background: #453838; }
+
+/* Card artwork layers from the game. */
+.game-card { position: relative; display: block; flex: none; width: 88px; aspect-ratio: 224 / 308; image-rendering: pixelated; }
+.game-card-frame, .game-card-art { position: absolute; display: block; pointer-events: none; image-rendering: pixelated; }
+.game-card-frame { inset: 0; width: 100%; height: 100%; }
+.game-card-art { top: 1.3%; left: 1.8%; width: 96.4%; height: auto; }
+.game-card-label, .game-card-ribbon { position: absolute; display: grid; place-items: center; background-size: 100% 100%; background-repeat: no-repeat; font-weight: 800; line-height: 1; white-space: nowrap; }
+.game-card-label { top: -7%; left: 15%; width: 70%; aspect-ratio: 152 / 52; color: #fff; font-size: 12px; }
+.game-card-ribbon { right: -2%; bottom: 3%; left: -2%; aspect-ratio: 224 / 60; color: #25201a; font-size: 12px; }
+
+/* ---------- Details under the candidates ---------- */
+.candidate-risk-details { margin-top: 10px; }
+.candidate-risk-details > summary { display: flex; align-items: center; color: var(--ink-soft); font-size: 14px; }
+.candidate-risk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+.candidate-risk-card { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--vellum); font-size: 14px; }
+.candidate-risk-card strong { font-size: 15px; }
+.candidate-risk-card span { color: var(--ink-soft); }
+
+.star-resolution { margin: 12px 0 18px; padding: 16px; border: 2px solid var(--ink); background: var(--gold-wash); }
+.star-resolution h3 { margin: 0 0 4px; font-size: 18px; }
+.star-resolution p { margin: 0 0 10px; }
+.star-targets { display: flex; flex-wrap: wrap; gap: 8px; }
+.completion { margin-top: 12px; padding: 20px 24px; }
+.completion h3 { margin: 0 0 8px; font-family: var(--font-pixel); font-size: 24px; font-weight: 400; }
+.real-score-panel { margin-top: 12px; padding: 20px 24px; }
+.real-score-panel h3 { margin: 0 0 8px; font-size: 18px; }
+.real-score-panel p { max-width: 44em; margin: 0 0 14px; }
+#actual-score-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+#actual-score-form label { display: grid; gap: 6px; min-width: 170px; }
+#actual-score-form input, #actual-score-form select { width: 100%; }
+.real-score-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+.score-breakdown { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; margin-top: 20px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--vellum); }
+.score-breakdown small { flex-basis: 100%; color: var(--ink-soft); font-size: 13px; }
+
+/* ---------- Secondary panels ---------- */
+.more-panels { display: grid; gap: 8px; margin-top: 12px; }
+.more-panel { border: 1px solid var(--line); border-radius: 6px; background: var(--vellum); }
+.more-panel > summary { display: flex; align-items: center; padding: 8px 16px; font-size: 16px; font-weight: 700; }
+.more-panel[open] > summary { border-bottom: 1px solid var(--line); }
+.more-panel > :not(summary) { margin-inline: 16px; }
+.more-panel > :last-child:not(summary) { margin-bottom: 16px; }
+.more-panel h3 { margin: 16px 0 8px; font-size: 16px; }
+.more-panel h3 small { margin-left: 8px; color: var(--ink-soft); font-size: 14px; font-weight: 400; }
+.more-panel p, .more-panel li { max-width: 44em; line-height: 1.6; }
+.more-panel details > summary { display: flex; align-items: center; font-size: 15px; }
+.advanced-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; padding-top: 12px; }
+.real-archive-panel > #record-save-status { margin: 12px 0 0; color: var(--ink-soft); font-size: 14px; }
+.archive-sync { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.archive-sync p { margin: 0 0 6px; }
+.archive-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; padding: 0; }
+.archive-stats div { min-width: 96px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--mist); }
+.archive-stats dt { color: var(--ink-soft); font-size: 13px; }
+.archive-stats dd { margin: 0; font-family: var(--font-pixel); font-size: 24px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.archive-stats .is-warning { border: 2px dashed var(--ink); background: var(--vellum); }
+.archive-facts { margin: 0 0 12px; padding-left: 20px; }
+.archive-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 12px 0; }
+.archive-actions label { display: grid; gap: 4px; }
+.archive-actions input { max-width: 100%; font-size: 14px; }
+.archive-account { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-left: auto; color: var(--ink-soft); font-size: 14px; overflow-wrap: anywhere; }
+.knowledge-note, .formula p { color: var(--ink-soft); font-size: 14px; }
+.reward-table { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+.reward-table div { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--mist); }
+.reward-table span, .reward-table small { color: var(--ink-soft); font-size: 13px; }
+.reward-table strong { font-family: var(--font-pixel); font-size: 24px; font-weight: 400; line-height: 1.5; }
+.catalog { display: grid; gap: 12px; }
+.catalog-group h4 { margin: 0 0 6px; font-size: 14px; }
+.catalog-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; }
+.catalog-list span { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; padding: 6px 10px; border-radius: 4px; background: var(--mist); font-size: 14px; }
+.catalog-list small { color: var(--ink-soft); white-space: nowrap; }
+.formula code { display: block; padding: 10px 12px; border-radius: 4px; background: var(--mist-deep); font-size: 14px; overflow-wrap: anywhere; }
+.confidence { display: grid; gap: 10px; }
+.confidence > div { display: flex; align-items: flex-start; gap: 10px; }
+.confidence p { display: grid; gap: 2px; margin: 0; }
+.confidence small { color: var(--ink-soft); font-size: 14px; }
+.confidence-icon { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 2px; font-weight: 700; }
+.confidence-icon.verified { background: var(--mist-deep); }
+.confidence-icon.warning { background: var(--gold-wash); }
+.confidence-icon.muted { background: var(--mist); color: var(--ink-soft); }
+.evidence-panel h3 { margin-top: 20px; }
+.score-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+.score-strip span { padding: 2px 8px; border-radius: 2px; background: var(--mist); font-family: var(--font-pixel); font-size: 24px; line-height: 1.5; }
+.evidence-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.evidence-grid div, .model-run { display: grid; gap: 2px; }
+.evidence-grid strong { font-family: var(--font-pixel); font-size: 24px; font-weight: 400; line-height: 1.5; }
+.evidence-grid small, .model-run small { color: var(--ink-soft); font-size: 13px; }
+.model-run { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.footer { padding: 16px 4px 0; color: var(--ink-soft); font-size: 13px; }
+
+/* ---------- Dialogs ---------- */
+.picker-dialog { width: min(1120px, calc(100% - 24px)); max-height: calc(100dvh - 32px); padding: 0 20px 20px; overflow: auto; border: 2px solid var(--ink); border-radius: 6px; background: var(--vellum); color: var(--ink); }
+.picker-dialog::backdrop { background: #282020b3; }
+.picker-header, .picker-footer { position: sticky; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--vellum); }
+.picker-header { top: 0; padding: 16px 0 12px; border-bottom: 1px solid var(--line); }
+.picker-header h2 { margin: 0; font-family: var(--font-pixel); font-size: 24px; font-weight: 400; line-height: 1.5; }
+.picker-footer { bottom: -20px; padding: 12px 0 20px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 14px; }
+.picker-footer > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.picker-close { width: 44px; border: 1.5px solid var(--ink-soft); border-radius: 4px; background: var(--vellum); font-size: 22px; line-height: 1; }
+.picker-section { padding: 14px 0; }
+.picker-section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.picker-section-heading strong { font-size: 15px; }
+.picker-section-heading small { color: var(--ink-soft); font-size: 14px; }
+.picker-categories { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.picker-categories button { padding: 6px 14px; border: 1.5px solid var(--ink-soft); border-radius: 999px; background: var(--vellum); color: var(--ink); font-size: 14px; }
+.picker-categories button span { margin-left: 4px; font-size: 13px; }
+.picker-categories button.selected { border-color: var(--ink); background: var(--ink); color: var(--vellum); font-weight: 700; }
+.picker-card-grid { display: grid; grid-template-columns: repeat(auto-fill, 140px); gap: 8px; }
+.picker-card { display: flex; flex-direction: column; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: 4px; background: var(--vellum); color: var(--ink); }
+.picker-card-choice { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 124px; padding: 2px; }
+.picker-card-choice img { width: 60px; height: 83px; object-fit: contain; image-rendering: pixelated; }
+.picker-card strong { font-size: 14px; line-height: 1.2; }
+.picker-card small { color: var(--ink-soft); font-size: 12px; }
+.picker-card-colors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; }
+.mini-color { display: inline-grid; place-items: center; min-width: 44px; padding: 4px; border: 2px solid var(--vellum); border-radius: 2px; color: var(--vellum); font-size: 13px; font-weight: 700; line-height: 1.1; }
+.mini-color.blue { background: var(--card-blue); } .mini-color.purple { background: var(--card-purple); } .mini-color.red { background: var(--card-red); }
+.mini-color:hover:not(:disabled) { border-color: var(--ink); }
+#search-empty { color: var(--ink-soft); }
+
+.outcome-dialog { max-width: 460px; padding: 20px; }
+.outcome-dialog h2 { margin: 0 0 8px; font-size: 20px; }
+.outcome-dialog p { margin: 8px 0 16px; }
+.outcome-actions { display: grid; gap: 12px; }
+.outcome-dialog fieldset { display: grid; gap: 10px; margin: 16px 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; }
+.outcome-dialog legend { padding: 0 6px; font-weight: 700; }
+.outcome-choice-row { display: grid; gap: 8px; }
+.outcome-choice-row button { padding: 8px 12px; border: 1.5px solid var(--ink-soft); border-radius: 4px; background: var(--vellum); }
+.outcome-choice-row button.selected { border-color: var(--ink); background: var(--ink); color: var(--vellum); font-weight: 700; }
+.outcome-dialog > .primary-action { width: 100%; margin-bottom: 8px; }
+.reset-dialog { max-width: 520px; }
+.reset-dialog h2 { margin: 0 0 8px; font-size: 20px; }
+.reset-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.reset-actions button { min-height: 48px; }
+
+/* ---------- Responsive ---------- */
+@media (min-width: 600px) and (max-width: 899px) {
+  .offer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .candidate-risk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Tablet / small laptop: use the mobile card-art width so the metric column is wide enough for a
+   one-line 36px number, and for 48px on the recommendation wherever the column allows (incl. 1024px). */
+@media (min-width: 600px) and (max-width: 1099px) {
+  .offer-card { grid-template-columns: 84px minmax(0, 1fr); column-gap: 12px; padding-inline: 12px; }
+  .offer-face { width: 84px; }
+  .offer-face .game-card { width: 76px; }
+}
+@media (max-width: 599px) {
+  .shell { padding-inline: 12px; }
+  .header { flex-direction: column; align-items: stretch; gap: 8px; }
+  .header-title h1 { font-size: 24px; line-height: 1.5; }
+  .run-status { justify-content: flex-start; gap: 8px 12px; }
+  .clear-run-action { flex: 1 1 100%; }
+  .run-strip-actions { width: 100%; margin-left: 0; }
+  .run-strip-actions .secondary-action { flex: 1 1 0; }
+  .run-strip-list { justify-content: space-between; gap: 4px; padding: 6px; }
+  .run-card-face, .run-slot { width: 60px; }
+  .run-card-face .game-card, .run-slot > span { width: 50px; }
+  .run-edit-fields { right: 0; left: 0; }
+  .offer-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .offer-card { grid-template-columns: 84px minmax(0, 1fr); }
+  .offer-face { width: 84px; }
+  .offer-face .game-card { width: 76px; }
+  .offer-card.is-filled .offer-face, .offer-empty-face { min-height: 112px; }
+  .offer-primary strong { font-size: 24px; }
+  .offer-card.is-top .offer-primary strong { font-size: 36px; }
+  .candidate-risk-grid, .evidence-grid { grid-template-columns: minmax(0, 1fr); }
+  .archive-account { margin-left: 0; }
+  .picker-dialog { padding-inline: 12px; }
+  .picker-footer { flex-direction: column; align-items: stretch; }
+}
+/* The primary number must stay on one line. The widest value ("100.00%": six half-width glyphs and a
+   full-width %) is 4em, so each pixel size is used only when the metric column can hold it. Kept after
+   the media queries so a narrow column always wins. */
+@container (max-width: 191.98px) {
+  .offer-card.is-top .offer-primary strong { font-size: 36px; }
+}
+@container (max-width: 143.98px) {
+  .offer-primary strong, .offer-card.is-top .offer-primary strong { font-size: 24px; }
+}
+/* Short laptop windows (e.g. 1024×768): the candidates and their record buttons must stay in the first
+   fold, so the 36px pixel title steps down to 24px and the bands above the candidates tighten. */
+@media (min-width: 600px) and (max-height: 820px) {
+  .header { padding-bottom: 8px; }
+  .header-title h1 { font-size: 24px; line-height: 1.5; }
+  .verdict { margin: 8px 0 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+}

@@ -8,11 +8,7 @@ import {
 } from "./real-game-record";
 import { currentCloudUser, downloadRecordedGames, signInWithGitHub, signOutCloud, uploadRecordedGame, watchCloudAuth } from "./cloud-games";
 import type { User } from "@supabase/supabase-js";
-import "./styles.css";
-import "./knowledge.css";
-import "./pending.css";
-import "./usability.css";
-import "./workbench.css";
+import "./app.css";
 
 const cardList = Object.values(CARDS);
 // Artwork mapping follows the source game's image IDs, which are not in card-list order.

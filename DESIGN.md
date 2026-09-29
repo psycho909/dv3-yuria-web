@@ -543,3 +543,28 @@
 - Edge（Playwright 1.63.0，msedge channel）對本機 preview `127.0.0.1:4174`：`browser-acceptance.cjs` 14 項全過、0 page error；`history-special-edit.cjs`、`keyboard-flow.cjs`（新增 Enter 開、Escape 關並保留焦點）、`real-game-flow.cjs` 通過。測試已依新結構更新：結論帶位於候選之上、1024×768 與 1440×900 三個記錄按鈕都在首屏、小卡 ≤96px、三張候選等寬、牌圖維持 224:308。
 - 390／768／1024／1440px 的空局、填牌中、推薦、開啟更正與改色狀態，`scrollWidth` 都等於視窗寬度。上一版無頭截圖中 390px 的顏色鈕被切掉，這次未再出現。
 - 未驗證：登入後的紀錄區數字列（只有型別檢查，沒有連 Supabase 的畫面）、真人「5 秒內找到建議」、觸控、螢幕閱讀器朗讀結論帶。
+
+### B 階段：牌圖取色與像素字體（2026-09-29，本機施工）
+
+A 階段已由 `7fbb4c5` 推送並部署；B 階段目前仍未提交。B 改版把原本分散且反覆覆蓋的五份 CSS 收斂為 `src/app.css`，不改 V1 推薦引擎、牌局資料格式或雲端同步流程。
+
+- **色彩 tokens**：頁面霧藍紙 `#EDF3F4`、牌面白 `#FBFBF6`、像素描邊墨色 `#282020`、金框 `#F8C838`；牌色直接使用素材主色藍 `#186088`、紫 `#800098`、紅 `#C00800`。牌色只代表牌色，主要操作使用墨色，金色只代表推薦。
+- **樣式收斂**：`src/app.css` 取代 `styles.css`、`knowledge.css`、`pending.css`、`usability.css`、`workbench.css`。B build 的 CSS 產物約 22.88 KB，未壓縮；舊檔死碼與 `!important` 覆蓋層不再載入。
+- **像素字體**：使用 `ACh-K/Cubic-11` release `v1.500`，依 SIL OFL 1.1 條款製作 `Yuria Pixel` 子集；原始版權／授權文字保留，字體識別名稱改為 `Yuria Pixel`。來源 SHA 由 `scripts/build-pixel-font.mjs` 驗證，輸出 `public/fonts/yuria-pixel.woff2`（124 字元、7,980 bytes）與 `OFL.txt`。字元清單與缺字測試位於 `scripts/pixel-font-text.mjs`、`tests/pixel-font.test.ts`。
+- **推薦視覺**：推薦牌以階梯式墨色＋金色框突出；推薦主要數字 48px，一般候選主要數字 36px，標題／回合／其他像素數字使用 24px。推薦牌是唯一強烈視覺焦點。
+- **主要數字不折行**：主要數字 `white-space: nowrap`，字級由 `.offer-metrics` 的 container query 依欄寬降級（欄寬 <192px 時推薦改 36px、<144px 時全部改 24px）；最寬值 `100.00%` 約 4em。600–1099px 的候選牌圖改用 76px（同手機），讓 1024px 仍可維持推薦 48px。
+- **矮視窗首屏**：寬度 ≥600px 且高度 ≤820px（例如 1024×768）時，標題降為 24px 並收緊結論帶間距，讓三張候選與「記錄」按鈕留在首屏。
+
+#### B 階段驗收（無截圖模式，2026-09-29 複驗）
+
+複驗時以同一套 DOM 稽核對照 A 版（`7fbb4c5` 的本機 build），找出並修正三個 B 回歸：
+1. 更正浮層的「已被移除」被 `.run-edit-fields label { display: grid }` 蓋掉，文字折成兩行（56×70px）；改用 `.run-edit-fields .removed-toggle` 提高權重，恢復單行（80×44px）。
+2. 48px／36px 像素數字在 600px、900px 等寬度會從中間斷成兩行（例如 `1,111.1`、`100.00%`）；改為上方「主要數字不折行」規則。
+3. 1024×768 首屏：候選區底部 772px，超出 `browser-acceptance.cjs` 要求的 760px；改為上方「矮視窗首屏」規則。
+
+結果（皆未呼叫截圖；既有截圖型腳本以 no-op shim 攔截 `screenshot()`，只執行斷言）：
+- `npm run font`（產物 hash 與先前相同）、`typecheck`、全套 Vitest（12 檔、64 passed、8 skipped）、`build` 通過。
+- `browser-acceptance.cjs` 14 項、`real-game-flow.cjs`、`keyboard-flow.cjs`、`history-special-edit.cjs` 全數通過。
+- DOM 稽核：320–1920px、三種推薦目標皆無水平溢位；最寬數值在 18 種寬度都不折行；像素字實際顯示的字元都在子集內；所有可見文字達 4.5:1（大字 3:1）；Tab 走訪 43 個焦點皆有 ≥2px、≥3:1 外框；推薦金框沒有被裁切；五張更正浮層在 320–1440px 都在 viewport 內。
+- 既有現象（A 版同樣存在，非 B 引入）：首頁缺 favicon 造成一次 404；測試腳本以人工 `dispatchEvent('change')` 觸發目標分數時會出現 innerHTML 重入錯誤，真實 Enter／離開欄位操作不會發生。
+- 尚待真人驗證：5 秒內找到推薦、觸控誤觸、螢幕閱讀器；尚未 commit／push／部署 B。

@@ -36,9 +36,9 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
         fs.mkdirSync('artifacts/real-game-flow', { recursive: true });
         await page.locator('.history-panel').screenshot({ path: `artifacts/real-game-flow/history-${index + 1}.png` });
         if (index === 0) {
-          const widths = await page.evaluate(() => ({ selected: document.querySelector('.history-row').getBoundingClientRect().width, candidate: document.querySelector('.candidate-card').getBoundingClientRect().width }));
-          assert.ok(widths.selected >= 160 && widths.selected <= 176, `selected card width is outside the workbench target: ${JSON.stringify(widths)}`);
-          assert.ok(widths.candidate >= 210 && widths.candidate <= 240, `candidate card width is outside the workbench target: ${JSON.stringify(widths)}`);
+          const widths = await page.evaluate(() => ({ selected: document.querySelector('.run-card').getBoundingClientRect().width, candidates: [...document.querySelectorAll('.offer-card')].map(card => card.getBoundingClientRect().width) }));
+          assert.ok(widths.selected <= 96, `confirmed cards should stay compact: ${JSON.stringify(widths)}`);
+          assert.ok(widths.candidates.length === 3 && Math.max(...widths.candidates) - Math.min(...widths.candidates) <= 1, `candidate slots should share the row: ${JSON.stringify(widths)}`);
           await page.evaluate(() => scrollTo(0, 0));
           await page.screenshot({ path: 'artifacts/real-game-flow/matched-cards-1440.png' });
         }
@@ -60,7 +60,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     assert.equal((await records()).length, 0, 'completion alone must not archive');
     assert.match(await page.locator('.real-score-panel').innerText(), /紀錄本局/);
     await page.reload();
-    assert.equal(await page.locator('.history-row').count(), 5);
+    assert.equal(await page.locator('.run-card').count(), 5);
     assert.equal((await records()).length, 0, 'reload must not archive');
     await page.locator('#actual-score-form button[type=submit]').click();
     await page.waitForFunction(async () => new Promise(resolve => {

@@ -19,12 +19,21 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await page.locator(selector).focus();
       await page.keyboard.press('Enter');
     }
-    assert.equal(await page.locator('.history-row').count(), 1);
-    assert.match(await page.locator('.history-row').innerText(), /愚者.*失敗/s);
+    assert.equal(await page.locator('.run-card').count(), 1);
+    assert.match(await page.locator('.run-card').innerText(), /愚者.*失敗/s);
+
+    // The mini card is the summary of its correction panel: Enter opens it, Escape closes it and keeps focus.
+    await page.locator('[data-detail-key="history-edit-0"] > summary').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('[data-detail-key="history-edit-0"]').evaluate(el => el.open), true);
+    assert.equal(await page.locator('[data-history-result="0"][data-activated="true"]').isVisible(), true);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('[data-detail-key="history-edit-0"]').evaluate(el => el.open), false);
+    assert.equal(await page.locator('[data-detail-key="history-edit-0"] > summary').evaluate(el => el === document.activeElement), true);
 
     await page.locator('#undo').focus();
     await page.keyboard.press('Enter');
-    assert.equal(await page.locator('.history-row').count(), 0);
+    assert.equal(await page.locator('.run-card').count(), 0);
     assert.equal(errors.length, 0, errors.join('; '));
     console.log(`PASS keyboard record-failure and undo: ${url}`);
   } finally {

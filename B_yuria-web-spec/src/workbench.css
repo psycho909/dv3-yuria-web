@@ -1,0 +1,149 @@
+/* Workbench stage A (2026-09-29): answer first, a compact run strip, and one number per purpose.
+   Uses the existing tokens from usability.css. Stage B replaces the palette and merges the older
+   stylesheets, so the rules below use new class names instead of overriding the old ones. */
+
+/* Header: title on the left, the only progress indicator on the right. */
+.header { align-items: center; padding: 4px 6px 10px; }
+.header-title h1 { margin: 0 0 2px; font-size: clamp(24px, 2.6vw, 34px); line-height: 1.25; letter-spacing: 0; }
+.header-title .subhead { font-size: 15px; }
+.run-status { gap: 10px 16px; }
+.turn-progress { color: var(--text); font-size: 20px; white-space: nowrap; }
+
+.goal-settings > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; list-style: none; }
+.goal-settings > summary::-webkit-details-marker { display: none; }
+.goal-edit { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Confirmed cards: five small slots in one row. The mini card is the summary of its correction panel. */
+.run-strip { margin: 8px 0 0; }
+.run-strip-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-bottom: 8px; }
+.run-strip-heading h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
+.run-strip-hint { margin: 0; color: var(--text-muted); font-size: 14px; }
+.run-strip-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.run-strip-actions .secondary-action { min-height: 44px; padding: 6px 12px; white-space: nowrap; }
+.run-strip-list { position: relative; display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.run-card-face { display: grid; justify-items: center; gap: 4px; width: 76px; padding: 10px 4px 4px; border-radius: 8px; color: var(--text); cursor: pointer; list-style: none; }
+.run-card-face::-webkit-details-marker { display: none; }
+.run-card-face .game-card { width: 60px; }
+.run-card-face small { color: var(--text-muted); font-size: 13px; line-height: 1.3; }
+.run-card.is-failed .run-card-face small { color: #923f32; font-weight: 700; }
+.run-card.is-failed .game-card { filter: grayscale(.7) brightness(.6); }
+.run-card.is-removed .game-card { opacity: .5; }
+.run-card-face:hover, .run-edit[open] > .run-card-face { background: var(--surface-subtle); box-shadow: inset 0 0 0 2px var(--control-border); }
+.run-card-face:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.run-edit-fields {
+  position: absolute; z-index: 20; top: calc(100% + 6px); left: 12px; right: 12px;
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; padding: 14px 16px;
+  border: 1px solid var(--control-border); border-radius: 12px; background: var(--surface); box-shadow: 0 10px 30px #292e2b26;
+}
+.run-edit-fields > strong { flex: 1 1 100%; font-size: 15px; }
+.run-edit-fields label { display: grid; gap: 4px; color: var(--text); font-size: 14px; }
+.run-edit-fields select { min-width: 120px; min-height: 44px; padding-inline: 8px; }
+.run-edit-fields .history-result { display: flex; gap: 6px; }
+.run-edit-fields .history-result button { min-width: 72px; min-height: 44px; }
+.run-edit-fields .removed-toggle { display: flex; align-items: center; gap: 6px; }
+.run-edit-fields .history-special-link { flex: 1 1 100%; color: var(--text-muted); font-size: 14px; }
+.run-slot { display: grid; justify-items: center; width: 76px; padding: 10px 4px 4px; }
+.run-slot > span { display: grid; place-items: center; width: 60px; aspect-ratio: 224 / 308; border: 2px dashed #b9aa92; border-radius: 6px; color: var(--text-muted); font-size: 18px; font-weight: 700; }
+.run-slot.is-current > span { border-color: var(--primary); color: var(--primary); }
+
+/* The answer band: which card, and why, in one sentence. */
+.verdict { display: grid; gap: 2px; margin: 10px 0 10px; padding: 10px 16px; border: 1px dashed var(--control-border); border-radius: 12px; background: var(--surface-subtle); }
+.verdict h2 { margin: 0; font-size: 20px; line-height: 1.4; letter-spacing: 0; }
+.verdict p { max-width: 44em; margin: 0; font-size: 15px; line-height: 1.6; }
+.verdict small { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+.verdict.is-ready { border: 2px solid var(--primary); background: #fdf6e8; }
+.verdict.is-warning { border: 2px solid #923f32; background: #fff3ee; }
+.verdict .secondary-action { justify-self: start; min-height: 44px; margin-top: 4px; }
+
+/* Candidate cards keep their slot order; the art sits beside the numbers so all three fit the first fold.
+   The grid follows the full-width shell the player chose; the card's last row keeps the buttons aligned. */
+.offer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.offer-card {
+  position: relative; display: grid; grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-areas: "top top" "colors colors" "face metrics" "choose choose"; grid-template-rows: auto auto 1fr auto;
+  align-items: start; gap: 6px 14px; min-width: 0; padding: 10px 14px 14px;
+  border: 1px solid var(--border); border-radius: 14px; background: var(--surface);
+}
+.offer-card.is-empty, .offer-card.is-filled { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "colors" "face" "wait"; }
+.offer-card.is-top { padding: 9px 13px 13px; border: 2px solid var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.offer-top { grid-area: top; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 44px; }
+.offer-slot { font-size: 15px; font-weight: 700; }
+.offer-color-toggle { min-height: 44px; padding: 0 6px; color: var(--primary); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.offer-badge { margin-left: auto; padding: 4px 10px; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-size: 14px; font-weight: 800; }
+.offer-rank { margin-left: auto; color: var(--text-muted); font-size: 14px; }
+.offer-colors { grid-area: colors; display: flex; gap: 8px; }
+.offer-color { flex: 1 1 0; min-height: 44px; border: 1px solid var(--control-border); border-radius: 9px; background: #fff; font-size: 15px; }
+.offer-color.blue { color: #225c89; } .offer-color.purple { color: #67418c; } .offer-color.red { color: #963e36; }
+.offer-color.selected { font-weight: 800; box-shadow: inset 0 0 0 2px currentColor; }
+.offer-color.selected::before { content: "✓ "; }
+.offer-face { grid-area: face; display: grid; place-items: center; width: 96px; padding: 10px 0 2px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; }
+.offer-face .game-card { width: 88px; }
+.offer-face:hover .game-card, .offer-face:focus-visible .game-card { filter: drop-shadow(0 0 5px #cc8b34); }
+.offer-face:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.offer-card.is-filled .offer-face { width: 100%; min-height: 176px; }
+.offer-empty-face { align-content: center; gap: 4px; width: 100%; min-height: 176px; border: 2px dashed #b9aa92; border-radius: 12px; background: var(--surface-subtle); color: var(--text); }
+.offer-empty-face.is-next { border-style: solid; border-color: var(--primary); background: #fffaf0; box-shadow: 0 0 0 3px var(--primary-soft); }
+.offer-empty-face strong { font-size: 18px; }
+.offer-empty-face small { color: var(--text-muted); font-size: 14px; }
+.offer-plus { color: var(--primary); font-size: 24px; line-height: 1; }
+.offer-waiting { grid-area: wait; min-height: 20px; margin: 0; color: var(--text-muted); font-size: 14px; text-align: center; }
+.offer-metrics { grid-area: metrics; display: grid; align-content: start; gap: 10px; padding-top: 14px; }
+.offer-primary, .offer-secondary { display: grid; gap: 2px; min-width: 0; }
+.offer-primary > span, .offer-secondary > span { color: var(--text-muted); font-size: 14px; }
+.offer-primary strong { font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.offer-secondary strong { font-size: 17px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.offer-choose { grid-area: choose; min-height: 48px; border: 1px solid var(--control-border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 16px; font-weight: 700; }
+.offer-choose:hover { border-color: var(--text); }
+.offer-card.is-top .offer-choose { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
+.offer-card.is-top .offer-choose:hover { background: #6f4609; }
+.offer-choose:focus-visible, .offer-color:focus-visible, .offer-color-toggle:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* Secondary information: one column of collapsible panels below the workbench. */
+.more-panels { display: grid; gap: 8px; margin-top: 20px; }
+.more-panel { padding: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.more-panel.advanced-settings { margin: 0; }
+.more-panel > summary { display: flex; align-items: center; min-height: 48px; padding: 8px 16px; color: var(--text); font-size: 16px; font-weight: 700; cursor: pointer; }
+.more-panel[open] > summary { border-bottom: 1px solid var(--border); }
+.more-panel > :not(summary) { margin-inline: 16px; }
+.more-panel > :last-child:not(summary) { margin-bottom: 16px; }
+.more-panel h3 { margin: 16px 0 8px; font-size: 16px; letter-spacing: 0; }
+.more-panel h3 small { margin-left: 8px; color: var(--text-muted); font-size: 14px; font-weight: 400; }
+.more-panel p, .more-panel li { max-width: 44em; line-height: 1.6; }
+.more-panel .knowledge-note, .more-panel .formula p { font-size: 14px; }
+.more-panel .advanced-fields { padding-top: 12px; }
+.real-archive-panel { padding: 0; }
+.real-archive-panel > #record-save-status { margin: 12px 0 0; color: var(--text-muted); font-size: 14px; }
+.archive-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; padding: 0; }
+.archive-stats div { min-width: 96px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-subtle); }
+.archive-stats dt { color: var(--text-muted); font-size: 13px; }
+.archive-stats dd { margin: 0; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.archive-stats .is-warning { border-color: #b87566; background: #fff3ee; }
+.archive-facts { margin: 0 0 12px; padding-left: 20px; }
+.archive-account { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-left: auto; color: var(--text-muted); font-size: 14px; overflow-wrap: anywhere; }
+.archive-sync .archive-actions .primary-action { min-height: 44px; }
+.footer { display: block; padding: 16px 4px 0; color: var(--text-muted); font-size: 13px; }
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .offer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 599px) {
+  .header { flex-direction: column; align-items: stretch; gap: 8px; }
+  .run-status { justify-content: flex-start; gap: 8px 12px; }
+  .turn-progress { font-size: 18px; }
+  .run-status .header-meta { width: auto; padding: 4px 12px; }
+  .run-status .score-total { font-size: 22px; }
+  .run-status .clear-run-action { flex: 1 1 100%; }
+  .run-strip-actions { width: 100%; margin-left: 0; }
+  .run-strip-actions .secondary-action { flex: 1 1 0; }
+  .run-strip-list { justify-content: space-between; gap: 4px; padding: 6px; }
+  .run-card-face, .run-slot { width: 60px; }
+  .run-card-face .game-card, .run-slot > span { width: 50px; }
+  .run-edit-fields { left: 0; right: 0; }
+  .offer-grid { grid-template-columns: minmax(0, 1fr); }
+  .offer-card { grid-template-columns: 84px minmax(0, 1fr); }
+  .offer-face { width: 84px; }
+  .offer-face .game-card { width: 76px; }
+  .offer-card.is-filled .offer-face, .offer-empty-face { min-height: 112px; }
+  .offer-primary strong { font-size: 26px; }
+  .archive-account { margin-left: 0; }
+}

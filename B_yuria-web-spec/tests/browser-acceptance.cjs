@@ -38,7 +38,9 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
   try {
     await page.goto(url);
     await check('guided-settings', async () => {
-      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /填入 3 張/);
+      assert.match(await page.locator('.verdict h2').innerText(), /填入遊戲中的 3 張候選牌/);
+      assert.match(await page.locator('.turn-progress').innerText(), /第 1 \/ 5 回合/);
+      assert.equal(await page.locator('[data-slot-color]').count(), 0, 'empty slots do not preselect colors');
       assert.equal(await page.locator('.advanced-settings').evaluate(el => el.open), false);
       await page.locator('.advanced-settings > summary').focus();
       await page.keyboard.press('Enter');
@@ -75,7 +77,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await page.screenshot({ path: path.join(out, `picker-${width}.png`) });
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('[data-pick="0"]').evaluate(el => el === document.activeElement), true);
-      assert.equal(await page.locator('.history-row').count(), 0);
+      assert.equal(await page.locator('.run-card').count(), 0);
       report.checks.push({ name: `cancel-${width}`, pass: true });
     }
     await fresh();
@@ -86,13 +88,14 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
         await page.evaluate(() => scrollTo(0, 0));
         const bounds = await page.evaluate(() => {
           const box = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width) }; };
-          return { history: box('.history-panel'), candidates: box('.candidate-grid'), historyCard: box('.history-empty-slot'), candidateCard: box('.candidate-card'), scrollY };
+          return { history: box('.history-panel'), verdict: box('.verdict'), candidates: box('.offer-grid'), historyCard: box('.run-slot'), candidateCard: box('.offer-card'), scrollY };
         });
         assert.equal(bounds.scrollY, 0);
         assert.ok(bounds.history.bottom <= height, width + 'px history is below fold: ' + JSON.stringify(bounds));
+        assert.ok(bounds.verdict.bottom <= bounds.candidates.top, width + 'px verdict should sit above the candidates: ' + JSON.stringify(bounds));
         assert.ok(bounds.candidates.bottom <= height, width + 'px candidates are below fold: ' + JSON.stringify(bounds));
-        assert.equal(await page.locator('.history-empty-slot').count(), 5);
-        assert.equal(await page.locator('.candidate-card').count(), 3);
+        assert.equal(await page.locator('.run-slot').count(), 5);
+        assert.equal(await page.locator('.offer-card').count(), 3);
         await page.screenshot({ path: path.join(out, 'workbench-empty-' + width + '.png') });
         measurements.push({ width, height, ...bounds });
       }
@@ -115,18 +118,23 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
           await page.setViewportSize({ width, height });
           await page.evaluate(() => scrollTo(0, 0));
           const bounds = await page.evaluate(() => {
-            const box = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width), height: Math.round(r.height) }; };
-            return { history: box('.history-panel'), candidates: box('.candidate-grid'), historyCard: box('.history-row'), candidateCard: box('.candidate-card'), candidateFace: box('.candidate-card:not(.pending-card) > .card-face'), scrollY };
+            const box = element => { const r = element.getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width), height: Math.round(r.height) }; };
+            const one = selector => box(document.querySelector(selector));
+            return { history: one('.history-panel'), verdict: one('.verdict'), candidates: one('.offer-grid'), historyCard: one('.run-card'), candidateCards: [...document.querySelectorAll('.offer-card')].map(box), candidateArt: one('.offer-card .game-card'), chooseButtons: [...document.querySelectorAll('[data-choose]')].map(box), scrollY };
           });
           assert.equal(bounds.scrollY, 0);
           assert.ok(bounds.history.bottom <= height, width + 'px history is below fold: ' + JSON.stringify(bounds));
+          assert.ok(bounds.verdict.bottom <= bounds.candidates.top, width + 'px verdict should sit above the candidates: ' + JSON.stringify(bounds));
           assert.ok(bounds.candidates.bottom <= height - 8, width + 'px candidates lack an 8px fold margin: ' + JSON.stringify(bounds));
-          assert.equal(await page.locator('.history-row').count(), scenario.selected.length);
-          assert.equal(await page.locator('.history-empty-slot').count(), 5 - scenario.selected.length);
-          assert.equal(await page.locator('.candidate-card').count(), 3);
-          assert.ok(bounds.historyCard.width >= 160 && bounds.historyCard.width <= 176, 'history card width: ' + JSON.stringify(bounds));
-          assert.ok(bounds.candidateCard.width >= 210 && bounds.candidateCard.width <= 240, 'candidate card width: ' + JSON.stringify(bounds));
-          assert.ok(Math.abs(bounds.candidateFace.height / bounds.candidateFace.width - 1.25) < 0.05, 'candidate face should stay 4:5: ' + JSON.stringify(bounds.candidateFace));
+          assert.ok(bounds.chooseButtons.every(button => button.bottom <= height), width + 'px record buttons are below fold: ' + JSON.stringify(bounds.chooseButtons));
+          assert.equal(await page.locator('.run-card').count(), scenario.selected.length);
+          assert.equal(await page.locator('.run-slot').count(), 5 - scenario.selected.length);
+          assert.equal(await page.locator('.offer-card').count(), 3);
+          assert.match(await page.locator('.verdict h2').innerText(), /^建議選 候選 [123]：/);
+          assert.ok(bounds.historyCard.width <= 96, 'confirmed cards should stay compact: ' + JSON.stringify(bounds.historyCard));
+          const widths = bounds.candidateCards.map(card => card.width);
+          assert.ok(Math.max(...widths) - Math.min(...widths) <= 1 && widths[0] >= 280, 'candidate cards should share the row equally: ' + JSON.stringify(widths));
+          assert.ok(Math.abs(bounds.candidateArt.height / bounds.candidateArt.width - 308 / 224) < 0.05, 'card art keeps its aspect ratio: ' + JSON.stringify(bounds.candidateArt));
           await page.screenshot({ path: path.join(out, 'workbench-' + scenario.selected.length + '-of-5-' + width + '.png') });
           measurements.push({ selectedCount: scenario.selected.length, width, height, ...bounds });
         }
@@ -134,8 +142,9 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await fresh();
       for (const id of ['fool', 'magician', 'moon', 'empress', 'emperor']) await add(id);
       await waitForCardImages();
-      assert.equal(await page.locator('.history-row').count(), 5);
-      assert.equal(await page.locator('.candidate-card').count(), 0, 'completed game has no active candidate choices');
+      assert.equal(await page.locator('.run-card').count(), 5);
+      assert.equal(await page.locator('.offer-card').count(), 0, 'completed game has no active candidate choices');
+      assert.equal(await page.locator('.verdict').count(), 0, 'completed game hands over to the completion panel');
       const completed = [];
       for (const [width, height] of [[1024, 768], [1440, 900]]) {
         await page.setViewportSize({ width, height });
@@ -156,9 +165,9 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
     await check('result-draft-cancel', async () => {
       await select('#add-history', 'magician');
       await page.locator('[data-outcome="failure"]').click();
-      assert.equal(await page.locator('.history-row').count(), 0);
+      assert.equal(await page.locator('.run-card').count(), 0);
       await page.keyboard.press('Escape');
-      assert.equal(await page.locator('.history-row').count(), 0);
+      assert.equal(await page.locator('.run-card').count(), 0);
     });
     await fresh();
     await check('five-turns-special-undo-refresh', async () => {
@@ -189,7 +198,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       assert.equal(await page.locator('.star-resolution').count(), 0);
       assert.equal(await page.locator('#actual-score-form').count(), 1);
       assert.equal(await page.locator('#completion-title').count(), 1);
-      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /本局完成/);
+      assert.match(await page.locator('.turn-progress').innerText(), /五回合完成/);
       assert.equal(await page.locator('[data-pick]').count(), 0);
       assert.equal((await stored()).state.selected.length, 5);
       await page.screenshot({ path: path.join(out, 'completed-1440.png'), fullPage: true });
@@ -207,7 +216,13 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-pick')), '2', 'focus should remain on the selected candidate after Worker render');
       const ids = () => page.locator('[data-choose]').evaluateAll(els => els.map(el => el.dataset.choose));
       assert.deepEqual(await ids(), ['fool', 'strength', 'moon']);
-      assert.match(await page.locator('.workflow [aria-current="step"]').innerText(), /比較推薦/);
+      assert.match(await page.locator('.verdict h2').innerText(), /^建議選 候選 [123]：/);
+      assert.equal(await page.locator('[data-slot-color]').count(), 0, 'color buttons stay closed until 改色');
+      await page.locator('[data-color-toggle="1"]').click();
+      assert.equal(await page.locator('[data-slot-color][data-slot-index="1"]').count(), 3);
+      assert.equal(await page.locator('[data-slot-color][data-slot-index="1"][aria-pressed="true"]').evaluate(el => el === document.activeElement), true);
+      await page.locator('[data-color-toggle="1"]').click();
+      assert.equal(await page.locator('[data-slot-color]').count(), 0);
       assert.equal(await page.locator('.metric-details').first().evaluate(el => el.open), false);
       await page.locator('.metric-details > summary').first().click();
       assert.equal(await page.locator('.metric-help').first().isVisible(), true);
@@ -217,7 +232,8 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
         await page.locator(`[data-objective="${mode}"]`).click();
         await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3, null, { timeout: 120000 });
         assert.deepEqual(await ids(), ['fool', 'strength', 'moon']);
-        assert.ok((await page.locator('.metric-main').first().innerText()).includes(label));
+        const fallback = mode === 'threshold' && /改比平均分/.test(await page.locator('.verdict p').innerText());
+        assert.ok((await page.locator('.offer-primary').first().innerText()).includes(fallback ? '平均分' : label));
       }
       for (const width of [375, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: 1000 });
@@ -238,9 +254,12 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       await page.locator('#target').press('Tab');
       for (const [i, id] of ['moon', 'tower', 'star'].entries()) await select(`[data-pick="${i}"]`, id);
       await page.waitForFunction(() => document.querySelectorAll('[data-choose]').length === 3);
-      const metrics = await page.locator('.metric-main strong').evaluateAll(els => els.map(el => ({ text: el.innerText, detail: el.parentElement.querySelector('.sr-only')?.textContent })));
+      // Every rate is exactly 0, so the big number is the mean score and the target line states the exact zero.
+      assert.equal(await page.locator('.offer-primary > span:first-child').evaluateAll(els => els.every(el => el.innerText === '平均分')), true);
+      const metrics = await page.locator('.offer-secondary strong').evaluateAll(els => els.map(el => ({ text: el.innerText, detail: el.parentElement.querySelector('.sr-only')?.textContent })));
       assert.equal(metrics.filter(metric => metric.text === '0%' && metric.detail.includes('依目前模型為 0')).length, 3, JSON.stringify(metrics));
       assert.ok(!metrics.some(metric => metric.detail.includes('抽樣')), JSON.stringify(metrics));
+      assert.match(await page.locator('.verdict p').innerText(), /三張都不可能達到 1,000,000 分/);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.screenshot({ path: path.join(out, 'final-turn-mobile.png'), fullPage: true });
       await page.locator('[data-choose="moon"]').click();
@@ -292,7 +311,7 @@ const url = process.env.ACCEPTANCE_URL || 'http://127.0.0.1:4174';
       for (const selected of [[null], [{ cardId: 'toString', color: 'blue', activated: true }], [{ cardId: 'fool', color: 'blue', activated: true, removed: 'false' }]]) {
         await page.evaluate(selected => localStorage.setItem('yuria-web-session-v1', JSON.stringify({ state: { turn: 1, selected }, candidates: [null, null, null] })), selected);
         await page.reload();
-        assert.equal(await page.locator('.history-row').count(), 0);
+        assert.equal(await page.locator('.run-card').count(), 0);
         assert.equal(await page.locator('[data-pick]').count(), 3);
       }
     });

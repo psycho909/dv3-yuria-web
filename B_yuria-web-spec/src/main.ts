@@ -12,6 +12,7 @@ import "./styles.css";
 import "./knowledge.css";
 import "./pending.css";
 import "./usability.css";
+import "./workbench.css";
 
 const cardList = Object.values(CARDS);
 // Artwork mapping follows the source game's image IDs, which are not in card-list order.
@@ -23,13 +24,17 @@ const cardArtNumber: Record<CardId, string> = {
 };
 const cardArt = (id: CardId) => `/cards/frame_event_yuria_card_${cardArtNumber[id]}.png`;
 const colorOptions: CardColor[] = ["blue", "purple", "red"];
+// The game deals one card of each color per turn; these are only fallbacks until a slot is filled.
+const defaultSlotColors = (): CardColor[] => [...colorOptions];
 let state: GameState = { turn: 1, selected: [] };
 let targetThreshold = 3000;
 let targetInput = "3000";
 let targetError = "";
 let objective: Objective = { kind: "threshold", target: targetThreshold };
 let candidates: Array<OfferedCard | null> = [null, null, null];
-let candidateColors: CardColor[] = ["blue", "blue", "blue"];
+let candidateColors: CardColor[] = defaultSlotColors();
+// Candidate slot whose "改色" buttons are open; only one at a time.
+let colorEditIndex: number | null = null;
 let pickerIndex: number | null = null;
 let simulationCount = 10000;
 let result: ReturnType<typeof recommend> | null = null;
@@ -187,7 +192,7 @@ function loadSession() {
     starTargetIds = cloneTargets(savedTargets);
     turnSnapshots = (saved.turnSnapshots ?? []).map(cloneSnapshot).slice(-5);
     candidates = savedCandidates.map(card => card ? { cardId: card.cardId, color: card.color } : null);
-    candidateColors = saved.candidateColors === undefined ? ["blue", "blue", "blue"] : saved.candidateColors.length === 3 && saved.candidateColors.every(isColor) ? [...saved.candidateColors] : ["blue", "blue", "blue"];
+    candidateColors = saved.candidateColors?.length === 3 && saved.candidateColors.every(isColor) ? [...saved.candidateColors] : defaultSlotColors();
     targetThreshold = typeof saved.targetThreshold === "number" && Number.isFinite(saved.targetThreshold) && Number.isInteger(saved.targetThreshold) && saved.targetThreshold >= 0 ? saved.targetThreshold : 3000;
     if (saved.objective?.kind === "threshold" && Number.isInteger(saved.objective.target) && saved.objective.target >= 0) targetThreshold = saved.objective.target;
     objective = saved.objective?.kind === "expected" || saved.objective?.kind === "stability" ? { kind: saved.objective.kind } : { kind: "threshold", target: targetThreshold };
@@ -206,10 +211,73 @@ function thresholdMetric(metric: NonNullable<typeof result>["ranked"][number]) {
   return { label: "達標率", value: metric.thresholdProbability === 0 ? metric.method === "exact" ? "0%" : "未命中" : detail, detail };
 }
 
-function objectiveMetric(metric: NonNullable<typeof result>["ranked"][number]) {
-  if (objective.kind === "expected") return { label: "預期分數", value: metric.meanScore.toFixed(1), detail: `預期最終分數 ${metric.meanScore.toFixed(1)}` };
+type RankedMetric = ReturnType<typeof recommend>["ranked"][number];
+const scoreText = (value: number) => value.toLocaleString("zh-TW", { maximumFractionDigits: 1 });
+
+function objectiveMetric(metric: RankedMetric) {
+  if (objective.kind === "expected") return { label: "預期分數", value: scoreText(metric.meanScore), detail: `預期最終分數 ${metric.meanScore.toFixed(1)}` };
   if (objective.kind === "stability") return { label: "保守 P10", value: metric.p10.toLocaleString(), detail: `保守分數 P10 ${metric.p10.toLocaleString()}` };
   return thresholdMetric(metric);
+}
+
+/** The large number on each candidate is what the ranking actually used: when every target rate is 0, that is the mean score. */
+function candidateMetrics(metric: RankedMetric) {
+  const mean = { label: "平均分", value: scoreText(metric.meanScore), detail: `預期最終分數 ${metric.meanScore.toFixed(1)}` };
+  const threshold = thresholdMetric(metric);
+  if (objective.kind !== "threshold") return { primary: objectiveMetric(metric), secondary: threshold };
+  if (result?.mode === "highest_expected_score_fallback") return { primary: mean, secondary: { ...threshold, label: `達到 ${targetThreshold.toLocaleString()} 分` } };
+  return { primary: threshold, secondary: mean };
+}
+
+const slotOf = (cardId: CardId) => candidates.findIndex(candidate => candidate?.cardId === cardId);
+const offerLabel = (metric: RankedMetric) => `候選 ${slotOf(metric.candidate.cardId) + 1}：${cardName(metric.candidate.cardId)}（${colorLabel[metric.candidate.color]}）`;
+
+/** One sentence explaining why the top candidate ranks first under the current objective. */
+function verdictReason(ranked: RankedMetric[], fallback: boolean, exactZero: boolean) {
+  const top = ranked[0]!;
+  const second = ranked[1];
+  const meanGap = second ? top.meanScore - second.meanScore : 0;
+  const meanTail = !second ? "" : Math.abs(meanGap) < .05 ? "，與第二名幾乎同分" : `，比第二名高 ${scoreText(meanGap)} 分`;
+  if (objective.kind === "threshold") {
+    const target = targetThreshold.toLocaleString();
+    if (fallback) return `${exactZero ? `依目前模型，三張都不可能達到 ${target} 分` : `這盤抽樣中三張都追不到 ${target} 分`}，改比平均分：${scoreText(top.meanScore)} 分${meanTail}。`;
+    const gap = second ? (top.thresholdProbability - second.thresholdProbability) * 100 : 0;
+    const rateTail = !second ? "" : gap < .005 ? "，與第二名相同，再以平均分決定" : `，比第二名高 ${gap.toFixed(2)} 個百分點`;
+    return `達到 ${target} 分的機率 ${formatPercent(top.thresholdProbability)}${rateTail}。`;
+  }
+  if (objective.kind === "expected") return `預期最終分數 ${scoreText(top.meanScore)}${meanTail}。`;
+  const p10Gap = second ? top.p10 - second.p10 : 0;
+  return `保守分數 P10 為 ${top.p10.toLocaleString()}${!second ? "" : p10Gap === 0 ? "，與第二名相同，再以平均分決定" : `，比第二名高 ${p10Gap.toLocaleString()} 分`}。`;
+}
+
+/** The answer band above the candidates: what to do now, stated once. Hidden after the fifth card. */
+function renderVerdict(resultReady: boolean, fallback: boolean, exactZero: boolean) {
+  if (state.selected.length === 5) return "";
+  const filled = candidates.filter(Boolean).length;
+  let tone = "";
+  let title: string;
+  let body: string;
+  let extra = "";
+  if (targetError) {
+    tone = "is-warning"; title = "目標分數需要修正"; body = `${targetError}在上方「推薦目標」修改後才會計算。`;
+  } else if (calculationStatus === "error") {
+    tone = "is-warning"; title = "推薦暫時無法更新"; body = `${calculationError} 候選牌已保留。`;
+    extra = `<button type="button" class="secondary-action" id="retry-calculation">重新計算</button>`;
+  } else if (calculationStatus === "calculating") {
+    title = "正在比較三張牌…"; body = "完成後結果會出現在原本的候選位置，牌的順序不會改變。";
+  } else if (resultReady && result?.ranked.length) {
+    const ranked = result.ranked;
+    const top = ranked[0]!;
+    const bestMean = [...ranked].sort((a, b) => b.meanScore - a.meanScore)[0]!;
+    tone = "is-ready"; title = `建議選 ${offerLabel(top)}`; body = verdictReason(ranked, fallback, exactZero);
+    const alternative = objective.kind !== "expected" && !fallback && bestMean.candidate.cardId !== top.candidate.cardId
+      ? `想要平均分最高，改選 ${esc(offerLabel(bestMean))}（平均 ${scoreText(bestMean.meanScore)} 分）。` : "";
+    extra = `<small>${alternative}在遊戲中選好後，按那張的「記錄：我選了這張」。</small>`;
+  } else {
+    title = `填入遊戲中的 3 張候選牌（已填 ${filled}/3）`;
+    body = filled === 3 ? "候選牌不可重複，也不能與已確定卡片重複。" : `點下方空格，再點牌下方的藍／紫／紅即可填入。${state.selected.length ? "" : "新牌局不用補登已確定卡片。"}`;
+  }
+  return `<section class="verdict ${tone}" aria-labelledby="verdict-title"><h2 id="verdict-title">${esc(title)}</h2><p>${esc(body)}</p>${extra}</section>`;
 }
 
 function cardFace(id: CardId, color: CardColor) {
@@ -220,20 +288,31 @@ function cardFace(id: CardId, color: CardColor) {
   return `<span class="game-card" aria-hidden="true"><img class="game-card-frame" src="/cards/frame_event_yuria_${frameColor}_frame_01.png" alt="" /><img class="game-card-art" src="${cardArt(id)}" alt="" /><span class="game-card-label" style="background-image:url('/cards/frame_event_yuria_${frameColor}_frame_02.png')">${badge}</span><span class="game-card-ribbon" style="background-image:url('/cards/frame_event_yuria_${frameColor}_ribbon_01.png')">${esc(card.name)}</span></span><span class="sr-only">${esc(card.name)}，${colorLabel[color]}色，${effect}，啟用 ${Math.round(card.activationProbability * 100)}%</span>`;
 }
 
+const historyStatus = (card: SelectedCard) => card.removed ? "已移除" : card.activated ? "成功" : "失敗";
+
+/** Compact strip of the five turns; the mini card itself is the summary that opens its correction fields. */
 function renderHistory() {
-  const cards = state.selected.map((card, index) => `<article class="history-row ${colorClass[card.color]} ${card.removed ? "is-removed" : ""}">
-    <div class="history-card-summary ${colorClass[card.color]} ${card.activated ? "" : "is-failed"}" aria-label="第 ${index + 1} 回合，${esc(cardName(card.cardId))}，${colorLabel[card.color]}色，${card.removed ? "已移除" : card.activated ? "成功" : "失敗"}">
-      ${cardFace(card.cardId, card.color)}<small>第 ${index + 1} 回合 · ${card.removed ? "已移除" : card.activated ? "成功" : "失敗"}</small>
-    </div>
-    <details class="history-edit" data-detail-key="history-edit-${index}"${detailAttribute(`history-edit-${index}`)}><summary>更正記錄</summary><div class="history-edit-fields">
+  const cards = state.selected.map((card, index) => `<article class="run-card ${colorClass[card.color]} ${card.removed ? "is-removed" : ""} ${card.activated ? "" : "is-failed"}">
+    <details class="run-edit" name="run-edit" data-detail-key="history-edit-${index}"${detailAttribute(`history-edit-${index}`)}>
+      <summary class="run-card-face" aria-label="第 ${index + 1} 回合，${esc(cardName(card.cardId))}，${colorLabel[card.color]}色，${historyStatus(card)}；按下可更正">${cardFace(card.cardId, card.color)}<small>${historyStatus(card)}</small></summary>
+      <div class="run-edit-fields"><strong>更正第 ${index + 1} 回合：${esc(cardName(card.cardId))}</strong>
       <label>牌色<select data-history-color="${index}" aria-label="${esc(cardName(card.cardId))} 牌色" ${targetError ? "disabled" : ""}>${colorOptions.map(color => `<option value="${color}" ${color === card.color ? "selected" : ""}>${colorLabel[color]}色</option>`).join("")}</select></label>
       <div class="history-result" role="group" aria-label="${esc(cardName(card.cardId))} 啟用結果">${[true, false].map(activated => `<button type="button" data-history-result="${index}" data-activated="${activated}" aria-pressed="${card.activated === activated}" class="${card.activated === activated ? "selected" : ""}" ${targetError ? "disabled" : ""}>${activated ? "成功" : "失敗"}</button>`).join("")}</div>
       <label class="removed-toggle"><input type="checkbox" data-history-removed="${index}" ${card.removed ? "checked" : ""} ${targetError || starTargetIds.some((target, starIndex) => target === card.cardId && state.selected[starIndex]?.activated) ? "disabled" : ""} />已被移除</label>
       ${card.cardId === "star" && card.activated && starTargetIds[index] ? `<small class="history-special-link">移除：${esc(cardName(starTargetIds[index]!))}（按「成功」可更正）</small>` : card.cardId === "tower" && card.activated ? `<small class="history-special-link">高塔倍率：${card.towerProc ? "高" : "低"}（按「成功」可更正）</small>` : ""}
     </div></details>
   </article>`).join("");
-  const emptySlots = Array.from({ length: 5 - state.selected.length }, (_, index) => `<div class="history-empty-slot" aria-label="第 ${state.selected.length + index + 1} 回合，尚未記錄"><span>第 ${state.selected.length + index + 1} 回合</span><small>尚未記錄</small></div>`).join("");
+  const emptySlots = Array.from({ length: 5 - state.selected.length }, (_, index) => {
+    const turn = state.selected.length + index + 1;
+    return `<div class="run-slot ${index === 0 ? "is-current" : ""}" aria-label="第 ${turn} 回合，尚未記錄"><span aria-hidden="true">${turn}</span></div>`;
+  }).join("");
   return cards + emptySlots;
+}
+
+/** Correction panels float over the workbench, so close them whenever the run moves on. */
+function closeRunEdits() {
+  app.querySelectorAll<HTMLDetailsElement>(".run-edit[open]").forEach(details => { details.open = false; });
+  for (const key of detailOpen.keys()) if (key.startsWith("history-edit-")) detailOpen.set(key, false);
 }
 
 function candidatesReady(): boolean {
@@ -242,19 +321,25 @@ function candidatesReady(): boolean {
   return new Set(ids).size === ids.length && !ids.some(id => state.selected.some(selected => selected.cardId === id));
 }
 
-function candidateInputHint() {
-  if (candidates.some(candidate => candidate == null)) return "請先選擇三張候選牌，完成後才會開始計算。";
-  if (!candidatesReady()) return "候選牌不可重複，也不能與已確定卡片重複。";
-  return "顏色是每次出牌的實例。";
+/** One color tag per offer; the three color buttons only appear after "改色". */
+function colorControls(slotIndex: number, current: CardColor) {
+  const open = colorEditIndex === slotIndex;
+  const toggle = `<button type="button" class="text-action offer-color-toggle" id="color-toggle-${slotIndex}" data-color-toggle="${slotIndex}" aria-expanded="${open}"${open ? ` aria-controls="slot-colors-${slotIndex}"` : ""}>改色</button>`;
+  const panel = open ? `<div class="offer-colors" id="slot-colors-${slotIndex}" role="group" aria-label="候選 ${slotIndex + 1} 顏色">${colorOptions.map(color => `<button type="button" class="offer-color ${colorClass[color]} ${color === current ? "selected" : ""}" data-slot-color="${color}" data-slot-index="${slotIndex}" aria-pressed="${color === current}">${colorLabel[color]}</button>`).join("")}</div>` : "";
+  return { toggle, panel };
 }
 
 function renderPendingCandidate(index: number, candidate: OfferedCard | null, isNext = index === candidates.findIndex(item => item === null)) {
-  const color = candidate?.color ?? candidateColors[index]!;
-  return `<article class="candidate-card pending-card ${colorClass[color]}">
-    <div class="candidate-top"><span class="rank">${String(index + 1).padStart(2, "0")}</span>${colorBadge(color)}<span class="category">候選槽</span></div>
-    <button type="button" class="candidate-slot-button ${candidate ? `card-face ${colorClass[color]}` : isNext ? "is-next-slot" : ""}" data-pick="${index}" aria-label="${candidate ? `修改第 ${index + 1} 張候選牌：${esc(cardName(candidate.cardId))}，${colorLabel[color]}色` : `搜尋或選擇第 ${index + 1} 張候選牌`}">${candidate ? cardFace(candidate.cardId, color) : `<span class="slot-plus">＋</span><strong>搜尋或選擇卡片</strong><small>填入第 ${index + 1} 張候選牌</small>`}</button>
-    <div class="candidate-color-buttons" role="group" aria-label="第 ${index + 1} 張候選牌顏色">${colorOptions.map(option => `<button type="button" class="candidate-color-button ${colorClass[option]} ${color === option ? "selected" : ""}" data-slot-color="${option}" data-slot-index="${index}" aria-pressed="${color === option}">${colorLabel[option]}</button>`).join("")}</div>
-    <div class="pending-copy">${candidate ? "已填入候選牌" : "請選擇候選牌"}</div>
+  if (!candidate) return `<article class="offer-card is-empty">
+    <div class="offer-top"><span class="offer-slot">候選 ${index + 1}</span></div>
+    <button type="button" class="offer-face offer-empty-face ${isNext ? "is-next" : ""}" data-pick="${index}" aria-label="選擇第 ${index + 1} 張候選牌"><span class="offer-plus" aria-hidden="true">＋</span><strong>選第 ${index + 1} 張</strong><small>點牌下方的顏色即可填入</small></button>
+  </article>`;
+  const controls = colorControls(index, candidate.color);
+  return `<article class="offer-card is-filled ${colorClass[candidate.color]}">
+    <div class="offer-top"><span class="offer-slot">候選 ${index + 1}</span>${colorBadge(candidate.color)}${controls.toggle}</div>
+    ${controls.panel}
+    <button type="button" class="offer-face" data-pick="${index}" aria-label="修改第 ${index + 1} 張候選牌：${esc(cardName(candidate.cardId))}，${colorLabel[candidate.color]}色">${cardFace(candidate.cardId, candidate.color)}</button>
+    <p class="offer-waiting">${calculationStatus === "calculating" ? "計算中…" : candidatesReady() ? "" : "等待其他候選"}</p>
   </article>`;
 }
 
@@ -270,16 +355,14 @@ function renderPicker() {
   const categories = [["all", "全部"], ["score", "分數卡"], ["multiplier", "倍率卡"], ["special", "特殊卡"]] as const;
   const categoryCount = (value: typeof categories[number][0]) => cardList.filter(card => !usageLabelForPicker(card.id) && (value === "all" || card.category === value)).length;
   return `<dialog class="picker-dialog" aria-labelledby="picker-title">
-    <div class="picker-header"><div><p class="eyebrow">CARD PICKER</p><h2 id="picker-title">${pickerIndex === -1 ? "加入已確定卡片" : `選擇第 ${pickerIndex + 1} 張候選牌`}</h2></div><button type="button" class="picker-close" data-picker-cancel aria-label="關閉選擇器">×</button></div>
+    <div class="picker-header"><div><h2 id="picker-title">${pickerIndex === -1 ? "加入已確定卡片" : `選擇第 ${pickerIndex + 1} 張候選牌`}</h2></div><button type="button" class="picker-close" data-picker-cancel aria-label="關閉選擇器">×</button></div>
     <div class="picker-section"><div class="picker-section-heading"><strong>點卡片下方的藍／紫／紅，即可加入</strong><small>已使用的牌不顯示</small></div><div class="picker-categories" role="group" aria-label="牌庫分類">${categories.map(([value, label]) => `<button type="button" data-picker-category="${value}" aria-pressed="${pickerCategory === value}" class="${pickerCategory === value ? "selected" : ""}">${label} <span>${categoryCount(value)}</span></button>`).join("")}</div><div class="picker-card-grid">${visibleCards.map(card => `<div class="picker-card"><div class="picker-card-choice" data-picker-card="${card.id}"><img src="${cardArt(card.id)}" alt="" loading="lazy" /><strong>${esc(card.name)}</strong><small>${card.category === "score" ? `+${card.scoreValue} 分` : card.category === "multiplier" ? `+${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊卡"}</small></div><div class="picker-card-colors" role="group" aria-label="${esc(card.name)}牌色">${colorOptions.map(color => `<button type="button" class="mini-color ${colorClass[color]}" data-picker-direct-card="${card.id}" data-picker-direct-color="${color}" aria-label="${esc(card.name)}，${colorLabel[color]}色，直接加入">${colorLabel[color]}</button>`).join("")}</div></div>`).join("")}</div><p id="search-empty" aria-live="polite" ${visibleCards.length ? "hidden" : ""}>這個分類沒有可選卡片，請切換分類。</p></div>
     <div class="picker-footer"><span>選好牌色後立即加入</span><div><button type="button" class="secondary-action" data-picker-cancel>取消</button></div></div>
   </dialog>`;
 }
 
 function renderEvidencePanel() {
-  const currentScore = summarizeScore(state.selected, RULES);
-  return `<section class="panel evidence-panel"><div class="section-heading"><div><p class="eyebrow">RECORDED EVIDENCE</p><h2>統計與實測</h2></div><span class="rule-pill">5 局</span></div>
-    <div class="current-score"><span>目前估算平均</span><strong>${currentScore.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong></div>
+  return `<section class="evidence-panel"><h3>早期實測與模型自我模擬</h3><p class="knowledge-note">只有總分的 5 局實測與 30 局模型自我模擬，不是完整真實牌局，不併入上方紀錄。</p>
     <div class="score-strip">${REAL_SCORES.map(score => `<span>${score}</span>`).join("")}</div>
     <div class="evidence-grid"><div><strong>${REAL_AVERAGE.toFixed(1)}</strong><small>實測平均</small></div><div><strong>2 / 5</strong><small>達 1000</small></div><div><strong>1 / 5</strong><small>達 1500</small></div></div>
     <div class="model-run"><span>30 場模型自我模擬</span><strong>${MODEL_STATS.mean.toFixed(1)} 平均</strong><small>中位 ${MODEL_STATS.median} · ≥1500 ${MODEL_STATS.over1500}/${MODEL_STATS.games} · 最高 ${MODEL_STATS.maximum}</small></div>
@@ -292,7 +375,10 @@ function renderKnowledgePanels() {
     const label = category === "score" ? "分數卡" : category === "multiplier" ? "倍率卡" : "特殊卡";
     return `<div class="catalog-group"><h4>${label} · ${cards.length} 張</h4><div class="catalog-list">${cards.map(card => `<span><b>${esc(card.name)}</b><small>${Math.round(card.activationProbability * 100)}% · ${card.category === "score" ? `+${card.scoreValue} 分` : card.category === "multiplier" ? `+${Math.round((card.multiplierValue ?? 0) * 100)}%` : "特殊效果"}</small></span>`).join("")}</div></div>`;
   }).join("");
-  return `<section class="knowledge-grid"><details class="panel knowledge-panel" open><summary><span><p class="eyebrow">REWARD LADDER</p><h2>尤里亞的祝福門檻</h2></span><span>⌄</span></summary><div class="reward-table">${REWARD_THRESHOLDS.map((threshold, index) => `<div><span>Lv.${index + 1}</span><strong>${threshold.toLocaleString()}</strong><small>${threshold === 0 ? "起始" : threshold >= 2700 ? "最高級" : "累積幸運分數"}</small></div>`).join("")}</div><p class="knowledge-note">推薦目標可自行輸入；門檻只作為參考，不會取代你設定的目標。</p></details><details class="panel knowledge-panel"><summary><span><p class="eyebrow">CARD CATALOG</p><h2>完整牌庫 · 22 張</h2></span><span>⌄</span></summary><div class="catalog">${cardsByCategory}</div></details><details class="panel knowledge-panel"><summary><span><p class="eyebrow">FORMULA & LIMITS</p><h2>公式與目前限制</h2></span><span>⌄</span></summary><div class="formula"><code>floor(SUM × MULT × (1 + RED_BONUS))</code><p>SUM 包含成功分數卡、失敗卡每張 +20、藍色級距、月亮與世界；MULT 將倍率卡、紫色級距、高塔、星星、太陽加總後再加 1。</p><p>目前採 A 版整數百分比紅色模型；1648 實測仍提示連續值或中間取整可能存在。未來每回合固定藍、紫、紅各一張且位置隨機；類別內等權與太陽是否計自己仍是明示假設。</p></div></details></section>`;
+  return `<details class="more-panel" data-detail-key="catalog"${detailAttribute("catalog")}><summary>牌庫與祝福門檻</summary><h3>尤里亞的祝福門檻</h3><div class="reward-table">${REWARD_THRESHOLDS.map((threshold, index) => `<div><span>Lv.${index + 1}</span><strong>${threshold.toLocaleString()}</strong><small>${threshold === 0 ? "起始" : threshold >= 2700 ? "最高級" : "累積幸運分數"}</small></div>`).join("")}</div><p class="knowledge-note">推薦目標可自行輸入；門檻只作為參考，不會取代你設定的目標。</p><h3>完整牌庫（22 張）</h3><div class="catalog">${cardsByCategory}</div></details>
+    <details class="more-panel" data-detail-key="model-notes"${detailAttribute("model-notes")}><summary>公式、模型限制與早期實測</summary><h3>計分公式</h3><div class="formula"><code>floor(SUM × MULT × (1 + RED_BONUS))</code><p>SUM 包含成功分數卡、失敗卡每張 +20、藍色級距、月亮與世界；MULT 將倍率卡、紫色級距、高塔、星星、太陽加總後再加 1。</p><p>目前採 A 版整數百分比紅色模型；1648 實測仍提示連續值或中間取整可能存在。未來每回合固定藍、紫、紅各一張且位置隨機；類別內等權與太陽是否計自己仍是明示假設。</p></div>
+      <h3>資料可信度</h3><div class="confidence"><div><span class="confidence-icon verified">✓</span><p><strong>22 張牌資料</strong><small>使用者提供並記錄</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>未驗證出牌分布</strong><small>類別內暫採等權</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>紅色抽樣模型</strong><small>整數預設；1648 暗示連續值</small></p></div><div><span class="confidence-icon muted">—</span><p><strong>Jev 僅語意路由</strong><small>不參與數學計算</small></p></div></div>
+      ${renderEvidencePanel()}</details>`;
 }
 
 function renderCandidateRiskDetails() {
@@ -305,18 +391,21 @@ function renderCandidateRiskDetails() {
   return `<details class="metric-details candidate-risk-details" data-detail-key="candidate-risk"${detailAttribute("candidate-risk")}><summary>查看三張牌的分數範圍與風險</summary><div class="candidate-risk-grid">${cards}</div><p class="metric-help">P10 是模型中約 10% 結果低於的分數，不是保證最低分。</p></details>`;
 }
 
-function renderCandidate(slotIndex: number, metric: NonNullable<typeof result>["ranked"][number], rank: number) {
+function renderCandidate(slotIndex: number, metric: RankedMetric, rank: number) {
   const card = CARDS[metric.candidate.cardId];
+  const color = metric.candidate.color;
   const isTop = rank === 1;
-  const primary = objectiveMetric(metric);
-  const comparison = objective.kind === "threshold" ? { label: "平均分", value: metric.meanScore.toFixed(1), detail: `預期最終分數 ${metric.meanScore.toFixed(1)}` } : thresholdMetric(metric);
-  return `<article class="candidate-card ${isTop ? "is-top" : ""} ${colorClass[metric.candidate.color]}">
-    <div class="candidate-top"><span class="rank">候選 ${slotIndex + 1}</span>${colorBadge(metric.candidate.color)}<span class="category">${card.category === "score" ? "分數" : card.category === "multiplier" ? "倍率" : "特殊"}</span>${isTop ? `<span class="recommend-badge">推薦 #1</span>` : `<span class="rank">排名 #${rank}</span>`}</div>
-    <button type="button" class="card-face ${colorClass[metric.candidate.color]}" data-pick="${slotIndex}" aria-label="修改第 ${slotIndex + 1} 張候選牌：${esc(card.name)}，${colorLabel[metric.candidate.color]}色">${cardFace(card.id, metric.candidate.color)}</button>
-    <div class="candidate-color-buttons" role="group" aria-label="候選 ${slotIndex + 1} 顏色">${colorOptions.map(color => `<button type="button" class="candidate-color-button ${colorClass[color]} ${color === metric.candidate.color ? "selected" : ""}" data-slot-color="${color}" data-slot-index="${slotIndex}" aria-pressed="${color === metric.candidate.color}">${colorLabel[color]}</button>`).join("")}</div>
-    <div class="metric-main"><span>${primary.label}</span><strong title="${esc(primary.detail)}">${esc(primary.value)}</strong><span class="sr-only">${esc(primary.detail)}</span></div>
-    <div class="metric-row"><span>${comparison.label}</span><strong title="${esc(comparison.detail)}">${esc(comparison.value)}</strong><span class="sr-only">${esc(comparison.detail)}</span></div>
-    <button type="button" class="choose-card" data-choose="${metric.candidate.cardId}" data-choose-color="${metric.candidate.color}">選這張並記錄結果</button>
+  const { primary, secondary } = candidateMetrics(metric);
+  const controls = colorControls(slotIndex, color);
+  return `<article class="offer-card is-result ${isTop ? "is-top" : ""} ${colorClass[color]}">
+    <div class="offer-top"><span class="offer-slot">候選 ${slotIndex + 1}</span>${colorBadge(color)}${controls.toggle}${isTop ? `<span class="offer-badge">推薦</span>` : `<span class="offer-rank">第 ${rank} 名</span>`}</div>
+    ${controls.panel}
+    <button type="button" class="offer-face" data-pick="${slotIndex}" aria-label="修改第 ${slotIndex + 1} 張候選牌：${esc(card.name)}，${colorLabel[color]}色">${cardFace(card.id, color)}</button>
+    <div class="offer-metrics">
+      <div class="offer-primary"><span>${primary.label}</span><strong title="${esc(primary.detail)}">${esc(primary.value)}</strong><span class="sr-only">${esc(primary.detail)}</span></div>
+      <div class="offer-secondary"><span>${secondary.label}</span><strong title="${esc(secondary.detail)}">${esc(secondary.value)}</strong><span class="sr-only">${esc(secondary.detail)}</span></div>
+    </div>
+    <button type="button" class="offer-choose" data-choose="${metric.candidate.cardId}" data-choose-color="${color}" aria-label="記錄：我選了候選 ${slotIndex + 1} ${esc(card.name)}（${colorLabel[color]}）">記錄：我選了這張</button>
   </article>`;
 }
 
@@ -326,7 +415,6 @@ function render() {
   const dialogFocus = Boolean(focused?.closest("dialog"));
   const focusSelector = focused?.dataset.pickerCategory ? `[data-picker-category="${focused.dataset.pickerCategory}"]` : focused?.dataset.slotColor ? `[data-slot-color="${focused.dataset.slotColor}"][data-slot-index="${focused.dataset.slotIndex}"]` : focused?.dataset.towerProc ? `[data-tower-proc="${focused.dataset.towerProc}"]` : focused?.dataset.removeCard ? `[data-remove-card="${focused.dataset.removeCard}"]` : focused?.dataset.editTowerProc ? `[data-edit-tower-proc="${focused.dataset.editTowerProc}"]` : focused?.dataset.editRemoveCard ? `[data-edit-remove-card="${focused.dataset.editRemoveCard}"]` : focused?.dataset.outcome ? `[data-outcome="${focused.dataset.outcome}"]` : focused?.dataset.objective ? `[data-objective="${focused.dataset.objective}"]` : focused?.id ? `#${focused.id}` : null;
   const pickerScroll = app.querySelector(".picker-dialog")?.scrollTop ?? 0;
-  const bestMean = result ? [...result.ranked].sort((a, b) => b.meanScore - a.meanScore)[0]! : null;
   const ranked = result?.ranked ?? [];
   const resultReady = calculationStatus === "ready" && Boolean(result);
   const fallback = result?.mode === "highest_expected_score_fallback";
@@ -334,52 +422,43 @@ function render() {
   const currentScore = calculateScore(state.selected, () => .5, RULES);
   const scoreSummary = summarizeScore(state.selected, RULES);
   const starPending = state.selected.some((card, index) => card.cardId === "star" && card.activated && !starTargetIds[index]);
-  const workflowStep = state.selected.length === 5 ? 3 : candidatesReady() ? 2 : 1;
-  const workspaceTitle = state.selected.length === 5 ? "本局已完成" : resultReady ? "比較推薦；先在遊戲選牌，再回來記錄結果" : calculationStatus === "calculating" ? "正在計算推薦" : calculationStatus === "error" ? "推薦暫時無法更新" : "填入遊戲中的 3 張候選牌";
-  const statusText = calculationStatus === "calculating" ? "計算中…" : calculationStatus === "error" ? "需要重試" : `${candidates.filter(Boolean).length} / 3 已填入`;
+  const runActive = Boolean(state.selected.length || candidates.some(Boolean));
+  if (colorEditIndex !== null && !candidates[colorEditIndex]) colorEditIndex = null;
   const scoreMethod = scoreSummary.method === "exact" ? "紅色整數百分比完整枚舉" : "紅色效果取樣估算";
   app.innerHTML = `<main class="shell ${layoutMode === "narrow" ? "layout-narrow" : "layout-full"}">
     <header class="header">
-      <div><p class="eyebrow">YURIA / 選牌助手</p><h1>尤里亞的占卜計算器</h1><p class="subhead">填入三張牌 → 比較推薦 → 記錄遊戲結果</p></div>
-      <div class="run-status" ${state.selected.length || candidates.some(Boolean) ? "" : "hidden"}><div class="header-meta" ${state.selected.length ? "" : "hidden"}><span>${starPending ? "星星待結算，暫估平均" : "目前估算平均"}</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div><button type="button" class="clear-run-action" id="reset">清空本局，重新開始</button></div>
+      <div class="header-title"><h1>尤里亞的占卜計算器</h1><p class="subhead">照遊戲填入三張候選牌，比較推薦，再記錄結果。</p></div>
+      <div class="run-status"><strong class="turn-progress">${state.selected.length === 5 ? "五回合完成" : `第 ${state.turn} / 5 回合`}</strong><div class="header-meta" ${state.selected.length ? "" : "hidden"}><span>${starPending ? "星星待結算，暫估平均" : "目前估算平均"}</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div><button type="button" class="clear-run-action" id="reset" ${runActive ? "" : "hidden"}>清空本局，重新開始</button></div>
     </header>
     ${restoredSession ? `<div class="restored-note" role="status"><span>已恢復這台裝置上的上一局資料。</span><button type="button" class="text-action" id="dismiss-restored">知道了</button></div>` : ""}
-    <ol class="workflow" aria-label="操作順序">
-      <li class="${workflowStep > 1 ? "is-complete" : ""}" ${workflowStep === 1 ? 'aria-current="step"' : ""}><b>1</b><strong>填入 3 張候選牌</strong></li>
-      <li class="${workflowStep > 2 ? "is-complete" : ""}" ${workflowStep === 2 ? 'aria-current="step"' : ""}><b>2</b><strong>比較推薦並在遊戲選牌</strong></li>
-      <li ${workflowStep === 3 ? 'aria-current="step"' : ""}><b>3</b><strong>${state.selected.length === 5 ? "本局完成，儲存紀錄" : "回來記錄結果"}</strong></li>
-    </ol>
-    <details class="goal-settings panel" data-detail-key="goal-settings"${detailAttribute("goal-settings")}><summary>推薦目標：${objective.kind === "threshold" ? `達到 ${targetThreshold.toLocaleString()} 分` : objective.kind === "expected" ? "提高預期分數" : "保守穩定"} · 修改</summary><section class="control-bar" aria-label="推薦設定">
+    <details class="goal-settings panel" data-detail-key="goal-settings"${detailAttribute("goal-settings")}><summary>推薦目標：${objective.kind === "threshold" ? `達到 ${targetThreshold.toLocaleString()} 分，依達標率排序` : objective.kind === "expected" ? "預期分數最高" : "保守穩定（P10 最高）"}<span class="goal-edit">修改</span></summary><section class="control-bar" aria-label="推薦設定">
       <div class="control-group"><label>你希望怎麼選？</label><div class="segmented" role="group" aria-label="推薦目標"><button data-objective="threshold" aria-pressed="${objective.kind === "threshold"}" class="${objective.kind === "threshold" ? "active" : ""}">達標率</button><button data-objective="expected" aria-pressed="${objective.kind === "expected"}" class="${objective.kind === "expected" ? "active" : ""}">預期分數</button><button data-objective="stability" aria-pressed="${objective.kind === "stability"}" class="${objective.kind === "stability" ? "active" : ""}">穩定</button></div><small class="goal-help">${objective.kind === "threshold" ? "提高達到目標分數的機會" : objective.kind === "expected" ? "優先選平均最終分數較高的牌" : "優先選較保守的結果，不代表保證分數"}</small></div>
       <label class="target-field">目標分數 <input id="target" type="number" min="0" step="100" value="${esc(targetInput)}" aria-invalid="${Boolean(targetError)}" aria-describedby="target-error" /><small id="target-error" class="field-error" ${targetError ? "" : "hidden"}>${esc(targetError)}</small></label>
       <button class="primary-action" id="calculate" aria-live="polite" ${!candidatesReady() || state.selected.length === 5 || calculationStatus === "calculating" || targetError ? "disabled" : ""}>${calculationStatus === "error" ? "重試計算" : calculationStatus === "calculating" ? "計算中…" : "更新推薦"}</button>
     </section></details>
     <div class="layout">
-      <section class="panel history-panel" aria-labelledby="history-title"><div class="section-heading history-heading"><div><p class="eyebrow">CURRENT RUN</p><h2 id="history-title">已確定卡片</h2></div><div class="history-actions"><span class="turn-counter" aria-label="已確定 ${state.selected.length} 張，共 5 張">${state.selected.length} / 5</span><button type="button" class="secondary-action" id="undo" ${state.selected.length ? "" : "hidden"}>撤回上一回合</button><button type="button" class="secondary-action" id="add-history" ${state.selected.length < 5 && !targetError ? "" : "hidden"}>＋ 補登已玩卡片</button></div></div>
-        <p class="history-hint">${state.selected.length ? "按「更正記錄」可調整顏色與結果；如要重做最後一步，使用「撤回上一回合」。" : "新牌局不用補登，直接填下方候選牌；接續牌局才需要補登。"}</p><div class="history-list">${renderHistory()}</div>
+      <section class="history-panel run-strip" aria-labelledby="history-title">
+        <div class="run-strip-heading"><h2 id="history-title">已確定卡片</h2>${state.selected.length ? `<p class="run-strip-hint">點小卡可更正顏色與結果</p>` : ""}<div class="run-strip-actions"><button type="button" class="secondary-action" id="undo" ${state.selected.length ? "" : "hidden"}>撤回上一回合</button><button type="button" class="secondary-action" id="add-history" ${state.selected.length < 5 && !targetError ? "" : "hidden"}>＋ 補登已玩卡片</button></div></div>
+        <div class="run-strip-list">${renderHistory()}</div>
       </section>
-      <section class="workspace"><div class="workspace-heading"><div><p class="eyebrow">第 ${state.turn} / 5 回合</p><h2>${workspaceTitle}</h2></div><span class="calculation-time" aria-live="polite">${statusText}</span></div>
+      <section class="workspace">
         ${renderStarResolution()}
-        ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>${currentRecord?.status === "recorded" ? "要修正可撤回上一回合；要開下一局，按下方「開始新的一局」。" : "要修正可撤回上一回合；確認無誤後再紀錄本局。"}</p></section>` : `<div class="candidate-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
+        ${renderVerdict(resultReady, fallback, exactZero)}
+        ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>${currentRecord?.status === "recorded" ? "要修正可撤回上一回合；要開下一局，按下方「開始新的一局」。" : "要修正可撤回上一回合；確認無誤後再紀錄本局。"}</p></section>` : `<div class="offer-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
         ${renderActualScorePanel()}
         ${resultReady ? renderCandidateRiskDetails() : ""}
-        <section class="decision-panel panel ${resultReady ? "" : "pending-decision"}" ${state.selected.length === 5 ? "hidden" : ""}><div><p class="eyebrow">${resultReady ? "選牌建議" : calculationStatus === "error" ? "計算錯誤" : calculationStatus === "calculating" ? "正在計算" : "操作提示"}</p><h2>${resultReady ? (fallback ? exactZero ? "依目前模型，達標機率為 0%" : "達標率皆為零，改看預期分數" : "依你的目標比較推薦") : calculationStatus === "error" ? "輸入已保留，請重試" : calculationStatus === "calculating" ? "正在整理三張牌的比較結果" : "先選擇本回合三張候選牌"}</h2><p>${resultReady ? (fallback ? exactZero ? "目前精確模型沒有支援達標的結果，系統仍以預期最終分數最高者排序。" : "目前抽樣沒有達到目標，系統改以預期最終分數最高者排序。" : "先在遊戲中選牌，再按「選擇這張」記錄啟用結果。") : calculationStatus === "error" ? calculationError : calculationStatus === "calculating" ? "計算完成後會在原本的候選槽顯示指標，不會改變牌的順序。" : candidateInputHint()}</p></div>${resultReady && bestMean ? `<div class="decision-values"><div><span>目前目標推薦</span><strong>${esc(CARDS[result!.ranked[0]!.candidate.cardId].name)}／${colorLabel[result!.ranked[0]!.candidate.color]}</strong></div><div><span>預期分數最高</span><strong>${esc(CARDS[bestMean.candidate.cardId].name)}／${colorLabel[bestMean.candidate.color]}</strong></div></div>` : calculationStatus === "error" ? `<button type="button" class="secondary-action retry-action" id="retry-calculation">重新計算</button>` : ""}</section>
       </section>
-      <aside class="sidebar">
-        <details class="advanced-settings" data-detail-key="advanced-settings"${detailAttribute("advanced-settings")}><summary>進階設定 · 版面寬度與模擬次數</summary><div class="advanced-fields"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div><label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label></div></details>
-        <details class="supplement"><summary>查看統計與實測</summary>${renderEvidencePanel()}</details>
-        <details class="supplement real-archive" data-detail-key="real-archive"${detailAttribute("real-archive")}><summary>真實牌局紀錄</summary><section class="panel real-archive-panel"><p id="record-save-status" role="status">${esc(archiveSaveState)}</p><div id="real-archive-body">${renderArchiveBody()}</div></section></details>
-        <details class="panel data-panel"><summary>資料可信度與模型限制</summary>
-          <div class="confidence"><div><span class="confidence-icon verified">✓</span><p><strong>22 張牌資料</strong><small>使用者提供並記錄</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>未驗證出牌分布</strong><small>類別內暫採等權</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>紅色抽樣模型</strong><small>整數預設；1648 暗示連續值</small></p></div><div><span class="confidence-icon muted">—</span><p><strong>Jev 僅語意路由</strong><small>不參與數學計算</small></p></div></div>
-        </details>
-      </aside>
     </div>
     <section class="score-breakdown" aria-label="目前計分" ${state.selected.length ? "" : "hidden"}><strong>目前分數組成</strong><span>分數 ${currentScore.sum} × 倍率 ${currentScore.multiplier.toFixed(2)} × 紅色加成 ${(1 + currentScore.redBonus).toFixed(2)} = <b>${currentScore.finalScore}</b></span><small>組成列取紅色中間值；上方估算平均使用${scoreMethod}，祝福尚未納入。${starPending ? "星星移除牌尚未確認，分數暫估。" : ""}</small></section>
-    ${renderKnowledgePanels()}
-    <footer class="footer"><span>數學結果由本機 deterministic engine 計算</span><span>特殊卡、顏色級距與失敗補償已納入</span><span>祝福尚未建模</span></footer>
+    <section class="more-panels" aria-label="紀錄、牌庫與設定">
+      <details class="more-panel real-archive" data-detail-key="real-archive"${detailAttribute("real-archive")}><summary>真實牌局紀錄</summary><section class="real-archive-panel"><p id="record-save-status" role="status">${esc(archiveSaveState)}</p><div id="real-archive-body">${renderArchiveBody()}</div></section></details>
+      ${renderKnowledgePanels()}
+      <details class="more-panel advanced-settings" data-detail-key="advanced-settings"${detailAttribute("advanced-settings")}><summary>設定：版面寬度與模擬次數</summary><div class="advanced-fields"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div><label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label></div></details>
+    </section>
+    <footer class="footer">推薦由這台裝置上的模型計算；特殊卡、顏色級距與失敗補償已納入，尤里亞的祝福尚未納入。</footer>
     ${renderPicker()}
     ${renderResetDialog()}
-    <p class="sr-only" aria-live="polite">${resultReady ? "推薦已更新" : calculationStatus === "calculating" ? "正在計算推薦" : calculationStatus === "error" ? "推薦計算失敗，可重試" : state.selected.length === 5 ? "本局已完成" : ""}</p>
+    <p class="sr-only" aria-live="polite">${resultReady && ranked[0] ? `推薦已更新：建議選 ${esc(offerLabel(ranked[0]))}` : calculationStatus === "calculating" ? "正在計算推薦" : calculationStatus === "error" ? "推薦計算失敗，可重試" : state.selected.length === 5 ? "本局已完成" : ""}</p>
     ${pendingChoice ? renderOutcomeDialog() : ""}
     ${pendingEditIndex !== null ? renderEditOutcomeDialog() : ""}
   </main>`;
@@ -485,18 +564,19 @@ function calculate() {
 
 function renderResetDialog() {
   return resetConfirmationOpen ? `<dialog class="picker-dialog outcome-dialog reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description">
-    <p class="eyebrow">RESET CURRENT GAME</p><h2 id="reset-title">要清空本局並重新開始嗎？</h2>
+    <h2 id="reset-title">要清空本局並重新開始嗎？</h2>
     <p id="reset-description">${currentRecord?.status === "recorded" ? "本局已紀錄，不會被刪除；清空的是畫面上的已確定卡片與候選牌。" : "這會清除本局已確定卡片、三張候選牌與尚未儲存的進度。已按「紀錄本局」儲存的牌局會保留。"}</p>
     <div class="reset-actions"><button type="button" class="secondary-action" data-reset-cancel autofocus>保留本局</button><button type="button" class="danger-action" data-reset-confirm>清空本局，重新開始</button></div>
   </dialog>` : "";
 }
 
 function resetCurrentGame() {
+  closeRunEdits();
   state = { turn: 1, selected: [] };
   turnSnapshots = [];
   starTargetIds = [];
   candidates = [null, null, null];
-  candidateColors = ["blue", "blue", "blue"];
+  candidateColors = defaultSlotColors(); colorEditIndex = null;
   currentRecord = null;
   scoreEditing = false;
   pickerIndex = null;
@@ -558,6 +638,7 @@ function bindEvents() {
   app.querySelector<HTMLButtonElement>("#undo")?.addEventListener("click", () => {
     const previous = turnSnapshots.pop();
     if (!previous) return;
+    closeRunEdits();
     startRecordCorrection();
     state = cloneState(previous.state);
     starTargetIds = cloneTargets(previous.starTargets);
@@ -570,17 +651,31 @@ function bindEvents() {
     pendingEditTowerProc = null;
     pendingEditRemovedCardId = null;
     candidates = [null, null, null];
-    candidateColors = ["blue", "blue", "blue"];
+    candidateColors = defaultSlotColors(); colorEditIndex = null;
     calculate();
   });
-  app.querySelectorAll<HTMLButtonElement>("[data-slot-color]").forEach(button => button.addEventListener("click", () => { const index = Number(button.dataset.slotIndex); const color = button.dataset.slotColor as CardColor; candidateColors[index] = color; if (candidates[index]) candidates[index] = { ...candidates[index]!, color }; calculate(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-slot-color]").forEach(button => button.addEventListener("click", () => {
+    const index = Number(button.dataset.slotIndex);
+    const color = button.dataset.slotColor as CardColor;
+    candidateColors[index] = color;
+    if (candidates[index]) candidates[index] = { ...candidates[index]!, color };
+    colorEditIndex = null;
+    calculate();
+    app.querySelector<HTMLElement>(`#color-toggle-${index}`)?.focus();
+  }));
+  app.querySelectorAll<HTMLButtonElement>("[data-color-toggle]").forEach(button => button.addEventListener("click", () => {
+    const index = Number(button.dataset.colorToggle);
+    colorEditIndex = colorEditIndex === index ? null : index;
+    render();
+    app.querySelector<HTMLElement>(colorEditIndex === index ? `[data-slot-color][data-slot-index="${index}"][aria-pressed="true"]` : `#color-toggle-${index}`)?.focus();
+  }));
   app.querySelectorAll<HTMLElement>("[data-pick]").forEach(trigger => trigger.addEventListener("click", () => { pickerCategory = "all"; const index = Number(trigger.dataset.pick); returnFocus = `[data-pick="${index}"]`; pickerIndex = index; render(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-picker-direct-card]").forEach(button => button.addEventListener("click", () => applyPickerChoice(button.dataset.pickerDirectCard as CardId, button.dataset.pickerDirectColor as CardColor)));
   app.querySelectorAll<HTMLButtonElement>("[data-picker-cancel]").forEach(button => button.addEventListener("click", closeDialog));
   app.querySelector<HTMLButtonElement>("#add-history")?.addEventListener("click", () => { pickerCategory = "all"; returnFocus = "#add-history"; pickerIndex = -1; render(); });
   app.querySelectorAll<HTMLButtonElement>("[data-choose]").forEach(button => button.addEventListener("click", () => addHistory(button.dataset.choose as CardId, button.dataset.chooseColor as CardColor)));
   app.querySelectorAll<HTMLButtonElement>("[data-tower-proc]").forEach(button => button.addEventListener("click", () => { pendingTowerProc = button.dataset.towerProc === "true"; render(); }));
-  app.querySelectorAll<HTMLButtonElement>("[data-final-star-target]").forEach(button => button.addEventListener("click", () => { const index = unresolvedStarIndex(); const target = state.selected.find(card => card.cardId === button.dataset.finalStarTarget); if (index < 0 || !target || target.cardId === "star" || target.removed) return; startRecordCorrection(); target.removed = true; starTargetIds[index] = target.cardId; calculate(); app.querySelector<HTMLElement>("#completion-title")?.focus(); }));
+  app.querySelectorAll<HTMLButtonElement>("[data-final-star-target]").forEach(button => button.addEventListener("click", () => { const index = unresolvedStarIndex(); const target = state.selected.find(card => card.cardId === button.dataset.finalStarTarget); if (index < 0 || !target || target.cardId === "star" || target.removed) return; closeRunEdits(); startRecordCorrection(); target.removed = true; starTargetIds[index] = target.cardId; calculate(); app.querySelector<HTMLElement>("#completion-title")?.focus(); }));
   app.querySelectorAll<HTMLButtonElement>("[data-outcome]").forEach(button => button.addEventListener("click", () => {
     if (button.dataset.outcome === "cancel") { closeDialog(); return; }
     if (!pendingChoice || state.selected.length >= 5) return;
@@ -765,22 +860,30 @@ function cloudLabel(game: RealGameRecordV1) {
 }
 
 function renderCloudSync() {
-  if (!cloudUser) return `<div class="archive-sync"><p><strong>資料來源：這台裝置</strong><br>登入 GitHub 後，會自動合併你存在雲端的牌局。</p><p id="cloud-status" role="status">${esc(cloudStatus)}</p><div class="archive-actions"><button type="button" class="secondary-action" id="cloud-sign-in">使用 GitHub 登入</button></div></div>`;
+  if (!cloudUser) return `<div class="archive-sync"><h3>只存在這台裝置</h3><p>登入 GitHub 後，會自動合併你存在雲端的牌局。</p><p id="cloud-status" role="status">${esc(cloudStatus)}</p><div class="archive-actions"><button type="button" class="secondary-action" id="cloud-sign-in">使用 GitHub 登入</button></div></div>`;
   const revisions = cloudRevisions;
   const recorded = archiveGames.filter(game => game.status === "recorded");
   const pending = revisions ? gamesNeedingUpload(archiveGames, revisions, cloudConflictIds) : [];
   const syncedTime = cloudSyncedAt ? new Date(cloudSyncedAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" }) : "";
-  const counts = revisions
-    ? `共 ${recorded.length} 局：雲端 ${revisions.size} 局、只在這台裝置 ${recorded.filter(game => !revisions.has(game.id)).length} 局${syncedTime ? `；上次同步 ${syncedTime}` : ""}。`
-    : "還沒同步雲端。";
+  const stats = revisions ? archiveStats([
+    ["總局數", recorded.length],
+    ["雲端", revisions.size],
+    ["只在這台", recorded.filter(game => !revisions.has(game.id)).length],
+    ["待上傳", pending.length],
+    ...(cloudConflictIds.size ? [["內容不同", cloudConflictIds.size, "is-warning"] as const] : [])
+  ]) : `<p>還沒同步雲端。</p>`;
   const notes = [
-    pending.length ? `${pending.length} 局還沒上傳（只在這台裝置，或有較新的更正）。` : "",
     cloudConflictIds.size ? `${cloudConflictIds.size} 局兩邊內容不同：保留這台裝置的版本，沒有覆寫雲端；可匯出 JSON 核對。` : "",
     cloudSkipped ? `雲端有 ${cloudSkipped} 筆格式不相容，已略過。` : ""
-  ].filter(Boolean).map(text => `<p>${esc(text)}</p>`).join("");
-  return `<div class="archive-sync"><p><strong>資料來源：這台裝置＋雲端</strong><br>${esc(counts)}</p><p id="cloud-status" role="status">${esc(cloudStatus)}</p>${notes}
-    <div class="archive-actions"><button type="button" class="secondary-action" id="cloud-sync" aria-busy="${cloudBusy}">${cloudBusy ? "處理中…" : "重新同步"}</button>${pending.length ? `<button type="button" class="secondary-action" id="upload-pending-games">上傳這 ${pending.length} 局</button>` : ""}<button type="button" class="text-action" id="cloud-sign-out">登出</button></div>
-    <small>已登入 ${esc(cloudUser.email ?? cloudUser.id)}。按「紀錄本局」後會自動同步；更早的本機紀錄要按「上傳」才會送出。</small></div>`;
+  ].filter(Boolean).map(text => `<p class="archive-note">${esc(text)}</p>`).join("");
+  return `<div class="archive-sync"><h3>這台裝置＋雲端${syncedTime ? `<small>上次同步 ${syncedTime}</small>` : ""}</h3>${stats}<p id="cloud-status" role="status">${esc(cloudStatus)}</p>${notes}
+    <div class="archive-actions">${pending.length ? `<button type="button" class="primary-action" id="upload-pending-games">上傳這 ${pending.length} 局</button>` : ""}<button type="button" class="secondary-action" id="cloud-sync" aria-busy="${cloudBusy}">${cloudBusy ? "處理中…" : "重新同步"}</button><span class="archive-account">${esc(cloudUser.email ?? cloudUser.id)}<button type="button" class="text-action" id="cloud-sign-out">登出</button></span></div>
+    <small>按「紀錄本局」後會自動同步；更早的本機紀錄要按「上傳」才會送出。</small></div>`;
+}
+
+/** Counts as a row of labelled numbers instead of a sentence. */
+function archiveStats(items: ReadonlyArray<readonly [string, number, string?]>) {
+  return `<dl class="archive-stats">${items.map(([label, value, tone]) => `<div class="${tone ?? ""}"><dt>${esc(label)}</dt><dd>${value.toLocaleString()}</dd></div>`).join("")}</dl>`;
 }
 
 function renderArchiveBody() {
@@ -792,9 +895,14 @@ function renderArchiveBody() {
   const storageNote = cloudUser
     ? "紀錄存在這台瀏覽器，也會同步到你的雲端帳號；清除網站資料後，已上傳的局登入即可取回。"
     : "資料存在這台瀏覽器；清除網站資料會遺失。可匯出 JSON 備份，或登入 GitHub 同步到雲端。";
-  return `${renderCloudSync()}<p role="status">${esc(archiveNotice)}</p><p>已記錄 ${summary.recordedCount} 局；有實得分數 ${summary.scoredCount} 局；模型計算分數 ${summary.modelScoredCount} 局；五回合候選齊全 ${summary.completeWithOffersCount} 局。${summary.scoredCount < 30 ? "實得分數樣本不足，不顯示個人達標率。" : `實測平均 ${summary.averageScore!.toFixed(1)} 分。`}${summary.modelScoredCount ? `模型計算平均 ${summary.modelAverageScore!.toFixed(1)} 分（不併入實測）。` : ""}</p>
-    <p>完成局中的候選顏色紀錄：${colorText("blue")}／${colorText("purple")}／${colorText("red")}（共 ${summary.observedOffers} 張）。</p>
-    <p>終局預測與實得分數差：${summary.residualCount >= 30 ? `${summary.scoreResidualMean!.toFixed(1)} 分，n=${summary.residualCount}` : `樣本不足（${summary.residualCount}/30）`}。</p>
+  return `${renderCloudSync()}<p role="status">${esc(archiveNotice)}</p>
+    <h3>紀錄內容</h3>${archiveStats([["已記錄", summary.recordedCount], ["有實得分數", summary.scoredCount], ["模型計算分數", summary.modelScoredCount], ["五回合候選齊全", summary.completeWithOffersCount]])}
+    <ul class="archive-facts">
+      <li>實得平均：${summary.scoredCount < 30 ? `樣本不足（${summary.scoredCount}/30），暫不顯示個人達標率` : `${summary.averageScore!.toFixed(1)} 分`}</li>
+      ${summary.modelScoredCount ? `<li>模型計算平均：${summary.modelAverageScore!.toFixed(1)} 分（不併入實測）</li>` : ""}
+      <li>候選顏色：${colorText("blue")}／${colorText("purple")}／${colorText("red")}（共 ${summary.observedOffers} 張）</li>
+      <li>終局預測與實得差：${summary.residualCount >= 30 ? `${summary.scoreResidualMean!.toFixed(1)} 分，n=${summary.residualCount}` : `樣本不足（${summary.residualCount}/30）`}</li>
+    </ul>
     <details data-detail-key="archive-cards"${detailAttribute("archive-cards")}><summary>查看點選後成功次數</summary><ul>${cardRows || "<li>尚無完整實測</li>"}</ul><small>未點選牌不計為失敗；模擬局與舊五局分數不在這裡。</small></details>
     <details data-detail-key="archive-recent"${detailAttribute("archive-recent")}><summary>查看最近牌局</summary><ul>${entries || "<li>尚無牌局紀錄</li>"}</ul></details>
     <div class="archive-actions"><button type="button" class="secondary-action" id="export-real-games">匯出 JSON 備份</button><label>匯入 JSON <input id="import-real-games" type="file" accept="application/json,.json" /></label></div>
@@ -1001,6 +1109,7 @@ function renderStarResolution() {
 
 function commitOutcome(outcome: "success" | "failure") {
   if (!pendingChoice || state.selected.length >= 5) return;
+  closeRunEdits();
   syncCurrentRecord();
   currentRecord ??= createGameRecord(CALCULATION_SEED, simulationCount);
   currentRecord.rounds.push(captureChosenRound(pendingChoice, outcome === "success"));
@@ -1009,7 +1118,7 @@ function commitOutcome(outcome: "success" | "failure") {
   starTargetIds = [...starTargetIds, null];
   state.turn = Math.min(5, state.selected.length + 1) as GameState["turn"];
   pendingChoice = null; pendingChoiceSource = null; pendingOutcome = null; pendingTowerProc = null; pendingRemovedCardId = null;
-  candidates = [null, null, null]; candidateColors = ["blue", "blue", "blue"];
+  candidates = [null, null, null]; candidateColors = defaultSlotColors(); colorEditIndex = null;
   calculate();
   app.querySelector<HTMLElement>(state.selected.length === 5 ? unresolvedStarIndex() !== -1 ? "#star-resolution-title" : "#completion-title" : '[data-pick="0"]')?.focus();
 }
@@ -1018,8 +1127,21 @@ function renderOutcomeDialog() {
   const card = pendingChoice!;
   const needsTower = card.cardId === "tower" && pendingOutcome === "success";
   const detail = needsTower ? `<fieldset><legend>高塔實際倍率</legend><div class="outcome-choice-row"><button type="button" data-tower-proc="false" class="${pendingTowerProc === false ? "selected" : ""}">低倍率 +0.25</button><button type="button" data-tower-proc="true" class="${pendingTowerProc === true ? "selected" : ""}">高倍率 +2.0</button></div></fieldset>` : card.cardId === "star" && pendingOutcome === "success" ? `<p>星星移除的牌會在五張牌記錄完後確認。</p>` : "";
-  return `<dialog class="picker-dialog outcome-dialog" aria-labelledby="outcome-title"><h2 id="outcome-title">記錄 ${esc(cardName(card.cardId))}／${colorLabel[card.color]}</h2>${pendingOutcome ? `<p>請完成必要的實際結果，再提交這一回合。</p>${detail}<button type="button" class="primary-action" data-commit-outcome ${needsTower && pendingTowerProc === null ? "disabled" : ""}>完成記錄</button>` : `<p>請依遊戲畫面選擇；取消不會記錄。</p><div class="outcome-actions"><button type="button" class="primary-action" data-outcome="success">成功啟用</button><button type="button" class="secondary-action" data-outcome="failure">啟用失敗</button></div>`}<button type="button" class="text-action" data-outcome="cancel">取消，繼續比較</button></dialog>`;
+  return `<dialog class="picker-dialog outcome-dialog" aria-labelledby="outcome-title"><h2 id="outcome-title">記錄結果：${esc(cardName(card.cardId))}（${colorLabel[card.color]}）</h2>${pendingOutcome ? `<p>請完成必要的實際結果，再提交這一回合。</p>${detail}<button type="button" class="primary-action" data-commit-outcome ${needsTower && pendingTowerProc === null ? "disabled" : ""}>完成記錄</button>` : `<p>請依遊戲畫面選擇；取消不會記錄。</p><div class="outcome-actions"><button type="button" class="primary-action" data-outcome="success">成功啟用</button><button type="button" class="secondary-action" data-outcome="failure">啟用失敗</button></div>`}<button type="button" class="text-action" data-outcome="cancel">取消，繼續比較</button></dialog>`;
 }
+
+// An open correction panel closes on Escape or a click elsewhere on the page (dialogs keep it open).
+document.addEventListener("keydown", event => {
+  const open = app.querySelector<HTMLDetailsElement>(".run-edit[open]");
+  if (event.key !== "Escape" || !open || app.querySelector("dialog")) return;
+  open.open = false;
+  open.querySelector<HTMLElement>("summary")?.focus();
+});
+document.addEventListener("click", event => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target || target.closest(".run-edit, dialog")) return;
+  app.querySelectorAll<HTMLDetailsElement>(".run-edit[open]").forEach(details => { details.open = false; });
+});
 
 worker = createWorker();
 loadSession();

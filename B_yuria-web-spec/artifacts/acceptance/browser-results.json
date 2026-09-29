@@ -1,7 +1,7 @@
 {
   "url": "http://127.0.0.1:4174",
   "browser": "154.0.4258.37",
-  "date": "2026-09-29T03:35:20.887Z",
+  "date": "2026-09-29T06:59:31.930Z",
   "checks": [
     {
       "name": "guided-settings",
@@ -65,24 +65,29 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 194,
-            "bottom": 322,
+            "top": 143,
+            "bottom": 310,
+            "width": 983
+          },
+          "verdict": {
+            "top": 322,
+            "bottom": 398,
             "width": 983
           },
           "candidates": {
-            "top": 382,
-            "bottom": 599,
+            "top": 408,
+            "bottom": 672,
             "width": 983
           },
           "historyCard": {
-            "top": 255,
-            "bottom": 319,
-            "width": 176
+            "top": 204,
+            "bottom": 301,
+            "width": 76
           },
           "candidateCard": {
-            "top": 382,
-            "bottom": 599,
-            "width": 240
+            "top": 408,
+            "bottom": 672,
+            "width": 318
           },
           "scrollY": 0
         },
@@ -90,24 +95,29 @@
           "width": 1440,
           "height": 900,
           "history": {
-            "top": 205,
-            "bottom": 355,
+            "top": 153,
+            "bottom": 319,
+            "width": 1382
+          },
+          "verdict": {
+            "top": 335,
+            "bottom": 411,
             "width": 1382
           },
           "candidates": {
-            "top": 426,
-            "bottom": 643,
+            "top": 421,
+            "bottom": 685,
             "width": 1382
           },
           "historyCard": {
-            "top": 279,
-            "bottom": 343,
-            "width": 176
+            "top": 214,
+            "bottom": 310,
+            "width": 76
           },
           "candidateCard": {
-            "top": 426,
-            "bottom": 643,
-            "width": 240
+            "top": 421,
+            "bottom": 685,
+            "width": 451
           },
           "scrollY": 0
         }
@@ -122,35 +132,75 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 194,
-            "bottom": 432,
+            "top": 147,
+            "bottom": 334,
             "width": 983,
-            "height": 238
+            "height": 187
+          },
+          "verdict": {
+            "top": 346,
+            "bottom": 447,
+            "width": 983,
+            "height": 101
           },
           "candidates": {
-            "top": 492,
-            "bottom": 758,
+            "top": 457,
+            "bottom": 726,
             "width": 983,
-            "height": 266
+            "height": 269
           },
           "historyCard": {
-            "top": 255,
-            "bottom": 429,
-            "width": 176,
-            "height": 174
+            "top": 208,
+            "bottom": 325,
+            "width": 76,
+            "height": 117
           },
-          "candidateCard": {
-            "top": 492,
-            "bottom": 758,
-            "width": 240,
-            "height": 266
+          "candidateCards": [
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            },
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            },
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            }
+          ],
+          "candidateArt": {
+            "top": 534,
+            "bottom": 655,
+            "width": 88,
+            "height": 121
           },
-          "candidateFace": {
-            "top": 580,
-            "bottom": 700,
-            "width": 96,
-            "height": 120
-          },
+          "chooseButtons": [
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            },
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            },
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            }
+          ],
           "scrollY": 0
         },
         {
@@ -158,35 +208,75 @@
           "width": 1440,
           "height": 900,
           "history": {
-            "top": 205,
-            "bottom": 477,
+            "top": 153,
+            "bottom": 340,
             "width": 1382,
-            "height": 272
+            "height": 187
+          },
+          "verdict": {
+            "top": 356,
+            "bottom": 457,
+            "width": 1382,
+            "height": 101
           },
           "candidates": {
-            "top": 547,
-            "bottom": 814,
+            "top": 467,
+            "bottom": 736,
             "width": 1382,
-            "height": 266
+            "height": 269
           },
           "historyCard": {
-            "top": 279,
-            "bottom": 465,
-            "width": 176,
-            "height": 186
+            "top": 214,
+            "bottom": 331,
+            "width": 76,
+            "height": 117
           },
-          "candidateCard": {
-            "top": 547,
-            "bottom": 814,
-            "width": 240,
-            "height": 266
+          "candidateCards": [
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            },
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            },
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            }
+          ],
+          "candidateArt": {
+            "top": 544,
+            "bottom": 665,
+            "width": 88,
+            "height": 121
           },
-          "candidateFace": {
-            "top": 635,
-            "bottom": 756,
-            "width": 96,
-            "height": 120
-          },
+          "chooseButtons": [
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            },
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            },
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            }
+          ],
           "scrollY": 0
         },
         {
@@ -194,35 +284,75 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 194,
-            "bottom": 432,
+            "top": 147,
+            "bottom": 334,
             "width": 983,
-            "height": 238
+            "height": 187
+          },
+          "verdict": {
+            "top": 346,
+            "bottom": 447,
+            "width": 983,
+            "height": 101
           },
           "candidates": {
-            "top": 492,
-            "bottom": 758,
+            "top": 457,
+            "bottom": 726,
             "width": 983,
-            "height": 266
+            "height": 269
           },
           "historyCard": {
-            "top": 255,
-            "bottom": 429,
-            "width": 176,
-            "height": 174
+            "top": 208,
+            "bottom": 325,
+            "width": 76,
+            "height": 117
           },
-          "candidateCard": {
-            "top": 492,
-            "bottom": 758,
-            "width": 240,
-            "height": 266
+          "candidateCards": [
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            },
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            },
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            }
+          ],
+          "candidateArt": {
+            "top": 534,
+            "bottom": 655,
+            "width": 88,
+            "height": 121
           },
-          "candidateFace": {
-            "top": 580,
-            "bottom": 700,
-            "width": 96,
-            "height": 120
-          },
+          "chooseButtons": [
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            },
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            },
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            }
+          ],
           "scrollY": 0
         },
         {
@@ -230,35 +360,75 @@
           "width": 1440,
           "height": 900,
           "history": {
-            "top": 205,
-            "bottom": 477,
+            "top": 153,
+            "bottom": 340,
             "width": 1382,
-            "height": 272
+            "height": 187
+          },
+          "verdict": {
+            "top": 356,
+            "bottom": 457,
+            "width": 1382,
+            "height": 101
           },
           "candidates": {
-            "top": 547,
-            "bottom": 814,
+            "top": 467,
+            "bottom": 736,
             "width": 1382,
-            "height": 266
+            "height": 269
           },
           "historyCard": {
-            "top": 279,
-            "bottom": 465,
-            "width": 176,
-            "height": 186
+            "top": 214,
+            "bottom": 331,
+            "width": 76,
+            "height": 117
           },
-          "candidateCard": {
-            "top": 547,
-            "bottom": 814,
-            "width": 240,
-            "height": 266
+          "candidateCards": [
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            },
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            },
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            }
+          ],
+          "candidateArt": {
+            "top": 544,
+            "bottom": 665,
+            "width": 88,
+            "height": 121
           },
-          "candidateFace": {
-            "top": 635,
-            "bottom": 756,
-            "width": 96,
-            "height": 120
-          },
+          "chooseButtons": [
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            },
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            },
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            }
+          ],
           "scrollY": 0
         },
         {
@@ -266,35 +436,75 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 194,
-            "bottom": 432,
+            "top": 147,
+            "bottom": 334,
             "width": 983,
-            "height": 238
+            "height": 187
+          },
+          "verdict": {
+            "top": 346,
+            "bottom": 447,
+            "width": 983,
+            "height": 101
           },
           "candidates": {
-            "top": 492,
-            "bottom": 758,
+            "top": 457,
+            "bottom": 726,
             "width": 983,
-            "height": 266
+            "height": 269
           },
           "historyCard": {
-            "top": 255,
-            "bottom": 429,
-            "width": 176,
-            "height": 174
+            "top": 208,
+            "bottom": 325,
+            "width": 76,
+            "height": 117
           },
-          "candidateCard": {
-            "top": 492,
-            "bottom": 758,
-            "width": 240,
-            "height": 266
+          "candidateCards": [
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            },
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            },
+            {
+              "top": 457,
+              "bottom": 726,
+              "width": 318,
+              "height": 269
+            }
+          ],
+          "candidateArt": {
+            "top": 534,
+            "bottom": 655,
+            "width": 88,
+            "height": 121
           },
-          "candidateFace": {
-            "top": 581,
-            "bottom": 700,
-            "width": 95,
-            "height": 119
-          },
+          "chooseButtons": [
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            },
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            },
+            {
+              "top": 663,
+              "bottom": 711,
+              "width": 288,
+              "height": 48
+            }
+          ],
           "scrollY": 0
         },
         {
@@ -302,35 +512,75 @@
           "width": 1440,
           "height": 900,
           "history": {
-            "top": 205,
-            "bottom": 477,
+            "top": 153,
+            "bottom": 340,
             "width": 1382,
-            "height": 272
+            "height": 187
+          },
+          "verdict": {
+            "top": 356,
+            "bottom": 457,
+            "width": 1382,
+            "height": 101
           },
           "candidates": {
-            "top": 547,
-            "bottom": 814,
+            "top": 467,
+            "bottom": 736,
             "width": 1382,
-            "height": 266
+            "height": 269
           },
           "historyCard": {
-            "top": 279,
-            "bottom": 465,
-            "width": 176,
-            "height": 186
+            "top": 214,
+            "bottom": 331,
+            "width": 76,
+            "height": 117
           },
-          "candidateCard": {
-            "top": 547,
-            "bottom": 814,
-            "width": 240,
-            "height": 266
+          "candidateCards": [
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            },
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            },
+            {
+              "top": 467,
+              "bottom": 736,
+              "width": 451,
+              "height": 269
+            }
+          ],
+          "candidateArt": {
+            "top": 544,
+            "bottom": 665,
+            "width": 88,
+            "height": 121
           },
-          "candidateFace": {
-            "top": 637,
-            "bottom": 756,
-            "width": 95,
-            "height": 119
-          },
+          "chooseButtons": [
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            },
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            },
+            {
+              "top": 673,
+              "bottom": 721,
+              "width": 421,
+              "height": 48
+            }
+          ],
           "scrollY": 0
         }
       ],
@@ -339,13 +589,13 @@
           "width": 1024,
           "height": 768,
           "history": {
-            "top": 194,
-            "bottom": 432,
+            "top": 147,
+            "bottom": 334,
             "width": 983
           },
           "completion": {
-            "top": 492,
-            "bottom": 688,
+            "top": 336,
+            "bottom": 532,
             "width": 983
           },
           "scrollY": 0
@@ -354,13 +604,13 @@
           "width": 1440,
           "height": 900,
           "history": {
-            "top": 205,
-            "bottom": 477,
+            "top": 153,
+            "bottom": 340,
             "width": 1382
           },
           "completion": {
-            "top": 547,
-            "bottom": 744,
+            "top": 346,
+            "bottom": 542,
             "width": 1382
           },
           "scrollY": 0

@@ -92,8 +92,6 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .history-row { flex-wrap: wrap; font-size: 14px; }
 .status { font-size: 12px; }
 .history-actions { flex-wrap: wrap; }
-.history-actions #reset { min-height: 44px; padding: 9px 16px; border: 1px solid #a94f3d; border-radius: 9px; background: #fff1ec; color: #8c3024; font-weight: 800; }
-.history-actions #reset:hover { background: #fce2da; }
 .empty-state, .confidence small, .knowledge-note, .formula p { font-size: 13px; }
 .formula code { background: #f0f3ed; white-space: normal; overflow-wrap: anywhere; }
 .reward-table { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); }
@@ -176,6 +174,11 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .archive-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; }
 .archive-actions label { display: grid; gap: 5px; font-weight: 700; }
 .archive-actions input { max-width: 100%; font-size: 12px; }
+.archive-sync { margin: 0 0 14px; padding: 0 0 12px; border-bottom: 1px solid var(--border); }
+.archive-sync p { margin: 0 0 6px; }
+.archive-sync .archive-actions { margin: 10px 0 8px; }
+.real-score-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.real-score-actions .new-game-action { min-height: 44px; padding: 10px 18px; font-size: 16px; }
 .decision-panel { flex-direction: column; align-items: start; background: #f9f5ea; }
 @media (max-width: 1199px) {
   .layout { grid-template-columns: 1fr; }
@@ -286,7 +289,6 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 }
 .history-row { gap: 12px; padding: 14px; }
 .history-actions { gap: 12px 16px; }
-.history-actions #reset { margin-left: auto; }
 
 @media (min-width: 600px) and (max-width: 679px) {
   .candidate-grid { grid-template-columns: repeat(2, minmax(0, 200px)); }
@@ -332,8 +334,12 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 .history-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .history-actions .turn-counter { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 4px 10px; border-radius: 999px; background: var(--surface-subtle); color: var(--text); font-weight: 700; white-space: nowrap; }
 .history-actions .secondary-action { min-height: 40px; padding: 6px 10px; white-space: nowrap; }
-.clear-run-action { min-height: 44px; padding: 7px 12px; border: 1px solid #a94f3d; border-radius: 9px; background: #fff8f5; color: #8c3024; font-size: 16px; font-weight: 700; white-space: nowrap; }
-.clear-run-action:hover { background: #fce8e1; }
+/* Clearing the run affects the whole game, so it sits with the run score in the header,
+   away from the confirmed-card section actions. The 3:1 border keeps it readable as a button. */
+.run-status { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px 12px; }
+.clear-run-action { min-height: 44px; padding: 8px 14px; border: 1px solid #b87566; border-radius: 9px; background: transparent; color: #8c3024; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.clear-run-action:hover { border-color: #a94f3d; background: #fff3ee; }
+@media (max-width: 900px) { .run-status { width: 100%; justify-content: flex-start; } }
 .history-hint { margin: 0 0 8px; line-height: 1.45; }
 .history-list { display: grid; grid-template-columns: repeat(5, minmax(0, 176px)); justify-content: start; align-items: stretch; gap: 10px; }
 .history-row { display: grid; grid-template-rows: auto auto; align-content: start; gap: 4px; width: 100%; max-width: 176px; min-width: 0; padding: 7px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); }
@@ -440,7 +446,6 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
   .candidate-card:not(.pending-card) > .metric-row { grid-column: 2; grid-row: auto; }
   .candidate-card:not(.pending-card) > .choose-card { grid-column: 1 / -1; grid-row: auto; }
   .candidate-risk-grid { grid-template-columns: 1fr; }
-  .clear-run-action { margin-left: auto; white-space: normal; }
   .workspace-heading { align-items: flex-start; }
 }
 .pending-card > .candidate-slot-button.card-face { padding-top: 16px; }
@@ -491,7 +496,6 @@ label, .segmented button, .secondary-action, .text-action, .choose-card, .edit-c
 /* Keep the PC workbench inside the first viewport without stretching artwork. */
 .history-card-summary > .game-card { width: 70px; }
 .history-list { padding-block: 12px; }
-@media (max-width: 599px) { .clear-run-action { margin-left: 0; } }
 @media (min-width: 1000px) {
   .goal-settings .control-bar { align-items: center; gap: 12px; padding: 5px 12px; }
   .goal-settings .control-group { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; min-width: 0; }

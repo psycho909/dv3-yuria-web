@@ -3,7 +3,7 @@ import {
   type CardColor, type CardId, type GameState, type Objective, type OfferedCard, type SelectedCard
 } from "./domain";
 import {
-  createGameRecord, exportEnvelope, importGames, isValidGameRecord, listGames, parseExport, saveGame, summarizeRealGames,
+  createGameRecord, exportEnvelope, gamesNeedingUpload, importGames, isValidGameRecord, listGames, mergeGames, parseExport, saveGame, saveGames, summarizeRealGames,
   type EvidenceLevel, type RealGameRecordV1, type RealRound
 } from "./real-game-record";
 import { currentCloudUser, downloadRecordedGames, signInWithGitHub, signOutCloud, uploadRecordedGame, watchCloudAuth } from "./cloud-games";
@@ -36,6 +36,7 @@ let result: ReturnType<typeof recommend> | null = null;
 let pendingChoice: OfferedCard | null = null;
 let pendingOutcome: "success" | "failure" | null = null;
 let resetConfirmationOpen = false;
+let resetReturnFocus = "#reset";
 let pendingTowerProc: boolean | null = null;
 let pendingRemovedCardId: CardId | null = null;
 type TurnSnapshot = { state: GameState; starTargets: Array<CardId | null> };
@@ -72,7 +73,14 @@ let recordSaveQueue: Promise<void> = Promise.resolve();
 let scoreEditing = false;
 let pendingChoiceSource: "candidate" | "manual" | null = null;
 let cloudUser: User | null = null;
-let cloudStatus = "GitHub 登入設定完成後可跨裝置同步；本機紀錄不需登入。";
+let cloudStatus = "尚未登入；本機紀錄照常使用。";
+// Cloud copies known from the last sync: game id -> cloud revision. null until a sync succeeds.
+let cloudRevisions: Map<string, number> | null = null;
+let cloudConflictIds = new Set<string>();
+let cloudSkipped = 0;
+let cloudSyncedAt: string | null = null;
+let cloudBusy = false;
+let cloudSyncRun: Promise<void> | null = null;
 const detailOpen = new Map<string, boolean>();
 
 const STORAGE_KEY = "yuria-web-session-v1";
@@ -333,7 +341,7 @@ function render() {
   app.innerHTML = `<main class="shell ${layoutMode === "narrow" ? "layout-narrow" : "layout-full"}">
     <header class="header">
       <div><p class="eyebrow">YURIA / 選牌助手</p><h1>尤里亞的占卜計算器</h1><p class="subhead">填入三張牌 → 比較推薦 → 記錄遊戲結果</p></div>
-      <div class="header-meta" ${state.selected.length ? "" : "hidden"}><span>${starPending ? "星星待結算，暫估平均" : "目前估算平均"}</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div>
+      <div class="run-status" ${state.selected.length || candidates.some(Boolean) ? "" : "hidden"}><div class="header-meta" ${state.selected.length ? "" : "hidden"}><span>${starPending ? "星星待結算，暫估平均" : "目前估算平均"}</span><strong class="score-total">${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong><span>分</span></div><button type="button" class="clear-run-action" id="reset">清空本局，重新開始</button></div>
     </header>
     ${restoredSession ? `<div class="restored-note" role="status"><span>已恢復這台裝置上的上一局資料。</span><button type="button" class="text-action" id="dismiss-restored">知道了</button></div>` : ""}
     <ol class="workflow" aria-label="操作順序">
@@ -347,12 +355,12 @@ function render() {
       <button class="primary-action" id="calculate" aria-live="polite" ${!candidatesReady() || state.selected.length === 5 || calculationStatus === "calculating" || targetError ? "disabled" : ""}>${calculationStatus === "error" ? "重試計算" : calculationStatus === "calculating" ? "計算中…" : "更新推薦"}</button>
     </section></details>
     <div class="layout">
-      <section class="panel history-panel" aria-labelledby="history-title"><div class="section-heading history-heading"><button type="button" class="clear-run-action" id="reset">清空本局，重新開始</button><div><p class="eyebrow">CURRENT RUN</p><h2 id="history-title">已確定卡片</h2></div><div class="history-actions"><span class="turn-counter" aria-label="已確定 ${state.selected.length} 張，共 5 張">${state.selected.length} / 5</span><button type="button" class="secondary-action" id="undo" ${state.selected.length ? "" : "hidden"}>撤回上一回合</button><button type="button" class="secondary-action" id="add-history" ${state.selected.length < 5 && !targetError ? "" : "hidden"}>＋ 補登已玩卡片</button></div></div>
+      <section class="panel history-panel" aria-labelledby="history-title"><div class="section-heading history-heading"><div><p class="eyebrow">CURRENT RUN</p><h2 id="history-title">已確定卡片</h2></div><div class="history-actions"><span class="turn-counter" aria-label="已確定 ${state.selected.length} 張，共 5 張">${state.selected.length} / 5</span><button type="button" class="secondary-action" id="undo" ${state.selected.length ? "" : "hidden"}>撤回上一回合</button><button type="button" class="secondary-action" id="add-history" ${state.selected.length < 5 && !targetError ? "" : "hidden"}>＋ 補登已玩卡片</button></div></div>
         <p class="history-hint">${state.selected.length ? "按「更正記錄」可調整顏色與結果；如要重做最後一步，使用「撤回上一回合」。" : "新牌局不用補登，直接填下方候選牌；接續牌局才需要補登。"}</p><div class="history-list">${renderHistory()}</div>
       </section>
       <section class="workspace"><div class="workspace-heading"><div><p class="eyebrow">第 ${state.turn} / 5 回合</p><h2>${workspaceTitle}</h2></div><span class="calculation-time" aria-live="polite">${statusText}</span></div>
         ${renderStarResolution()}
-        ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>可撤回上一回合修正，或清空本局重新開始。</p></section>` : `<div class="candidate-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
+        ${state.selected.length === 5 ? `<section class="panel completion"><h3 id="completion-title" tabindex="-1">五回合已記錄</h3><p>目前模型估算平均 ${scoreSummary.meanScore.toLocaleString(undefined, { maximumFractionDigits: 1 })} 分（P10 ${scoreSummary.p10.toLocaleString()}～P90 ${scoreSummary.p90.toLocaleString()}）；${scoreMethod}，隨機效果與祝福可能使遊戲結果不同。</p><p>${currentRecord?.status === "recorded" ? "要修正可撤回上一回合；要開下一局，按下方「開始新的一局」。" : "要修正可撤回上一回合；確認無誤後再紀錄本局。"}</p></section>` : `<div class="candidate-grid">${resultReady ? candidates.map((candidate, slotIndex) => { const metric = ranked.find(item => item.candidate.cardId === candidate?.cardId); if (!metric) return ""; const rank = ranked.findIndex(item => item.candidate.cardId === candidate?.cardId) + 1; return renderCandidate(slotIndex, metric, rank); }).join("") : candidates.map((candidate, index) => renderPendingCandidate(index, candidate)).join("")}</div>`}
         ${renderActualScorePanel()}
         ${resultReady ? renderCandidateRiskDetails() : ""}
         <section class="decision-panel panel ${resultReady ? "" : "pending-decision"}" ${state.selected.length === 5 ? "hidden" : ""}><div><p class="eyebrow">${resultReady ? "選牌建議" : calculationStatus === "error" ? "計算錯誤" : calculationStatus === "calculating" ? "正在計算" : "操作提示"}</p><h2>${resultReady ? (fallback ? exactZero ? "依目前模型，達標機率為 0%" : "達標率皆為零，改看預期分數" : "依你的目標比較推薦") : calculationStatus === "error" ? "輸入已保留，請重試" : calculationStatus === "calculating" ? "正在整理三張牌的比較結果" : "先選擇本回合三張候選牌"}</h2><p>${resultReady ? (fallback ? exactZero ? "目前精確模型沒有支援達標的結果，系統仍以預期最終分數最高者排序。" : "目前抽樣沒有達到目標，系統改以預期最終分數最高者排序。" : "先在遊戲中選牌，再按「選擇這張」記錄啟用結果。") : calculationStatus === "error" ? calculationError : calculationStatus === "calculating" ? "計算完成後會在原本的候選槽顯示指標，不會改變牌的順序。" : candidateInputHint()}</p></div>${resultReady && bestMean ? `<div class="decision-values"><div><span>目前目標推薦</span><strong>${esc(CARDS[result!.ranked[0]!.candidate.cardId].name)}／${colorLabel[result!.ranked[0]!.candidate.color]}</strong></div><div><span>預期分數最高</span><strong>${esc(CARDS[bestMean.candidate.cardId].name)}／${colorLabel[bestMean.candidate.color]}</strong></div></div>` : calculationStatus === "error" ? `<button type="button" class="secondary-action retry-action" id="retry-calculation">重新計算</button>` : ""}</section>
@@ -361,7 +369,6 @@ function render() {
         <details class="advanced-settings" data-detail-key="advanced-settings"${detailAttribute("advanced-settings")}><summary>進階設定 · 版面寬度與模擬次數</summary><div class="advanced-fields"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div><label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label></div></details>
         <details class="supplement"><summary>查看統計與實測</summary>${renderEvidencePanel()}</details>
         <details class="supplement real-archive" data-detail-key="real-archive"${detailAttribute("real-archive")}><summary>真實牌局紀錄</summary><section class="panel real-archive-panel"><p id="record-save-status" role="status">${esc(archiveSaveState)}</p><div id="real-archive-body">${renderArchiveBody()}</div></section></details>
-        <details class="supplement" data-detail-key="cloud-games"${detailAttribute("cloud-games")}><summary>GitHub 登入與跨裝置紀錄</summary><section class="panel cloud-panel"><p>${cloudUser ? `已登入 ${esc(cloudUser.email ?? cloudUser.id)}` : "尚未登入；本機牌局仍可照常使用。"}</p><p id="cloud-status" role="status">${esc(cloudStatus)}</p><div class="archive-actions">${cloudUser ? `<button type="button" class="secondary-action" id="download-cloud-games">載入雲端牌局</button><button type="button" class="secondary-action" id="upload-current-game" ${currentRecord?.status === "recorded" ? "" : "disabled"}>同步本局</button><button type="button" class="text-action" id="cloud-sign-out">登出</button>` : `<button type="button" class="secondary-action" id="cloud-sign-in">使用 GitHub 登入</button>`}</div><small>只有按下「紀錄本局」的完整牌局會儲存；登入後的新紀錄會同步，舊資料可自行匯出或逐局核對。</small></section></details>
         <details class="panel data-panel"><summary>資料可信度與模型限制</summary>
           <div class="confidence"><div><span class="confidence-icon verified">✓</span><p><strong>22 張牌資料</strong><small>使用者提供並記錄</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>未驗證出牌分布</strong><small>類別內暫採等權</small></p></div><div><span class="confidence-icon warning">△</span><p><strong>紅色抽樣模型</strong><small>整數預設；1648 暗示連續值</small></p></div><div><span class="confidence-icon muted">—</span><p><strong>Jev 僅語意路由</strong><small>不參與數學計算</small></p></div></div>
         </details>
@@ -479,7 +486,7 @@ function calculate() {
 function renderResetDialog() {
   return resetConfirmationOpen ? `<dialog class="picker-dialog outcome-dialog reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description">
     <p class="eyebrow">RESET CURRENT GAME</p><h2 id="reset-title">要清空本局並重新開始嗎？</h2>
-    <p id="reset-description">這會清除本局已確定卡片、三張候選牌與尚未儲存的進度。已按「紀錄本局」儲存的牌局會保留。</p>
+    <p id="reset-description">${currentRecord?.status === "recorded" ? "本局已紀錄，不會被刪除；清空的是畫面上的已確定卡片與候選牌。" : "這會清除本局已確定卡片、三張候選牌與尚未儲存的進度。已按「紀錄本局」儲存的牌局會保留。"}</p>
     <div class="reset-actions"><button type="button" class="secondary-action" data-reset-cancel autofocus>保留本局</button><button type="button" class="danger-action" data-reset-confirm>清空本局，重新開始</button></div>
   </dialog>` : "";
 }
@@ -504,7 +511,7 @@ function resetCurrentGame() {
 function closeResetConfirmation() {
   resetConfirmationOpen = false;
   render();
-  app.querySelector<HTMLElement>("#reset")?.focus();
+  app.querySelector<HTMLElement>(resetReturnFocus)?.focus();
 }
 
 function applyPickerChoice(cardId: CardId, color: CardColor) {
@@ -537,12 +544,15 @@ function bindEvents() {
   app.querySelector<HTMLButtonElement>("#calculate")?.addEventListener("click", calculate);
   app.querySelector<HTMLButtonElement>("#retry-calculation")?.addEventListener("click", calculate);
   app.querySelector<HTMLButtonElement>("#dismiss-restored")?.addEventListener("click", () => { restoredSession = false; render(); });
-  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => {
+  const openResetConfirmation = (trigger: string) => {
     if (state.selected.length || candidates.some(Boolean)) {
+      resetReturnFocus = trigger;
       resetConfirmationOpen = true;
       render();
     } else resetCurrentGame();
-  });
+  };
+  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => openResetConfirmation("#reset"));
+  app.querySelector<HTMLButtonElement>("[data-reset-open]")?.addEventListener("click", () => openResetConfirmation("[data-reset-open]"));
   app.querySelector<HTMLButtonElement>("[data-reset-cancel]")?.addEventListener("click", closeResetConfirmation);
   app.querySelector<HTMLButtonElement>("[data-reset-confirm]")?.addEventListener("click", resetCurrentGame);
   app.querySelector<HTMLButtonElement>("#undo")?.addEventListener("click", () => {
@@ -595,7 +605,7 @@ function bindEvents() {
     currentRecord.completedAt = new Date().toISOString();
     currentRecord.updatedAt = currentRecord.completedAt;
     scoreEditing = false;
-    archiveNotice = "已按你的操作紀錄本局；沒有自動上傳。";
+    archiveNotice = cloudUser ? "已紀錄本局，並會同步到你的雲端帳號。" : "已紀錄本局，存在這台裝置；登入 GitHub 後可上傳到雲端。";
     persistSession();
     queueRecordSave();
     render();
@@ -608,24 +618,92 @@ function bindEvents() {
 
 function bindCloudEvents() {
   app.querySelector<HTMLButtonElement>("#cloud-sign-in")?.addEventListener("click", async () => {
-    try { cloudStatus = "正在前往 GitHub 登入…"; render(); await signInWithGitHub(); }
-    catch (error) { cloudStatus = error instanceof Error ? error.message : "無法開始 GitHub 登入"; render(); }
+    try { cloudStatus = "正在前往 GitHub 登入…"; refreshArchiveBody(); await signInWithGitHub(); }
+    catch (error) { cloudStatus = `無法開始 GitHub 登入：${errorMessage(error)}`; refreshArchiveBody(); }
   });
   app.querySelector<HTMLButtonElement>("#cloud-sign-out")?.addEventListener("click", async () => {
-    try { await signOutCloud(); cloudUser = null; cloudStatus = "已登出；本機紀錄仍保留。"; render(); }
-    catch (error) { cloudStatus = error instanceof Error ? error.message : "登出失敗"; render(); }
+    try { await signOutCloud(); cloudUser = null; resetCloudState(); cloudStatus = "已登出；這台裝置上的紀錄仍保留。"; }
+    catch (error) { cloudStatus = `登出失敗：${errorMessage(error)}`; }
+    refreshArchiveBody();
   });
-  app.querySelector<HTMLButtonElement>("#download-cloud-games")?.addEventListener("click", async () => {
-    try { const games = await downloadRecordedGames(); const count = await importGames(games); archiveGames = await listGames(); cloudStatus = `雲端 ${games.length} 局；新增 ${count.added} 局，略過相同 ${count.skipped} 局。`; }
-    catch (error) { cloudStatus = error instanceof Error ? error.message : "載入雲端牌局失敗"; }
-    render();
-  });
-  app.querySelector<HTMLButtonElement>("#upload-current-game")?.addEventListener("click", async () => {
-    if (!cloudUser || currentRecord?.status !== "recorded") return;
-    try { await uploadRecordedGame(currentRecord, cloudUser); cloudStatus = "本局已同步至你的雲端帳號。"; }
-    catch (error) { cloudStatus = error instanceof Error ? error.message : "本局同步失敗；本機紀錄仍保留。"; }
-    render();
-  });
+  app.querySelector<HTMLButtonElement>("#cloud-sync")?.addEventListener("click", () => { void syncCloudGames(); });
+  app.querySelector<HTMLButtonElement>("#upload-pending-games")?.addEventListener("click", () => { void uploadPendingGames(); });
+}
+
+// Supabase errors are plain objects with a message, not always Error instances.
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return typeof error === "object" && error !== null && "message" in error ? String(error.message) : "未知錯誤";
+}
+
+function resetCloudState() {
+  cloudRevisions = null;
+  cloudConflictIds = new Set();
+  cloudSkipped = 0;
+  cloudSyncedAt = null;
+}
+
+/** Applies a sign-in change once per user, then merges that player's cloud games automatically. */
+function handleCloudUser(user: User | null) {
+  if (user?.id === cloudUser?.id) return;
+  cloudUser = user;
+  resetCloudState();
+  cloudStatus = user ? "已登入，正在同步雲端紀錄…" : "尚未登入；本機紀錄照常使用。";
+  refreshArchiveBody();
+  if (user) void syncCloudGames();
+}
+
+/** Downloads the signed-in player's games and merges them into the local archive. Only one run at a time. */
+function syncCloudGames(): Promise<void> {
+  const owner = cloudUser;
+  if (!owner) return Promise.resolve();
+  if (cloudSyncRun) return cloudSyncRun;
+  cloudBusy = true;
+  cloudStatus = "正在同步雲端紀錄…";
+  refreshArchiveBody();
+  cloudSyncRun = (async () => {
+    try {
+      await recordSaveQueue; // let pending local saves and uploads finish first
+      const { games: remote, skipped } = await downloadRecordedGames();
+      if (cloudUser?.id !== owner.id) return; // signed out during the download
+      const merge = mergeGames(await listGames(), remote);
+      await saveGames(merge.toStore);
+      archiveGames = await listGames();
+      cloudRevisions = new Map(remote.map(game => [game.id, game.revision]));
+      cloudConflictIds = new Set(merge.conflictIds);
+      cloudSkipped = skipped;
+      cloudSyncedAt = new Date().toISOString();
+      cloudStatus = merge.toStore.length ? `已從雲端取回 ${merge.toStore.length} 局。` : "已同步，雲端沒有新的牌局。";
+    } catch (error) {
+      cloudStatus = `雲端同步失敗，這台裝置的紀錄照常可用：${errorMessage(error)}`;
+    } finally {
+      cloudBusy = false;
+      cloudSyncRun = null;
+      refreshArchiveBody();
+    }
+  })();
+  return cloudSyncRun;
+}
+
+/** Uploads recorded games that the cloud lacks or holds at an older revision, only after the player asks. */
+async function uploadPendingGames() {
+  const owner = cloudUser;
+  if (!owner || !cloudRevisions || cloudBusy) return;
+  const pending = gamesNeedingUpload(archiveGames, cloudRevisions, cloudConflictIds);
+  if (!pending.length) return;
+  cloudBusy = true;
+  cloudStatus = `正在上傳 ${pending.length} 局…`;
+  refreshArchiveBody();
+  let failed = 0;
+  for (const game of pending) {
+    try {
+      await uploadRecordedGame(game, owner);
+      if (cloudUser?.id === owner.id) cloudRevisions?.set(game.id, game.revision);
+    } catch { failed++; }
+  }
+  cloudBusy = false;
+  cloudStatus = failed ? `已上傳 ${pending.length - failed} 局；${failed} 局失敗，本機紀錄保留，可再按一次上傳。` : `已上傳 ${pending.length} 局到你的雲端帳號。`;
+  refreshArchiveBody();
 }
 
 function bindArchiveEvents() {
@@ -665,7 +743,7 @@ function renderActualScorePanel() {
   const summary = summarizeScore(state.selected, currentRecord?.rulesSnapshot ?? RULES);
   const modelScore = Math.round(summary.meanScore);
   const range = summary.minScore === summary.maxScore ? "" : `（可能 ${summary.minScore}–${summary.maxScore} 分；非實得分數）`;
-  if (currentRecord?.status === "recorded" && !scoreEditing) return `<section class="real-score-panel panel"><h3>本局已記錄</h3><p>模型估算平均 ${summary.meanScore.toFixed(1)} 分；${currentRecord.actualFinalScore !== null ? `遊戲實得 ${currentRecord.actualFinalScore.toLocaleString()} 分` : currentRecord.modelFinalScore != null ? `模型計算 ${currentRecord.modelFinalScore.toLocaleString()} 分${range}，實得分數未填` : "實得分數未填"}。</p><button type="button" class="secondary-action" id="edit-actual-score">更正本局紀錄</button></section>`;
+  if (currentRecord?.status === "recorded" && !scoreEditing) return `<section class="real-score-panel panel"><h3>本局已記錄</h3><p>模型估算平均 ${summary.meanScore.toFixed(1)} 分；${currentRecord.actualFinalScore !== null ? `遊戲實得 ${currentRecord.actualFinalScore.toLocaleString()} 分` : currentRecord.modelFinalScore != null ? `模型計算 ${currentRecord.modelFinalScore.toLocaleString()} 分${range}，實得分數未填` : "實得分數未填"}。</p><div class="real-score-actions"><button type="button" class="secondary-action" id="edit-actual-score">更正本局紀錄</button><button type="button" class="primary-action new-game-action" data-reset-open>開始新的一局</button></div></section>`;
   return `<section class="real-score-panel panel"><h3>紀錄這一局</h3><p>五回合已完成；按下「紀錄本局」才加入本機紀錄。實得分數留白時，另記模型計算 ${modelScore.toLocaleString()} 分${range}，不當作實得分數。</p><form id="actual-score-form"><label>遊戲實得分數（可留空） <input id="actual-final-score" type="number" min="0" step="1" value="${scoreEditing && currentRecord?.actualFinalScore !== null ? currentRecord?.actualFinalScore ?? "" : ""}" /></label><label>實得分數的證據來源 <select id="score-evidence"><option value="player_report">玩家回報</option><option value="screen_verified">已核對遊戲畫面</option></select></label><button class="primary-action" type="submit">紀錄本局</button>${scoreEditing ? `<button class="text-action" type="button" id="cancel-score-edit">取消更正</button>` : ""}</form></section>`;
 }
 
@@ -679,19 +757,48 @@ function wilsonInterval(success: number, total: number): string {
   return `${Math.round((center - spread) * 100)}–${Math.round((center + spread) * 100)}%`;
 }
 
+function cloudLabel(game: RealGameRecordV1) {
+  if (!cloudUser || !cloudRevisions) return "";
+  if (cloudConflictIds.has(game.id)) return " · 兩邊內容不同";
+  const remote = cloudRevisions.get(game.id);
+  return remote === undefined ? " · 只在這台裝置" : remote < game.revision ? " · 更正未上傳" : " · 已同步";
+}
+
+function renderCloudSync() {
+  if (!cloudUser) return `<div class="archive-sync"><p><strong>資料來源：這台裝置</strong><br>登入 GitHub 後，會自動合併你存在雲端的牌局。</p><p id="cloud-status" role="status">${esc(cloudStatus)}</p><div class="archive-actions"><button type="button" class="secondary-action" id="cloud-sign-in">使用 GitHub 登入</button></div></div>`;
+  const revisions = cloudRevisions;
+  const recorded = archiveGames.filter(game => game.status === "recorded");
+  const pending = revisions ? gamesNeedingUpload(archiveGames, revisions, cloudConflictIds) : [];
+  const syncedTime = cloudSyncedAt ? new Date(cloudSyncedAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" }) : "";
+  const counts = revisions
+    ? `共 ${recorded.length} 局：雲端 ${revisions.size} 局、只在這台裝置 ${recorded.filter(game => !revisions.has(game.id)).length} 局${syncedTime ? `；上次同步 ${syncedTime}` : ""}。`
+    : "還沒同步雲端。";
+  const notes = [
+    pending.length ? `${pending.length} 局還沒上傳（只在這台裝置，或有較新的更正）。` : "",
+    cloudConflictIds.size ? `${cloudConflictIds.size} 局兩邊內容不同：保留這台裝置的版本，沒有覆寫雲端；可匯出 JSON 核對。` : "",
+    cloudSkipped ? `雲端有 ${cloudSkipped} 筆格式不相容，已略過。` : ""
+  ].filter(Boolean).map(text => `<p>${esc(text)}</p>`).join("");
+  return `<div class="archive-sync"><p><strong>資料來源：這台裝置＋雲端</strong><br>${esc(counts)}</p><p id="cloud-status" role="status">${esc(cloudStatus)}</p>${notes}
+    <div class="archive-actions"><button type="button" class="secondary-action" id="cloud-sync" aria-busy="${cloudBusy}">${cloudBusy ? "處理中…" : "重新同步"}</button>${pending.length ? `<button type="button" class="secondary-action" id="upload-pending-games">上傳這 ${pending.length} 局</button>` : ""}<button type="button" class="text-action" id="cloud-sign-out">登出</button></div>
+    <small>已登入 ${esc(cloudUser.email ?? cloudUser.id)}。按「紀錄本局」後會自動同步；更早的本機紀錄要按「上傳」才會送出。</small></div>`;
+}
+
 function renderArchiveBody() {
   const summary = summarizeRealGames(archiveGames);
   const cardRows = [...summary.clickCounts].sort((a, b) => b[1].total - a[1].total).map(([id, count]) =>
     `<li>${esc(cardName(id))}：點選 ${count.total} 次、成功 ${count.success} 次；${count.total >= 30 ? `成功率 ${Math.round(count.success / count.total * 100)}%（95% 區間 ${wilsonInterval(count.success, count.total)}）` : "樣本不足，暫不校準機率"}</li>`).join("");
   const colorText = (color: CardColor) => `${colorLabel[color]} ${summary.offerColors[color]}`;
-  const entries = archiveGames.slice(0, 12).map(game => `<li><time>${esc(game.createdAt.slice(0, 10))}</time> · ${game.rounds.length}/5 回合 · ${game.actualFinalScore !== null ? `實得 ${game.actualFinalScore} 分` : game.modelFinalScore != null ? `模型計算 ${game.modelFinalScore} 分（非實得）` : "實得分數未填"} · 修訂 ${game.revision}</li>`).join("");
-  return `<p role="status">${esc(archiveNotice)}</p><p>本機已記錄 ${summary.recordedCount} 局；有實得分數 ${summary.scoredCount} 局；模型計算分數 ${summary.modelScoredCount} 局；五回合候選齊全 ${summary.completeWithOffersCount} 局。${summary.scoredCount < 30 ? "實得分數樣本不足，不顯示個人達標率。" : `實測平均 ${summary.averageScore!.toFixed(1)} 分。`}${summary.modelScoredCount ? `模型計算平均 ${summary.modelAverageScore!.toFixed(1)} 分（不併入實測）。` : ""}</p>
+  const entries = archiveGames.slice(0, 12).map(game => `<li><time>${esc(game.createdAt.slice(0, 10))}</time> · ${game.rounds.length}/5 回合 · ${game.actualFinalScore !== null ? `實得 ${game.actualFinalScore} 分` : game.modelFinalScore != null ? `模型計算 ${game.modelFinalScore} 分（非實得）` : "實得分數未填"} · 修訂 ${game.revision}${cloudLabel(game)}</li>`).join("");
+  const storageNote = cloudUser
+    ? "紀錄存在這台瀏覽器，也會同步到你的雲端帳號；清除網站資料後，已上傳的局登入即可取回。"
+    : "資料存在這台瀏覽器；清除網站資料會遺失。可匯出 JSON 備份，或登入 GitHub 同步到雲端。";
+  return `${renderCloudSync()}<p role="status">${esc(archiveNotice)}</p><p>已記錄 ${summary.recordedCount} 局；有實得分數 ${summary.scoredCount} 局；模型計算分數 ${summary.modelScoredCount} 局；五回合候選齊全 ${summary.completeWithOffersCount} 局。${summary.scoredCount < 30 ? "實得分數樣本不足，不顯示個人達標率。" : `實測平均 ${summary.averageScore!.toFixed(1)} 分。`}${summary.modelScoredCount ? `模型計算平均 ${summary.modelAverageScore!.toFixed(1)} 分（不併入實測）。` : ""}</p>
     <p>完成局中的候選顏色紀錄：${colorText("blue")}／${colorText("purple")}／${colorText("red")}（共 ${summary.observedOffers} 張）。</p>
     <p>終局預測與實得分數差：${summary.residualCount >= 30 ? `${summary.scoreResidualMean!.toFixed(1)} 分，n=${summary.residualCount}` : `樣本不足（${summary.residualCount}/30）`}。</p>
-    <details><summary>查看點選後成功次數</summary><ul>${cardRows || "<li>尚無完整實測</li>"}</ul><small>未點選牌不計為失敗；模擬局與舊五局分數不在這裡。</small></details>
-    <details><summary>查看最近牌局</summary><ul>${entries || "<li>尚無本機牌局</li>"}</ul></details>
+    <details data-detail-key="archive-cards"${detailAttribute("archive-cards")}><summary>查看點選後成功次數</summary><ul>${cardRows || "<li>尚無完整實測</li>"}</ul><small>未點選牌不計為失敗；模擬局與舊五局分數不在這裡。</small></details>
+    <details data-detail-key="archive-recent"${detailAttribute("archive-recent")}><summary>查看最近牌局</summary><ul>${entries || "<li>尚無牌局紀錄</li>"}</ul></details>
     <div class="archive-actions"><button type="button" class="secondary-action" id="export-real-games">匯出 JSON 備份</button><label>匯入 JSON <input id="import-real-games" type="file" accept="application/json,.json" /></label></div>
-    <small>資料只儲存在此瀏覽器；清除網站資料會遺失。JSON 可自行帶到另一台電腦匯入。沒有自動上傳。</small>`;
+    <small>${storageNote}</small>`;
 }
 
 function startRecordCorrection() {
@@ -741,7 +848,17 @@ function captureChosenRound(chosen: OfferedCard, activated: boolean): RealRound 
 
 function refreshArchiveBody() {
   const body = app.querySelector<HTMLElement>("#real-archive-body");
-  if (body) { body.innerHTML = renderArchiveBody(); bindArchiveEvents(); }
+  if (body) {
+    // Background syncs redraw this panel; keep open sections and the keyboard position.
+    const active = document.activeElement instanceof HTMLElement && body.contains(document.activeElement) ? document.activeElement : null;
+    const detailKey = active?.parentElement instanceof HTMLDetailsElement ? active.parentElement.dataset.detailKey : undefined;
+    const selector = active?.id ? `#${active.id}` : detailKey ? `details[data-detail-key="${detailKey}"] > summary` : null;
+    captureDetails();
+    body.innerHTML = renderArchiveBody();
+    bindArchiveEvents();
+    bindCloudEvents();
+    if (active) ((selector ? body.querySelector<HTMLElement>(selector) : null) ?? body.querySelector<HTMLElement>("#cloud-sync, #cloud-sign-in"))?.focus();
+  }
   const status = app.querySelector<HTMLElement>("#record-save-status");
   if (status) status.textContent = archiveSaveState;
 }
@@ -757,10 +874,12 @@ function queueRecordSave() {
     archiveSaveState = "已儲存於這台裝置";
     refreshArchiveBody();
     if (cloudOwner) {
-      try { await uploadRecordedGame(snapshot, cloudOwner); cloudStatus = "本局已同步至你的雲端帳號。"; }
-      catch (error) { cloudStatus = `本機已儲存；雲端同步失敗：${error instanceof Error ? error.message : "未知錯誤"}`; }
-      const cloudNode = app.querySelector<HTMLElement>("#cloud-status");
-      if (cloudNode) cloudNode.textContent = cloudStatus;
+      try {
+        await uploadRecordedGame(snapshot, cloudOwner);
+        if (cloudUser?.id === cloudOwner.id) cloudRevisions?.set(snapshot.id, snapshot.revision);
+        cloudStatus = "本局已同步至你的雲端帳號。";
+      } catch (error) { cloudStatus = `本機已儲存；雲端同步失敗，可稍後按「上傳」：${errorMessage(error)}`; }
+      refreshArchiveBody();
     }
   }).catch(() => {
     archiveSaveState = "牌局資料庫儲存失敗；請先匯出 JSON，避免資料遺失。";
@@ -907,6 +1026,7 @@ loadSession();
 syncCurrentRecord();
 render();
 void loadArchive();
-watchCloudAuth(user => { cloudUser = user; cloudStatus = user ? "已登入；新紀錄會在按下紀錄本局後同步。" : "尚未登入；本機紀錄仍可照常使用。"; render(); });
-void currentCloudUser().then(user => { if (user?.id !== cloudUser?.id) { cloudUser = user; render(); } }).catch(() => {});
+watchCloudAuth(handleCloudUser);
+// getUser() can fail offline; only let it confirm a session, never clear one (the auth listener reports sign-outs).
+void currentCloudUser().then(user => { if (user) handleCloudUser(user); }).catch(() => {});
 if (state.selected.length < 5 && candidatesReady()) calculate();

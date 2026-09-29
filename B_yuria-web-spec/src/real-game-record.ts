@@ -181,6 +181,49 @@ export function summarizeRealGames(games: RealGameRecordV1[]) {
     residualCount: predictions.length, clickCounts, offerColors, observedOffers };
 }
 
+/** Key-sorted JSON. Supabase jsonb does not keep key order, so plain JSON.stringify cannot compare records. */
+export function canonicalJson(value: unknown): string {
+  return JSON.stringify(value, (_key, item: unknown) => record(item)
+    ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]]))
+    : item);
+}
+
+/** Same game and same version: id, revision, and content (ignoring key order) all match. */
+export function sameGameRecord(a: RealGameRecordV1, b: RealGameRecordV1): boolean {
+  return a.id === b.id && a.revision === b.revision && canonicalJson(a) === canonicalJson(b);
+}
+
+export interface GameMergeResult {
+  /** Every game the local archive should hold after the merge, newest update first. */
+  games: RealGameRecordV1[];
+  /** Cloud copies to write locally: missing here, or a higher cloud revision. */
+  toStore: RealGameRecordV1[];
+  /** Same revision with different content. Neither side is overwritten; the local copy stays. */
+  conflictIds: string[];
+}
+
+/** Merges local and cloud games. Pure: no storage or network access. */
+export function mergeGames(local: RealGameRecordV1[], cloud: RealGameRecordV1[]): GameMergeResult {
+  const byId = new Map(local.map(game => [game.id, game]));
+  const toStore: RealGameRecordV1[] = [];
+  const conflictIds: string[] = [];
+  for (const remote of cloud) {
+    const mine = byId.get(remote.id);
+    if (mine && sameGameRecord(mine, remote)) continue;
+    if (!mine || remote.revision > mine.revision) {
+      byId.set(remote.id, remote);
+      toStore.push(remote);
+    } else if (remote.revision === mine.revision) conflictIds.push(remote.id);
+    // A newer local revision stays local; gamesNeedingUpload lists it for upload.
+  }
+  return { games: [...byId.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), toStore, conflictIds };
+}
+
+/** Recorded games that the cloud lacks or holds at an older revision. Conflicts are excluded so nothing is overwritten. */
+export function gamesNeedingUpload(games: RealGameRecordV1[], cloudRevisions: ReadonlyMap<string, number>, conflictIds: ReadonlySet<string> = new Set()): RealGameRecordV1[] {
+  return games.filter(game => game.status === "recorded" && !conflictIds.has(game.id) && (cloudRevisions.get(game.id) ?? -1) < game.revision);
+}
+
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -199,16 +242,23 @@ export async function listGames(): Promise<RealGameRecordV1[]> {
   }); } finally { db.close(); }
 }
 
-export async function saveGame(game: RealGameRecordV1): Promise<void> {
-  if (!isValidGameRecord(game)) throw new Error("牌局資料未通過驗證，沒有儲存。");
+/** Writes several games in one transaction; nothing is written if any game fails validation. */
+export async function saveGames(games: RealGameRecordV1[]): Promise<void> {
+  if (!games.length) return;
+  if (!games.every(game => isValidGameRecord(game))) throw new Error("牌局資料未通過驗證，沒有儲存。");
   const db = await openDatabase();
   try { await new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(game);
+    const store = transaction.objectStore(STORE_NAME);
+    for (const game of games) store.put(game);
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
     transaction.onabort = () => reject(transaction.error);
   }); } finally { db.close(); }
+}
+
+export async function saveGame(game: RealGameRecordV1): Promise<void> {
+  await saveGames([game]);
 }
 
 export async function importGames(games: RealGameRecordV1[]): Promise<{ added: number; skipped: number }> {
@@ -217,7 +267,7 @@ export async function importGames(games: RealGameRecordV1[]): Promise<{ added: n
   const existing = new Map((await listGames()).map(game => [game.id, game]));
   for (const game of games) {
     const prior = existing.get(game.id);
-    if (prior && JSON.stringify(prior) !== JSON.stringify(game)) throw new Error(`牌局 ${game.id} 已存在不同版本；沒有覆寫任何資料。`);
+    if (prior && !sameGameRecord(prior, game)) throw new Error(`牌局 ${game.id} 已存在不同版本；沒有覆寫任何資料。`);
   }
   const additions = games.filter(game => !existing.has(game.id));
   if (additions.length) {

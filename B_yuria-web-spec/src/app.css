@@ -288,6 +288,21 @@ label { color: var(--ink); font-size: 14px; font-weight: 600; }
 .more-panel h3 small { margin-left: 8px; color: var(--ink-soft); font-size: 14px; font-weight: 400; }
 .more-panel p, .more-panel li { max-width: 44em; line-height: 1.6; }
 .more-panel details > summary { display: flex; align-items: center; font-size: 15px; }
+.release-notes > summary { gap: 16px; list-style: none; }
+.release-notes > summary::-webkit-details-marker { display: none; }
+.release-notes > summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.release-notes[open] > summary::after { transform: rotate(225deg); }
+.release-notes > summary:hover { background: var(--mist); }
+.release-notes > summary:active { background: var(--mist-deep); }
+.release-summary-copy { display: flex; flex: 1; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; min-width: 0; }
+.release-summary-copy small { color: var(--ink-soft); font-size: 14px; font-weight: 400; white-space: nowrap; }
+.release-list { padding: 0; margin-block: 0; list-style: none; }
+.release-list > .release-entry { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 4px 20px; max-width: none; padding-block: 16px; }
+.release-entry + .release-entry { border-top: 1px solid var(--line); }
+.release-date { color: var(--ink-soft); font-size: 14px; font-variant-numeric: tabular-nums; }
+.release-content { min-width: 0; }
+.release-content h3 { margin-block: 0 8px; }
+.release-content ul { display: grid; gap: 6px; margin: 0; padding-left: 20px; }
 .advanced-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; padding-top: 12px; }
 .real-archive-panel > #record-save-status { margin: 12px 0 0; color: var(--ink-soft); font-size: 14px; }
 .archive-sync { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
@@ -388,6 +403,7 @@ label { color: var(--ink); font-size: 14px; font-weight: 600; }
   .offer-face .game-card { width: 76px; }
 }
 @media (max-width: 599px) {
+  .release-list > .release-entry { grid-template-columns: minmax(0, 1fr); }
   .shell { padding-inline: 12px; }
   .header { flex-direction: column; align-items: stretch; gap: 8px; }
   .header-title h1 { font-size: 24px; line-height: 1.5; }

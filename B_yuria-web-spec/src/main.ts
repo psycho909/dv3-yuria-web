@@ -7,6 +7,7 @@ import {
   type EvidenceLevel, type RealGameRecordV1, type RealRound
 } from "./real-game-record";
 import { currentCloudUser, downloadRecordedGames, signInWithGitHub, signOutCloud, uploadRecordedGame, watchCloudAuth } from "./cloud-games";
+import { RELEASE_NOTES } from "./release-notes";
 import type { User } from "@supabase/supabase-js";
 import "./app.css";
 
@@ -398,6 +399,16 @@ function renderKnowledgePanels() {
       ${renderEvidencePanel()}</details>`;
 }
 
+function renderReleaseNotes() {
+  const latestDate = RELEASE_NOTES[0].date;
+  return `<details class="more-panel release-notes" id="release-notes" data-detail-key="release-notes"${detailAttribute("release-notes")}>
+    <summary id="release-notes-summary"><span class="release-summary-copy">版本更新說明<small>最近更新 <time datetime="${esc(latestDate)}">${esc(latestDate.replaceAll("-", "/"))}</time></small></span></summary>
+    <ol class="release-list" aria-label="近期版本更新">
+      ${RELEASE_NOTES.map(entry => `<li class="release-entry"><time class="release-date" datetime="${esc(entry.date)}">${esc(entry.date.replaceAll("-", "/"))}</time><div class="release-content"><h3>${esc(entry.title)}</h3><ul>${entry.changes.map(change => `<li>${esc(change)}</li>`).join("")}</ul></div></li>`).join("")}
+    </ol>
+  </details>`;
+}
+
 function renderCandidateRiskDetails() {
   if (!result) return "";
   const cards = candidates.map((candidate, index) => {
@@ -467,10 +478,11 @@ function render() {
       </section>
     </div>
     <section class="score-breakdown" aria-label="目前計分" ${state.selected.length ? "" : "hidden"}><strong>目前分數組成</strong><span>分數 ${currentScore.sum} × 倍率 ${currentScore.multiplier.toFixed(2)} × 紅色加成 ${(1 + currentScore.redBonus).toFixed(2)} = <b>${currentScore.finalScore}</b></span><small>組成列取紅色中間值；上方估算平均使用${scoreMethod}，祝福尚未納入。${starPending ? "星星移除牌尚未確認，分數暫估。" : ""}</small></section>
-    <section class="more-panels" aria-label="紀錄、牌庫與設定">
+    <section class="more-panels" aria-label="紀錄、牌庫、設定與更新說明">
       <details class="more-panel real-archive" data-detail-key="real-archive"${detailAttribute("real-archive")}><summary>真實牌局紀錄</summary><section class="real-archive-panel"><p id="record-save-status" role="status">${esc(archiveSaveState)}</p><div id="real-archive-body">${renderArchiveBody()}</div></section></details>
       ${renderKnowledgePanels()}
       <details class="more-panel advanced-settings" data-detail-key="advanced-settings"${detailAttribute("advanced-settings")}><summary>設定：版面寬度與模擬次數</summary><div class="advanced-fields"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div><label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label></div></details>
+      ${renderReleaseNotes()}
     </section>
     <footer class="footer">推薦由這台裝置上的模型計算；特殊卡、顏色級距與失敗補償已納入，尤里亞的祝福尚未納入。</footer>
     ${renderPicker()}

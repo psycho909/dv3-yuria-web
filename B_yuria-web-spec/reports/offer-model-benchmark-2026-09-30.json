@@ -1,0 +1,598 @@
+{
+  "provenance": {
+    "inputSHA256": "34149a07bfdd9d33a2a6534330f3beca9bcbf79afc3ba9c45a492e48a056523f",
+    "sourceCommit": "e94545ac73f10506d1fb00e56828b3d3e26fccaa",
+    "seed": 20260930,
+    "bootstrapSamples": 10000
+  },
+  "limitations": [
+    "Historical offers were inspected in the prior audit; this chronological holdout is exploratory, not pristine prospective evidence.",
+    "Scores, activations, colors and recommendations are not fitting targets; this benchmark cannot prove score uplift.",
+    "Likelihood marginalizes all six card orders; conditions on actual previously selected identities.",
+    "Cards within categories have equal weight; color-card dependence and changed future policy are not modeled."
+  ],
+  "splits": {
+    "train": {
+      "games": 84,
+      "rows": 420,
+      "firstAt": "2026-09-24T11:07:09.719Z",
+      "lastAt": "2026-09-29T13:21:40.249Z",
+      "engines": {
+        "b-deterministic-2026-09-23": 22,
+        "b-deterministic-2026-09-28-star-after-fifth": 8,
+        "b-deterministic-2026-09-28-one-each-color": 30,
+        "b-deterministic-2026-09-29-exact-final-step": 24
+      },
+      "missingActualScores": 7
+    },
+    "validation": {
+      "games": 28,
+      "rows": 140,
+      "firstAt": "2026-09-29T13:23:40.182Z",
+      "lastAt": "2026-09-29T14:32:12.000Z",
+      "engines": {
+        "b-deterministic-2026-09-29-exact-final-step": 28
+      },
+      "missingActualScores": 0
+    },
+    "test": {
+      "games": 28,
+      "rows": 140,
+      "firstAt": "2026-09-29T14:33:57.696Z",
+      "lastAt": "2026-09-30T05:21:25.515Z",
+      "engines": {
+        "b-deterministic-2026-09-29-exact-final-step": 28
+      },
+      "missingActualScores": 0
+    }
+  },
+  "excluded": [],
+  "chosenByValidation": "fixed-card-weights",
+  "models": [
+    {
+      "name": "production-category",
+      "family": "category",
+      "early": [
+        10,
+        10,
+        5
+      ],
+      "final": [
+        5,
+        10,
+        20
+      ],
+      "train": {
+        "n": 420,
+        "nll": 7.114271822276404,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.412115450599813
+          },
+          {
+            "turn": 2,
+            "nll": 7.283298148109352
+          },
+          {
+            "turn": 3,
+            "nll": 7.0958884778337525
+          },
+          {
+            "turn": 4,
+            "nll": 7.078525739474147
+          },
+          {
+            "turn": 5,
+            "nll": 6.701531295364969
+          }
+        ]
+      },
+      "validation": {
+        "n": 140,
+        "nll": 6.995527696609075,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.38842428416475
+          },
+          {
+            "turn": 2,
+            "nll": 7.300962435577184
+          },
+          {
+            "turn": 3,
+            "nll": 7.1388459308120344
+          },
+          {
+            "turn": 4,
+            "nll": 6.8891991021864225
+          },
+          {
+            "turn": 5,
+            "nll": 6.260206730304988
+          }
+        ]
+      },
+      "test": {
+        "n": 140,
+        "nll": 7.092117155431682,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.370539452453591
+          },
+          {
+            "turn": 2,
+            "nll": 7.266231483389381
+          },
+          {
+            "turn": 3,
+            "nll": 7.118091493749866
+          },
+          {
+            "turn": 4,
+            "nll": 6.946239010330922
+          },
+          {
+            "turn": 5,
+            "nll": 6.759484337234658
+          }
+        ]
+      },
+      "testGainVsProduction": {
+        "mean": 0,
+        "CI95": [
+          0,
+          0
+        ],
+        "bootstrapUnit": "game",
+        "n": 28
+      }
+    },
+    {
+      "name": "uniform-card",
+      "family": "card",
+      "early": [
+        1,
+        1,
+        1
+      ],
+      "final": [
+        1,
+        1,
+        1
+      ],
+      "train": {
+        "n": 420,
+        "nll": 7.030386884973363,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.339537695407673
+          },
+          {
+            "turn": 2,
+            "nll": 7.192934221215797
+          },
+          {
+            "turn": 3,
+            "nll": 7.038783541388548
+          },
+          {
+            "turn": 4,
+            "nll": 6.8762646118907575
+          },
+          {
+            "turn": 5,
+            "nll": 6.704414354964112
+          }
+        ]
+      },
+      "validation": {
+        "n": 140,
+        "nll": 7.03038688497337,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.339537695407672
+          },
+          {
+            "turn": 2,
+            "nll": 7.1929342212158005
+          },
+          {
+            "turn": 3,
+            "nll": 7.038783541388541
+          },
+          {
+            "turn": 4,
+            "nll": 6.876264611890768
+          },
+          {
+            "turn": 5,
+            "nll": 6.704414354964107
+          }
+        ]
+      },
+      "test": {
+        "n": 140,
+        "nll": 7.03038688497337,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.339537695407672
+          },
+          {
+            "turn": 2,
+            "nll": 7.1929342212158005
+          },
+          {
+            "turn": 3,
+            "nll": 7.038783541388541
+          },
+          {
+            "turn": 4,
+            "nll": 6.876264611890768
+          },
+          {
+            "turn": 5,
+            "nll": 6.704414354964107
+          }
+        ]
+      },
+      "testGainVsProduction": {
+        "mean": 0.06173027045830505,
+        "CI95": [
+          -0.05983469075339137,
+          0.18023073929891995
+        ],
+        "bootstrapUnit": "game",
+        "n": 28
+      }
+    },
+    {
+      "name": "fixed-card-weights",
+      "family": "card",
+      "early": [
+        10,
+        10,
+        5
+      ],
+      "final": [
+        5,
+        10,
+        20
+      ],
+      "train": {
+        "n": 420,
+        "nll": 6.923842299609201,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.318909866408778
+          },
+          {
+            "turn": 2,
+            "nll": 7.072607652515059
+          },
+          {
+            "turn": 3,
+            "nll": 7.057769209764224
+          },
+          {
+            "turn": 4,
+            "nll": 6.80555546185427
+          },
+          {
+            "turn": 5,
+            "nll": 6.364369307503746
+          }
+        ]
+      },
+      "validation": {
+        "n": 140,
+        "nll": 6.822779342654364,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.1645027610429945
+          },
+          {
+            "turn": 2,
+            "nll": 7.0615559958321
+          },
+          {
+            "turn": 3,
+            "nll": 6.995753872055974
+          },
+          {
+            "turn": 4,
+            "nll": 6.778426528111038
+          },
+          {
+            "turn": 5,
+            "nll": 6.113657556229699
+          }
+        ]
+      },
+      "test": {
+        "n": 140,
+        "nll": 6.965677982732922,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.241706310365922
+          },
+          {
+            "turn": 2,
+            "nll": 7.248028221279425
+          },
+          {
+            "turn": 3,
+            "nll": 7.072700529824251
+          },
+          {
+            "turn": 4,
+            "nll": 6.851123404486462
+          },
+          {
+            "turn": 5,
+            "nll": 6.414831447708532
+          }
+        ]
+      },
+      "testGainVsProduction": {
+        "mean": 0.12643917269876545,
+        "CI95": [
+          0.042425457443909985,
+          0.21336532103846112
+        ],
+        "bootstrapUnit": "game",
+        "n": 28
+      }
+    },
+    {
+      "name": "fitted-category",
+      "family": "category",
+      "early": [
+        1.9155408290138962,
+        1,
+        0.522045776761016
+      ],
+      "final": [
+        1,
+        1,
+        1.3498588075760032
+      ],
+      "fit": {
+        "early": {
+          "weights": [
+            1.9155408290138962,
+            1,
+            0.522045776761016
+          ],
+          "loss": 7.064109448005455,
+          "atBoundary": false
+        },
+        "final": {
+          "weights": [
+            1,
+            1,
+            1.3498588075760032
+          ],
+          "loss": 6.423828253921768,
+          "atBoundary": false
+        }
+      },
+      "train": {
+        "n": 420,
+        "nll": 6.93605320918872,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.316811969278392
+          },
+          {
+            "turn": 2,
+            "nll": 7.085825216391739
+          },
+          {
+            "turn": 3,
+            "nll": 7.068173226009482
+          },
+          {
+            "turn": 4,
+            "nll": 6.78562738034225
+          },
+          {
+            "turn": 5,
+            "nll": 6.423828253921768
+          }
+        ]
+      },
+      "validation": {
+        "n": 140,
+        "nll": 6.856481789408248,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.170819008201415
+          },
+          {
+            "turn": 2,
+            "nll": 7.103489503859572
+          },
+          {
+            "turn": 3,
+            "nll": 7.004851973300143
+          },
+          {
+            "turn": 4,
+            "nll": 6.804715657571668
+          },
+          {
+            "turn": 5,
+            "nll": 6.198532804108425
+          }
+        ]
+      },
+      "test": {
+        "n": 140,
+        "nll": 6.942396852396578,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.241168407144548
+          },
+          {
+            "turn": 2,
+            "nll": 7.22047175653178
+          },
+          {
+            "turn": 3,
+            "nll": 7.050658451912263
+          },
+          {
+            "turn": 4,
+            "nll": 6.837000309267601
+          },
+          {
+            "turn": 5,
+            "nll": 6.362685337126699
+          }
+        ]
+      },
+      "testGainVsProduction": {
+        "mean": 0.14972030303510395,
+        "CI95": [
+          0.06142806484025189,
+          0.24634466930481982
+        ],
+        "bootstrapUnit": "game",
+        "n": 28
+      }
+    },
+    {
+      "name": "fitted-card",
+      "family": "card",
+      "early": [
+        1.1051709180756477,
+        1,
+        0.6376281516217733
+      ],
+      "final": [
+        0.5769498103804866,
+        1,
+        1.9155408290138962
+      ],
+      "fit": {
+        "early": {
+          "weights": [
+            1.1051709180756477,
+            1,
+            0.6376281516217733
+          ],
+          "loss": 7.055266534653204,
+          "atBoundary": false
+        },
+        "final": {
+          "weights": [
+            0.5769498103804866,
+            1,
+            1.9155408290138962
+          ],
+          "loss": 6.353813973748291,
+          "atBoundary": false
+        }
+      },
+      "train": {
+        "n": 420,
+        "nll": 6.914976022472219,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.3115665752813115
+          },
+          {
+            "turn": 2,
+            "nll": 7.0820151835454945
+          },
+          {
+            "turn": 3,
+            "nll": 7.046299718551563
+          },
+          {
+            "turn": 4,
+            "nll": 6.781184661234486
+          },
+          {
+            "turn": 5,
+            "nll": 6.353813973748291
+          }
+        ]
+      },
+      "validation": {
+        "n": 140,
+        "nll": 6.835575758249963,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.189923638646344
+          },
+          {
+            "turn": 2,
+            "nll": 7.074110656269929
+          },
+          {
+            "turn": 3,
+            "nll": 6.98655673676428
+          },
+          {
+            "turn": 4,
+            "nll": 6.795777393889546
+          },
+          {
+            "turn": 5,
+            "nll": 6.131510365679701
+          }
+        ]
+      },
+      "test": {
+        "n": 140,
+        "nll": 6.95239164365191,
+        "byTurn": [
+          {
+            "turn": 1,
+            "nll": 7.2551354774358865
+          },
+          {
+            "turn": 2,
+            "nll": 7.219997162636551
+          },
+          {
+            "turn": 3,
+            "nll": 7.051919282775667
+          },
+          {
+            "turn": 4,
+            "nll": 6.84630803857421
+          },
+          {
+            "turn": 5,
+            "nll": 6.3885982568372155
+          }
+        ]
+      },
+      "testGainVsProduction": {
+        "mean": 0.1397255117797775,
+        "CI95": [
+          0.050488556988815984,
+          0.23375449289642014
+        ],
+        "bootstrapUnit": "game",
+        "n": 28
+      }
+    }
+  ]
+}

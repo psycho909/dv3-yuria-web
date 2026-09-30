@@ -1,0 +1,3354 @@
+{
+  "provenance": {
+    "exportedAt": "2026-09-30T05:23:23.120Z",
+    "sha256": "34149a07bfdd9d33a2a6534330f3beca9bcbf79afc3ba9c45a492e48a056523f",
+    "sourceCommit": "e94545ac73f10506d1fb00e56828b3d3e26fccaa",
+    "bootstrapSeed": 20260930,
+    "bootstrapSamples": 10000,
+    "offerSimulationsPerObservedRound": 1000
+  },
+  "hygiene": {
+    "total": 140,
+    "valid": 140,
+    "invalidOrdinals": [],
+    "uniqueIds": 140,
+    "actual": 133,
+    "modelOnly": 0,
+    "noScore": 7,
+    "evidence": {
+      "player_report": 133
+    },
+    "versions": {
+      "b-deterministic-2026-09-29-exact-final-step": 80,
+      "b-deterministic-2026-09-28-one-each-color": 30,
+      "b-deterministic-2026-09-28-star-after-fifth": 8,
+      "b-deterministic-2026-09-23": 22
+    },
+    "rules": {
+      "{\"failureScore\":20,\"futureColorModel\":\"oneEach\",\"redRollMode\":\"integerPercent\",\"starRemovalPolicy\":\"uniformPresent\",\"sunCountsSelf\":true}": 110,
+      "{\"failureScore\":20,\"futureColorModel\":\"independentUniform\",\"redRollMode\":\"integerPercent\",\"starRemovalPolicy\":\"uniformPresent\",\"sunCountsSelf\":true}": 30
+    },
+    "revised": 0,
+    "allOffers": 140,
+    "allPredictions": 140
+  },
+  "cohorts": {
+    "b-deterministic-2026-09-29-exact-final-step": {
+      "n": 80,
+      "mean": 1083.575,
+      "meanCI95": [
+        960.6125,
+        1210.2125
+      ],
+      "median": 1064,
+      "p10": 430,
+      "p90": 1683,
+      "min": 100,
+      "max": 3190,
+      "hits1500": 14,
+      "hitRate1500": 0.175,
+      "hitRateCI95": [
+        0.10720636440978074,
+        0.27257541978831024
+      ],
+      "hits3000": 1,
+      "targetHits": 1,
+      "targets": {
+        "1500": 2,
+        "3000": 78
+      },
+      "objectives": {
+        "threshold": 80
+      },
+      "simulations": {
+        "10000": 3,
+        "20000": 77
+      },
+      "firstAt": "2026-09-29T06:11:20.882Z",
+      "lastAt": "2026-09-30T05:21:25.515Z",
+      "allRecommendationsFollowed": 80
+    },
+    "b-deterministic-2026-09-28-one-each-color": {
+      "n": 23,
+      "mean": 1173.7391304347825,
+      "meanCI95": [
+        923.5217391304348,
+        1482.5217391304348
+      ],
+      "median": 1091,
+      "p10": 469,
+      "p90": 1568,
+      "min": 362,
+      "max": 3731,
+      "hits1500": 5,
+      "hitRate1500": 0.21739130434782608,
+      "hitRateCI95": [
+        0.09663978026586414,
+        0.4190348301626341
+      ],
+      "hits3000": 1,
+      "targetHits": 1,
+      "targets": {
+        "3000": 23
+      },
+      "objectives": {
+        "threshold": 23
+      },
+      "simulations": {
+        "20000": 23
+      },
+      "firstAt": "2026-09-28T13:29:59.926Z",
+      "lastAt": "2026-09-28T14:35:38.240Z",
+      "allRecommendationsFollowed": 23
+    },
+    "b-deterministic-2026-09-28-star-after-fifth": {
+      "n": 8,
+      "mean": 1248.125,
+      "meanCI95": [
+        845,
+        1660.125
+      ],
+      "median": 1240,
+      "p10": 204,
+      "p90": 1764,
+      "min": 204,
+      "max": 2278,
+      "hits1500": 2,
+      "hitRate1500": 0.25,
+      "hitRateCI95": [
+        0.07147921275211133,
+        0.5907245696898228
+      ],
+      "hits3000": 0,
+      "targetHits": 0,
+      "targets": {
+        "3000": 8
+      },
+      "objectives": {
+        "threshold": 8
+      },
+      "simulations": {
+        "20000": 8
+      },
+      "firstAt": "2026-09-28T08:22:46.807Z",
+      "lastAt": "2026-09-28T09:37:24.875Z",
+      "allRecommendationsFollowed": 8
+    },
+    "b-deterministic-2026-09-23": {
+      "n": 22,
+      "mean": 971.7272727272727,
+      "meanCI95": [
+        822.2272727272727,
+        1151.1818181818182
+      ],
+      "median": 875,
+      "p10": 646,
+      "p90": 1338,
+      "min": 336,
+      "max": 2220,
+      "hits1500": 1,
+      "hitRate1500": 0.045454545454545456,
+      "hitRateCI95": [
+        0.008069427621264141,
+        0.21798045838656666
+      ],
+      "hits3000": 0,
+      "targetHits": 0,
+      "targets": {
+        "1500": 2,
+        "2400": 12,
+        "3000": 8
+      },
+      "objectives": {
+        "threshold": 22
+      },
+      "simulations": {
+        "10000": 2,
+        "20000": 20
+      },
+      "firstAt": "2026-09-24T11:07:09.719Z",
+      "lastAt": "2026-09-28T07:27:29.897Z",
+      "allRecommendationsFollowed": 22
+    }
+  },
+  "overall": {
+    "n": 133,
+    "mean": 1090.563909774436,
+    "meanCI95": [
+      995.390977443609,
+      1190.7593984962407
+    ],
+    "median": 1055,
+    "p10": 442,
+    "p90": 1657,
+    "min": 100,
+    "max": 3731,
+    "hits1500": 22,
+    "hitRate1500": 0.16541353383458646,
+    "hitRateCI95": [
+      0.11184855141916025,
+      0.23776376076308212
+    ],
+    "hits3000": 2,
+    "targetHits": 2,
+    "targets": {
+      "1500": 4,
+      "2400": 12,
+      "3000": 117
+    },
+    "objectives": {
+      "threshold": 133
+    },
+    "simulations": {
+      "10000": 5,
+      "20000": 128
+    },
+    "firstAt": "2026-09-24T11:07:09.719Z",
+    "lastAt": "2026-09-30T05:21:25.515Z",
+    "allRecommendationsFollowed": 133
+  },
+  "currentVsOlder": {
+    "currentMinusOlder": -17.538207547169804,
+    "CI95": [
+      -226.00141509433968,
+      177.22783018867938
+    ]
+  },
+  "currentVsPredecessor": {
+    "difference": -90.16413043478246,
+    "CI95": [
+      -424.3771739130434,
+      194.72771739130428
+    ]
+  },
+  "target3000Comparison": {
+    "difference": -76.00836120401323,
+    "CI95": [
+      -407.3177257525085,
+      212.5858416945373
+    ]
+  },
+  "objectives": {
+    "threshold": {
+      "n": 133,
+      "mean": 1090.563909774436,
+      "meanCI95": [
+        993.218045112782,
+        1190.954887218045
+      ],
+      "median": 1055,
+      "p10": 442,
+      "p90": 1657,
+      "min": 100,
+      "max": 3731,
+      "hits1500": 22,
+      "hitRate1500": 0.16541353383458646,
+      "hitRateCI95": [
+        0.11184855141916025,
+        0.23776376076308212
+      ],
+      "hits3000": 2,
+      "targetHits": 2,
+      "targets": {
+        "1500": 4,
+        "2400": 12,
+        "3000": 117
+      },
+      "objectives": {
+        "threshold": 133
+      },
+      "simulations": {
+        "10000": 5,
+        "20000": 128
+      },
+      "firstAt": "2026-09-24T11:07:09.719Z",
+      "lastAt": "2026-09-30T05:21:25.515Z",
+      "allRecommendationsFollowed": 133
+    }
+  },
+  "scoreAudit": {
+    "n": 133,
+    "inRange": 129,
+    "exactMembers": 79,
+    "noRed": 63,
+    "noRedExact": 61,
+    "byEngine": {
+      "b-deterministic-2026-09-29-exact-final-step": {
+        "n": 80,
+        "inRange": 78,
+        "exact": 48,
+        "mae": 31.117736698785087
+      },
+      "b-deterministic-2026-09-28-one-each-color": {
+        "n": 23,
+        "inRange": 23,
+        "exact": 12,
+        "mae": 24.746883784751947
+      },
+      "b-deterministic-2026-09-28-star-after-fifth": {
+        "n": 8,
+        "inRange": 8,
+        "exact": 8,
+        "mae": 15.75919913419915
+      },
+      "b-deterministic-2026-09-23": {
+        "n": 22,
+        "inRange": 20,
+        "exact": 11,
+        "mae": 63.15190869736323
+      }
+    },
+    "mismatches": [
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1084,
+        "residual": 0.6363636363637397,
+        "min": 1040,
+        "max": 1127,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 3,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 5,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 716,
+        "residual": -8.636363636363626,
+        "min": 696,
+        "max": 754,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 3,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 9,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1862,
+        "residual": -60.27272727272725,
+        "min": 1839,
+        "max": 2006,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 7,
+        "red": 2,
+        "specials": [
+          "world",
+          "sun"
+        ],
+        "evidence": "player_report",
+        "ordinal": 10,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1683,
+        "residual": 17.36363636363626,
+        "min": 1599,
+        "max": 1732,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 3,
+        "specials": [
+          "world",
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 12,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1608,
+        "residual": 78.3809523809523,
+        "min": 1428,
+        "max": 1632,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 4,
+        "specials": [
+          "tower",
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 13,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 2074,
+        "residual": -67.52380952380963,
+        "min": 1999,
+        "max": 2284,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 4,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 14,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1302,
+        "residual": 51.36363636363626,
+        "min": 1196,
+        "max": 1305,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 2,
+        "specials": [
+          "world",
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 15,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 744,
+        "residual": -17.909090909090878,
+        "min": 729,
+        "max": 795,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 2,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 16,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1863,
+        "residual": -51.36363636363626,
+        "min": 1831,
+        "max": 1998,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 2,
+        "specials": [
+          "sun",
+          "world"
+        ],
+        "evidence": "player_report",
+        "ordinal": 19,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1295,
+        "residual": -33.90909090909099,
+        "min": 1271,
+        "max": 1387,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 2,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 21,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 755,
+        "residual": -22.454545454545496,
+        "min": 744,
+        "max": 811,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 2,
+        "specials": [
+          "moon",
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 25,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 868,
+        "residual": 7.81818181818187,
+        "min": 826,
+        "max": 895,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 3,
+        "specials": [
+          "sun",
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 26,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1461,
+        "residual": 46.90909090909099,
+        "min": 1353,
+        "max": 1476,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 2,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 27,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 675,
+        "residual": 1.8181818181818699,
+        "min": 646,
+        "max": 700,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 3,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 31,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1382,
+        "residual": 34,
+        "min": 1258,
+        "max": 1438,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 4,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 32,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1398,
+        "residual": -3.3636363636362603,
+        "min": 1340,
+        "max": 1462,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 2,
+        "specials": [
+          "world"
+        ],
+        "evidence": "player_report",
+        "ordinal": 34,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1065,
+        "residual": -22.09090909090901,
+        "min": 1044,
+        "max": 1131,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 3,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 36,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1439,
+        "residual": -2.6363636363637397,
+        "min": 1379,
+        "max": 1504,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 2,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 39,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 2238,
+        "residual": 96.48387096774195,
+        "min": 1958,
+        "max": 2325,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 5,
+        "specials": [
+          "sun"
+        ],
+        "evidence": "player_report",
+        "ordinal": 40,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1657,
+        "residual": 97.3809523809523,
+        "min": 1456,
+        "max": 1664,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 4,
+        "specials": [
+          "sun",
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 46,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 707,
+        "residual": 8.81818181818187,
+        "min": 670,
+        "max": 726,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 3,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 47,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 2174,
+        "residual": 87.27272727272748,
+        "min": 1996,
+        "max": 2178,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 2,
+        "specials": [
+          "world"
+        ],
+        "evidence": "player_report",
+        "ordinal": 48,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1633,
+        "residual": 1005.6363636363636,
+        "min": 600,
+        "max": 655,
+        "inRange": false,
+        "exactMember": false,
+        "nearest": 978,
+        "red": 2,
+        "specials": [
+          "world",
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 50,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1324,
+        "residual": -25.63636363636374,
+        "min": 1296,
+        "max": 1404,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 3,
+        "specials": [
+          "tower",
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 53,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1260,
+        "residual": -1,
+        "min": 1206,
+        "max": 1316,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 2,
+        "specials": [
+          "tower",
+          "sun"
+        ],
+        "evidence": "player_report",
+        "ordinal": 54,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1122,
+        "residual": -2.761904761904816,
+        "min": 1050,
+        "max": 1200,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 4,
+        "specials": [
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 55,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 977,
+        "residual": 46,
+        "min": 869,
+        "max": 993,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 4,
+        "specials": [
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 58,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 561,
+        "residual": 10.18181818181813,
+        "min": 529,
+        "max": 573,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 3,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 60,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1579,
+        "residual": 67.47619047619037,
+        "min": 1411,
+        "max": 1612,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 4,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 61,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1329,
+        "residual": 52.90909090909099,
+        "min": 1221,
+        "max": 1332,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 2,
+        "specials": [
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 65,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 689,
+        "residual": -14.363636363636374,
+        "min": 673,
+        "max": 734,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 2,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 69,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-29-exact-final-step",
+        "score": 1254,
+        "residual": 127,
+        "min": 1082,
+        "max": 1172,
+        "inRange": false,
+        "exactMember": false,
+        "nearest": 82,
+        "red": 3,
+        "specials": [
+          "moon",
+          "world"
+        ],
+        "evidence": "player_report",
+        "ordinal": 78,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 2045,
+        "residual": -27,
+        "min": 1982,
+        "max": 2162,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 9,
+        "red": 2,
+        "specials": [
+          "star",
+          "world"
+        ],
+        "evidence": "player_report",
+        "ordinal": 82,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 1070,
+        "residual": -13.454545454545496,
+        "min": 1036,
+        "max": 1131,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 2,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 83,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 1263,
+        "residual": -30.36363636363626,
+        "min": 1237,
+        "max": 1350,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 2,
+        "specials": [
+          "tower",
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 84,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 483,
+        "residual": 5.363636363636374,
+        "min": 459,
+        "max": 497,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 3,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 87,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 545,
+        "residual": -17.272727272727252,
+        "min": 540,
+        "max": 585,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 3,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 90,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 3731,
+        "residual": 284.8709677419356,
+        "min": 3151,
+        "max": 3742,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 9,
+        "red": 5,
+        "specials": [
+          "world",
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 95,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 362,
+        "residual": -4.090909090909065,
+        "min": 350,
+        "max": 382,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 2,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 96,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 1356,
+        "residual": -16.047619047619037,
+        "min": 1281,
+        "max": 1464,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 4,
+        "specials": [
+          "sun",
+          "moon"
+        ],
+        "evidence": "player_report",
+        "ordinal": 97,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 1150,
+        "residual": 39,
+        "min": 1037,
+        "max": 1185,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 4,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 103,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 1549,
+        "residual": -3.272727272727252,
+        "min": 1485,
+        "max": 1620,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 2,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 105,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-28-one-each-color",
+        "score": 1055,
+        "residual": 31.714285714285666,
+        "min": 955,
+        "max": 1092,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 4,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 108,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 1338,
+        "residual": 27.36363636363626,
+        "min": 1254,
+        "max": 1368,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 5,
+        "red": 2,
+        "specials": [
+          "moon",
+          "world"
+        ],
+        "evidence": "player_report",
+        "ordinal": 119,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 738,
+        "residual": 13.909090909090878,
+        "min": 693,
+        "max": 756,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 1,
+        "red": 2,
+        "specials": [
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 120,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 646,
+        "residual": -357,
+        "min": 1003,
+        "max": 1003,
+        "inRange": false,
+        "exactMember": false,
+        "nearest": 357,
+        "red": 0,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 121,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 2220,
+        "residual": -30,
+        "min": 2160,
+        "max": 2340,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 6,
+        "red": 3,
+        "specials": [
+          "world",
+          "sun"
+        ],
+        "evidence": "player_report",
+        "ordinal": 123,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 953,
+        "residual": -4.636363636363626,
+        "min": 919,
+        "max": 996,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 3,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 124,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 1043,
+        "residual": -42.09090909090901,
+        "min": 1038,
+        "max": 1132,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 4,
+        "red": 2,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 129,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 1078,
+        "residual": -32.36363636363626,
+        "min": 1062,
+        "max": 1159,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 2,
+        "specials": [
+          "moon",
+          "tower"
+        ],
+        "evidence": "player_report",
+        "ordinal": 130,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 1285,
+        "residual": 27.761904761904816,
+        "min": 1173,
+        "max": 1341,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 3,
+        "red": 4,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 131,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 682,
+        "residual": 13.090909090909122,
+        "min": 642,
+        "max": 696,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 3,
+        "specials": [],
+        "evidence": "player_report",
+        "ordinal": 133,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 336,
+        "residual": -714,
+        "min": 1050,
+        "max": 1050,
+        "inRange": false,
+        "exactMember": false,
+        "nearest": 714,
+        "red": 0,
+        "specials": [
+          "star"
+        ],
+        "evidence": "player_report",
+        "ordinal": 134,
+        "modelStored": null
+      },
+      {
+        "engine": "b-deterministic-2026-09-23",
+        "score": 658,
+        "residual": -7.636363636363626,
+        "min": 639,
+        "max": 692,
+        "inRange": true,
+        "exactMember": false,
+        "nearest": 2,
+        "red": 3,
+        "specials": [
+          "sun"
+        ],
+        "evidence": "player_report",
+        "ordinal": 135,
+        "modelStored": null
+      }
+    ]
+  },
+  "predictionsByTurn": [
+    {
+      "turn": 1,
+      "n": 133,
+      "actualMean": 1090.563909774436,
+      "predictedMean": 1078.1792892835135,
+      "biasActualMinusPrediction": 12.384620490922776,
+      "biasCI95": [
+        -80.25298066949031,
+        114.2879638474621
+      ],
+      "mae": 434.0810316510413,
+      "rmse": 579.3897667280877,
+      "actualHitRate": 0.015037593984962405,
+      "predictedHitRate": 0.019600134476849856,
+      "brier": 0.016762029197787125,
+      "p10p90Coverage": 0.8045112781954887,
+      "followed": 133
+    },
+    {
+      "turn": 2,
+      "n": 133,
+      "actualMean": 1090.563909774436,
+      "predictedMean": 1094.4828184660676,
+      "biasActualMinusPrediction": -3.9189086916315983,
+      "biasCI95": [
+        -92.11555627309575,
+        88.90584857681775
+      ],
+      "mae": 375.5713382384648,
+      "rmse": 530.9572176159854,
+      "actualHitRate": 0.015037593984962405,
+      "predictedHitRate": 0.018871218906608797,
+      "brier": 0.015878453018534352,
+      "p10p90Coverage": 0.8345864661654135,
+      "followed": 133
+    },
+    {
+      "turn": 3,
+      "n": 133,
+      "actualMean": 1090.563909774436,
+      "predictedMean": 1092.5900634016239,
+      "biasActualMinusPrediction": -2.0261536271878104,
+      "biasCI95": [
+        -80.46713533806255,
+        85.13713449190422
+      ],
+      "mae": 352.9495670304079,
+      "rmse": 486.49430295872673,
+      "actualHitRate": 0.015037593984962405,
+      "predictedHitRate": 0.02077119064418481,
+      "brier": 0.015661851932847422,
+      "p10p90Coverage": 0.8120300751879699,
+      "followed": 133
+    },
+    {
+      "turn": 4,
+      "n": 133,
+      "actualMean": 1090.563909774436,
+      "predictedMean": 1069.1467685071946,
+      "biasActualMinusPrediction": 21.41714126724143,
+      "biasCI95": [
+        -49.80271778477861,
+        96.08361257107954
+      ],
+      "mae": 324.8839681952764,
+      "rmse": 430.8704356372086,
+      "actualHitRate": 0.015037593984962405,
+      "predictedHitRate": 0.01975298937278277,
+      "brier": 0.013320144836284704,
+      "p10p90Coverage": 0.8872180451127819,
+      "followed": 133
+    },
+    {
+      "turn": 5,
+      "n": 133,
+      "actualMean": 1090.563909774436,
+      "predictedMean": 1037.6196938985502,
+      "biasActualMinusPrediction": 52.94421587588563,
+      "biasCI95": [
+        -5.497014451713762,
+        111.10753916630684
+      ],
+      "mae": 254.40903050987325,
+      "rmse": 346.2180321535743,
+      "actualHitRate": 0.015037593984962405,
+      "predictedHitRate": 0.019138755980861243,
+      "brier": 0.008240850059031878,
+      "p10p90Coverage": 0.8721804511278195,
+      "followed": 133
+    }
+  ],
+  "firstTurnByEngine": {
+    "b-deterministic-2026-09-29-exact-final-step": {
+      "n": 80,
+      "actualMean": 1083.575,
+      "predictedMean": 1081.6035309338408,
+      "biasActualMinusPrediction": 1.9714690661590992,
+      "biasCI95": [
+        -119.54990103332435,
+        130.92111644755943
+      ],
+      "mae": 455.45572136985646,
+      "rmse": 571.3527274046035,
+      "actualHitRate": 0.0125,
+      "predictedHitRate": 0.01586272356776288,
+      "brier": 0.0137125076663211,
+      "p10p90Coverage": 0.775,
+      "followed": 80
+    },
+    "b-deterministic-2026-09-28-one-each-color": {
+      "n": 23,
+      "actualMean": 1173.7391304347825,
+      "predictedMean": 1063.806352173913,
+      "biasActualMinusPrediction": 109.93277826086957,
+      "biasCI95": [
+        -133.45043260869568,
+        420.02872391304345
+      ],
+      "mae": 436.68483043478267,
+      "rmse": 694.5340055007892,
+      "actualHitRate": 0.043478260869565216,
+      "predictedHitRate": 0.009660869565217391,
+      "brier": 0.04322131608695652,
+      "p10p90Coverage": 0.8260869565217391,
+      "followed": 23
+    },
+    "b-deterministic-2026-09-28-star-after-fifth": {
+      "n": 8,
+      "actualMean": 1248.125,
+      "predictedMean": 1073.447,
+      "biasActualMinusPrediction": 174.678,
+      "biasCI95": [
+        -238.3083625,
+        579.37031875
+      ],
+      "mae": 489.148675,
+      "rmse": 612.164341773332,
+      "actualHitRate": 0,
+      "predictedHitRate": 0.011168749999999998,
+      "brier": 0.0001379553125,
+      "p10p90Coverage": 0.75,
+      "followed": 8
+    },
+    "b-deterministic-2026-09-23": {
+      "n": 22,
+      "actualMean": 971.7272727272727,
+      "predictedMean": 1082.4745863636365,
+      "biasActualMinusPrediction": -110.74731363636357,
+      "biasCI95": [
+        -292.30934999999994,
+        75.01105000000005
+      ],
+      "mae": 333.60813636363633,
+      "rmse": 449.1883593525537,
+      "actualHitRate": 0,
+      "predictedHitRate": 0.04664772727272728,
+      "brier": 0.006234334431818183,
+      "p10p90Coverage": 0.9090909090909091,
+      "followed": 22
+    }
+  },
+  "calibrationFirstTurn": [
+    {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 128,
+      "actualMean": 1104.9765625,
+      "predictedMean": 1073.4675718482695,
+      "biasActualMinusPrediction": 31.508990651730507,
+      "biasCI95": [
+        -65.373342323188,
+        131.12178900516363
+      ],
+      "mae": 426.66904477702906,
+      "rmse": 573.8723227357283,
+      "actualHitRate": 0.015625,
+      "predictedHitRate": 0.012051028735839091,
+      "brier": 0.015564285634852397,
+      "p10p90Coverage": 0.8046875,
+      "followed": 128
+    },
+    {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 1,
+      "actualMean": 336,
+      "predictedMean": 1590.87145,
+      "biasActualMinusPrediction": -1254.87145,
+      "biasCI95": [
+        -1254.87145,
+        -1254.87145
+      ],
+      "mae": 1254.87145,
+      "rmse": 1254.87145,
+      "actualHitRate": 0,
+      "predictedHitRate": 0.13405,
+      "brier": 0.017969402500000002,
+      "p10p90Coverage": 0,
+      "followed": 1
+    },
+    {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 4,
+      "actualMean": 818,
+      "predictedMean": 1100.7812070321938,
+      "biasActualMinusPrediction": -282.7812070321938,
+      "biasCI95": [
+        -574.9028140643876,
+        138.70813094290924
+      ],
+      "mae": 466.06700703219377,
+      "rmse": 479.1220364566401,
+      "actualHitRate": 0,
+      "predictedHitRate": 0.23255905180840697,
+      "brier": 0.05478797988614541,
+      "p10p90Coverage": 1,
+      "followed": 4
+    },
+    {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 0,
+      "actualMean": null,
+      "predictedMean": null,
+      "biasActualMinusPrediction": null,
+      "biasCI95": null,
+      "mae": null,
+      "rmse": null,
+      "actualHitRate": null,
+      "predictedHitRate": null,
+      "brier": null,
+      "p10p90Coverage": null,
+      "followed": 0
+    },
+    {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 0,
+      "actualMean": null,
+      "predictedMean": null,
+      "biasActualMinusPrediction": null,
+      "biasCI95": null,
+      "mae": null,
+      "rmse": null,
+      "actualHitRate": null,
+      "predictedHitRate": null,
+      "brier": null,
+      "p10p90Coverage": null,
+      "followed": 0
+    },
+    {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 0,
+      "actualMean": null,
+      "predictedMean": null,
+      "biasActualMinusPrediction": null,
+      "biasCI95": null,
+      "mae": null,
+      "rmse": null,
+      "actualHitRate": null,
+      "predictedHitRate": null,
+      "brier": null,
+      "p10p90Coverage": null,
+      "followed": 0
+    },
+    {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 0,
+      "actualMean": null,
+      "predictedMean": null,
+      "biasActualMinusPrediction": null,
+      "biasCI95": null,
+      "mae": null,
+      "rmse": null,
+      "actualHitRate": null,
+      "predictedHitRate": null,
+      "brier": null,
+      "p10p90Coverage": null,
+      "followed": 0
+    },
+    {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 0,
+      "actualMean": null,
+      "predictedMean": null,
+      "biasActualMinusPrediction": null,
+      "biasCI95": null,
+      "mae": null,
+      "rmse": null,
+      "actualHitRate": null,
+      "predictedHitRate": null,
+      "brier": null,
+      "p10p90Coverage": null,
+      "followed": 0
+    },
+    {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 0,
+      "actualMean": null,
+      "predictedMean": null,
+      "biasActualMinusPrediction": null,
+      "biasCI95": null,
+      "mae": null,
+      "rmse": null,
+      "actualHitRate": null,
+      "predictedHitRate": null,
+      "brier": null,
+      "p10p90Coverage": null,
+      "followed": 0
+    },
+    {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 0,
+      "actualMean": null,
+      "predictedMean": null,
+      "biasActualMinusPrediction": null,
+      "biasCI95": null,
+      "mae": null,
+      "rmse": null,
+      "actualHitRate": null,
+      "predictedHitRate": null,
+      "brier": null,
+      "p10p90Coverage": null,
+      "followed": 0
+    }
+  ],
+  "recommendationFollowing": {
+    "known": 665,
+    "followed": 665
+  },
+  "activation": [
+    {
+      "card": "fool",
+      "name": "愚者",
+      "n": 24,
+      "success": 24,
+      "observed": 1,
+      "catalog": 1,
+      "CI95": [
+        0.8620237953250264,
+        1
+      ],
+      "expectedSuccess": 24
+    },
+    {
+      "card": "magician",
+      "name": "魔術師",
+      "n": 18,
+      "success": 16,
+      "observed": 0.8888888888888888,
+      "catalog": 0.95,
+      "CI95": [
+        0.6720023486982192,
+        0.9689804773543866
+      ],
+      "expectedSuccess": 17.099999999999998
+    },
+    {
+      "card": "high_priestess",
+      "name": "女祭司",
+      "n": 18,
+      "success": 17,
+      "observed": 0.9444444444444444,
+      "catalog": 0.9,
+      "CI95": [
+        0.7424269921812815,
+        0.9901248090216964
+      ],
+      "expectedSuccess": 16.2
+    },
+    {
+      "card": "empress",
+      "name": "女皇",
+      "n": 24,
+      "success": 20,
+      "observed": 0.8333333333333334,
+      "catalog": 0.85,
+      "CI95": [
+        0.6414692935030154,
+        0.9332132367136688
+      ],
+      "expectedSuccess": 20.4
+    },
+    {
+      "card": "emperor",
+      "name": "皇帝",
+      "n": 14,
+      "success": 8,
+      "observed": 0.5714285714285714,
+      "catalog": 0.8,
+      "CI95": [
+        0.3259064457965131,
+        0.7861920109552545
+      ],
+      "expectedSuccess": 11.200000000000001
+    },
+    {
+      "card": "hierophant",
+      "name": "教皇",
+      "n": 26,
+      "success": 22,
+      "observed": 0.8461538461538461,
+      "catalog": 0.75,
+      "CI95": [
+        0.664688006717871,
+        0.9384996627642149
+      ],
+      "expectedSuccess": 19.5
+    },
+    {
+      "card": "lovers",
+      "name": "戀人",
+      "n": 26,
+      "success": 17,
+      "observed": 0.6538461538461539,
+      "catalog": 0.7,
+      "CI95": [
+        0.4622057118881133,
+        0.8058776967705916
+      ],
+      "expectedSuccess": 18.2
+    },
+    {
+      "card": "chariot",
+      "name": "戰車",
+      "n": 36,
+      "success": 21,
+      "observed": 0.5833333333333334,
+      "catalog": 0.65,
+      "CI95": [
+        0.42200251574872083,
+        0.7285943794855358
+      ],
+      "expectedSuccess": 23.400000000000002
+    },
+    {
+      "card": "hermit",
+      "name": "隱者",
+      "n": 52,
+      "success": 35,
+      "observed": 0.6730769230769231,
+      "catalog": 0.6,
+      "CI95": [
+        0.5375618936197433,
+        0.7847792554143056
+      ],
+      "expectedSuccess": 31.2
+    },
+    {
+      "card": "hanged_man",
+      "name": "吊人",
+      "n": 51,
+      "success": 27,
+      "observed": 0.5294117647058824,
+      "catalog": 0.55,
+      "CI95": [
+        0.3952330421009681,
+        0.6594700979050009
+      ],
+      "expectedSuccess": 28.05
+    },
+    {
+      "card": "devil",
+      "name": "惡魔",
+      "n": 48,
+      "success": 27,
+      "observed": 0.5625,
+      "catalog": 0.5,
+      "CI95": [
+        0.42275017419828137,
+        0.6929873095934544
+      ],
+      "expectedSuccess": 24
+    },
+    {
+      "card": "strength",
+      "name": "力量",
+      "n": 26,
+      "success": 26,
+      "observed": 1,
+      "catalog": 1,
+      "CI95": [
+        0.871271078140791,
+        1
+      ],
+      "expectedSuccess": 26
+    },
+    {
+      "card": "wheel_of_fortune",
+      "name": "命運之輪",
+      "n": 30,
+      "success": 27,
+      "observed": 0.9,
+      "catalog": 0.9,
+      "CI95": [
+        0.7437891742081646,
+        0.9654001112526649
+      ],
+      "expectedSuccess": 27
+    },
+    {
+      "card": "justice",
+      "name": "正義",
+      "n": 23,
+      "success": 19,
+      "observed": 0.8260869565217391,
+      "catalog": 0.8,
+      "CI95": [
+        0.6286235235977446,
+        0.9302134643693727
+      ],
+      "expectedSuccess": 18.400000000000002
+    },
+    {
+      "card": "death",
+      "name": "死亡",
+      "n": 26,
+      "success": 16,
+      "observed": 0.6153846153846154,
+      "catalog": 0.7,
+      "CI95": [
+        0.42534850085116016,
+        0.7757140556428685
+      ],
+      "expectedSuccess": 18.2
+    },
+    {
+      "card": "temperance",
+      "name": "節制",
+      "n": 25,
+      "success": 13,
+      "observed": 0.52,
+      "catalog": 0.6,
+      "CI95": [
+        0.33498516950357227,
+        0.6996871404588662
+      ],
+      "expectedSuccess": 15
+    },
+    {
+      "card": "judgement",
+      "name": "審判",
+      "n": 23,
+      "success": 13,
+      "observed": 0.5652173913043478,
+      "catalog": 0.5,
+      "CI95": [
+        0.36811375085016956,
+        0.743653646743254
+      ],
+      "expectedSuccess": 11.5
+    },
+    {
+      "card": "tower",
+      "name": "高塔",
+      "n": 54,
+      "success": 54,
+      "observed": 1,
+      "catalog": 1,
+      "CI95": [
+        0.9335864119091071,
+        1
+      ],
+      "expectedSuccess": 54
+    },
+    {
+      "card": "star",
+      "name": "星星",
+      "n": 20,
+      "success": 20,
+      "observed": 1,
+      "catalog": 1,
+      "CI95": [
+        0.838874841947188,
+        0.9999999999999999
+      ],
+      "expectedSuccess": 20
+    },
+    {
+      "card": "moon",
+      "name": "月亮",
+      "n": 38,
+      "success": 33,
+      "observed": 0.868421052631579,
+      "catalog": 0.8,
+      "CI95": [
+        0.7267314055770916,
+        0.9424613230987974
+      ],
+      "expectedSuccess": 30.400000000000002
+    },
+    {
+      "card": "sun",
+      "name": "太陽",
+      "n": 39,
+      "success": 20,
+      "observed": 0.5128205128205128,
+      "catalog": 0.5,
+      "CI95": [
+        0.3619936288445835,
+        0.6613482467013763
+      ],
+      "expectedSuccess": 19.5
+    },
+    {
+      "card": "world",
+      "name": "世界",
+      "n": 59,
+      "success": 26,
+      "observed": 0.4406779661016949,
+      "catalog": 0.5,
+      "CI95": [
+        0.3215021176761239,
+        0.5671064517084099
+      ],
+      "expectedSuccess": 29.5
+    }
+  ],
+  "offers": [
+    {
+      "turn": 1,
+      "rounds": 140,
+      "oneEach": 139,
+      "categories": {
+        "score": 229,
+        "multiplier": 130,
+        "special": 61
+      },
+      "expectedCategories": {
+        "score": 168.25100000043932,
+        "multiplier": 167.72000000043678,
+        "special": 84.02900000003717
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.4339214285682906,
+          "CI95": [
+            0.2910428571400661,
+            0.5758285714255192
+          ]
+        },
+        "multiplier": {
+          "mean": -0.2694285714316913,
+          "CI95": [
+            -0.4041714285746165,
+            -0.1404142857172329
+          ]
+        },
+        "special": {
+          "mean": -0.16449285714312264,
+          "CI95": [
+            -0.25832857142894,
+            -0.06820714285730922
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 19,
+          "expected": 15.377999999996916
+        },
+        {
+          "card": "magician",
+          "observed": 18,
+          "expected": 15.17299999999703
+        },
+        {
+          "card": "high_priestess",
+          "observed": 18,
+          "expected": 15.399999999996904
+        },
+        {
+          "card": "empress",
+          "observed": 20,
+          "expected": 15.078999999997082
+        },
+        {
+          "card": "emperor",
+          "observed": 26,
+          "expected": 15.200999999997014
+        },
+        {
+          "card": "hierophant",
+          "observed": 13,
+          "expected": 15.511999999996842
+        },
+        {
+          "card": "lovers",
+          "observed": 21,
+          "expected": 15.258999999996982
+        },
+        {
+          "card": "chariot",
+          "observed": 27,
+          "expected": 15.339999999996937
+        },
+        {
+          "card": "hermit",
+          "observed": 25,
+          "expected": 15.359999999996926
+        },
+        {
+          "card": "hanged_man",
+          "observed": 22,
+          "expected": 15.260999999996981
+        },
+        {
+          "card": "devil",
+          "observed": 20,
+          "expected": 15.287999999996966
+        },
+        {
+          "card": "strength",
+          "observed": 25,
+          "expected": 28.0510000000113
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 17,
+          "expected": 28.041000000011287
+        },
+        {
+          "card": "justice",
+          "observed": 25,
+          "expected": 28.122000000011386
+        },
+        {
+          "card": "death",
+          "observed": 18,
+          "expected": 27.786000000010976
+        },
+        {
+          "card": "temperance",
+          "observed": 21,
+          "expected": 27.92800000001115
+        },
+        {
+          "card": "judgement",
+          "observed": 24,
+          "expected": 27.792000000010983
+        },
+        {
+          "card": "tower",
+          "observed": 14,
+          "expected": 17.0039999999978
+        },
+        {
+          "card": "star",
+          "observed": 11,
+          "expected": 16.845999999997606
+        },
+        {
+          "card": "moon",
+          "observed": 10,
+          "expected": 16.65199999999737
+        },
+        {
+          "card": "sun",
+          "observed": 9,
+          "expected": 16.68599999999741
+        },
+        {
+          "card": "world",
+          "observed": 17,
+          "expected": 16.8409999999976
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "rounds": 140,
+      "oneEach": 140,
+      "categories": {
+        "special": 57,
+        "multiplier": 125,
+        "score": 238
+      },
+      "expectedCategories": {
+        "score": 168.30300000043957,
+        "multiplier": 167.55100000043598,
+        "special": 84.14600000003773
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.4978357142825745,
+          "CI95": [
+            0.357321428568222,
+            0.6349357142827408
+          ]
+        },
+        "multiplier": {
+          "mean": -0.30393571428882843,
+          "CI95": [
+            -0.4243714285748347,
+            -0.1814928571457056
+          ]
+        },
+        "special": {
+          "mean": -0.1939000000002695,
+          "CI95": [
+            -0.2794000000002096,
+            -0.1017714285718269
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 27,
+          "expected": 15.603999999996791
+        },
+        {
+          "card": "magician",
+          "observed": 21,
+          "expected": 15.716999999996728
+        },
+        {
+          "card": "high_priestess",
+          "observed": 19,
+          "expected": 16.00799999999658
+        },
+        {
+          "card": "empress",
+          "observed": 27,
+          "expected": 15.873999999996641
+        },
+        {
+          "card": "emperor",
+          "observed": 16,
+          "expected": 16.117999999996716
+        },
+        {
+          "card": "hierophant",
+          "observed": 22,
+          "expected": 15.910999999996621
+        },
+        {
+          "card": "lovers",
+          "observed": 25,
+          "expected": 15.796999999996684
+        },
+        {
+          "card": "chariot",
+          "observed": 25,
+          "expected": 14.912999999997174
+        },
+        {
+          "card": "hermit",
+          "observed": 22,
+          "expected": 14.10899999999762
+        },
+        {
+          "card": "hanged_man",
+          "observed": 20,
+          "expected": 14.582999999997357
+        },
+        {
+          "card": "devil",
+          "observed": 14,
+          "expected": 13.668999999997864
+        },
+        {
+          "card": "strength",
+          "observed": 20,
+          "expected": 27.566000000010707
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 13,
+          "expected": 28.38800000001171
+        },
+        {
+          "card": "justice",
+          "observed": 23,
+          "expected": 28.211000000011495
+        },
+        {
+          "card": "death",
+          "observed": 27,
+          "expected": 27.853000000011058
+        },
+        {
+          "card": "temperance",
+          "observed": 19,
+          "expected": 28.058000000011308
+        },
+        {
+          "card": "judgement",
+          "observed": 23,
+          "expected": 27.475000000010596
+        },
+        {
+          "card": "tower",
+          "observed": 12,
+          "expected": 16.451999999997124
+        },
+        {
+          "card": "star",
+          "observed": 15,
+          "expected": 17.79799999999877
+        },
+        {
+          "card": "moon",
+          "observed": 14,
+          "expected": 17.87999999999887
+        },
+        {
+          "card": "sun",
+          "observed": 6,
+          "expected": 16.47199999999715
+        },
+        {
+          "card": "world",
+          "observed": 10,
+          "expected": 15.543999999996824
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "rounds": 140,
+      "oneEach": 140,
+      "categories": {
+        "score": 213,
+        "special": 76,
+        "multiplier": 131
+      },
+      "expectedCategories": {
+        "score": 167.77100000043703,
+        "multiplier": 167.7880000004371,
+        "special": 84.44100000003914
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.3230642857111641,
+          "CI95": [
+            0.18841428571124078,
+            0.45974285713978136
+          ]
+        },
+        "multiplier": {
+          "mean": -0.26277142857455077,
+          "CI95": [
+            -0.3922714285743349,
+            -0.1320714285742733
+          ]
+        },
+        "special": {
+          "mean": -0.06029285714313671,
+          "CI95": [
+            -0.1525928571432503,
+            0.033364285713722346
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 22,
+          "expected": 15.224999999997001
+        },
+        {
+          "card": "magician",
+          "observed": 13,
+          "expected": 16.402999999997064
+        },
+        {
+          "card": "high_priestess",
+          "observed": 24,
+          "expected": 16.770999999997514
+        },
+        {
+          "card": "empress",
+          "observed": 13,
+          "expected": 16.03899999999662
+        },
+        {
+          "card": "emperor",
+          "observed": 23,
+          "expected": 16.8419999999976
+        },
+        {
+          "card": "hierophant",
+          "observed": 24,
+          "expected": 15.834999999996663
+        },
+        {
+          "card": "lovers",
+          "observed": 23,
+          "expected": 15.633999999996774
+        },
+        {
+          "card": "chariot",
+          "observed": 18,
+          "expected": 14.854999999997206
+        },
+        {
+          "card": "hermit",
+          "observed": 11,
+          "expected": 12.696999999998402
+        },
+        {
+          "card": "hanged_man",
+          "observed": 25,
+          "expected": 14.154999999997594
+        },
+        {
+          "card": "devil",
+          "observed": 17,
+          "expected": 13.31499999999806
+        },
+        {
+          "card": "strength",
+          "observed": 20,
+          "expected": 27.70000000001087
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 31,
+          "expected": 29.01700000001248
+        },
+        {
+          "card": "justice",
+          "observed": 16,
+          "expected": 27.940000000011164
+        },
+        {
+          "card": "death",
+          "observed": 21,
+          "expected": 27.66600000001083
+        },
+        {
+          "card": "temperance",
+          "observed": 28,
+          "expected": 28.2960000000116
+        },
+        {
+          "card": "judgement",
+          "observed": 15,
+          "expected": 27.16900000001022
+        },
+        {
+          "card": "tower",
+          "observed": 14,
+          "expected": 15.938999999996605
+        },
+        {
+          "card": "star",
+          "observed": 15,
+          "expected": 18.603999999999754
+        },
+        {
+          "card": "moon",
+          "observed": 17,
+          "expected": 18.24099999999931
+        },
+        {
+          "card": "sun",
+          "observed": 16,
+          "expected": 16.845999999997606
+        },
+        {
+          "card": "world",
+          "observed": 14,
+          "expected": 14.81099999999723
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "rounds": 140,
+      "oneEach": 140,
+      "categories": {
+        "score": 248,
+        "multiplier": 112,
+        "special": 60
+      },
+      "expectedCategories": {
+        "score": 167.60200000043622,
+        "multiplier": 168.38700000043997,
+        "special": 84.01100000003709
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.5742714285683127,
+          "CI95": [
+            0.4338571428541178,
+            0.7101428571391494
+          ]
+        },
+        "multiplier": {
+          "mean": -0.40276428571742834,
+          "CI95": [
+            -0.5272714285748203,
+            -0.2744642857164762
+          ]
+        },
+        "special": {
+          "mean": -0.17150714285740776,
+          "CI95": [
+            -0.2602071428574496,
+            -0.07828571428572276
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 14,
+          "expected": 15.037999999997105
+        },
+        {
+          "card": "magician",
+          "observed": 37,
+          "expected": 17.270999999998125
+        },
+        {
+          "card": "high_priestess",
+          "observed": 27,
+          "expected": 17.082999999997895
+        },
+        {
+          "card": "empress",
+          "observed": 24,
+          "expected": 16.16299999999677
+        },
+        {
+          "card": "emperor",
+          "observed": 24,
+          "expected": 17.17799999999801
+        },
+        {
+          "card": "hierophant",
+          "observed": 22,
+          "expected": 15.681999999996748
+        },
+        {
+          "card": "lovers",
+          "observed": 22,
+          "expected": 15.961999999996593
+        },
+        {
+          "card": "chariot",
+          "observed": 24,
+          "expected": 14.514999999997395
+        },
+        {
+          "card": "hermit",
+          "observed": 19,
+          "expected": 12.723999999998387
+        },
+        {
+          "card": "hanged_man",
+          "observed": 19,
+          "expected": 13.141999999998156
+        },
+        {
+          "card": "devil",
+          "observed": 16,
+          "expected": 12.84399999999832
+        },
+        {
+          "card": "strength",
+          "observed": 18,
+          "expected": 28.06700000001132
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 22,
+          "expected": 27.902000000011117
+        },
+        {
+          "card": "justice",
+          "observed": 19,
+          "expected": 28.51100000001186
+        },
+        {
+          "card": "death",
+          "observed": 15,
+          "expected": 27.604000000010753
+        },
+        {
+          "card": "temperance",
+          "observed": 19,
+          "expected": 28.004000000011242
+        },
+        {
+          "card": "judgement",
+          "observed": 19,
+          "expected": 28.299000000011603
+        },
+        {
+          "card": "tower",
+          "observed": 14,
+          "expected": 15.9499999999966
+        },
+        {
+          "card": "star",
+          "observed": 14,
+          "expected": 19.11700000000038
+        },
+        {
+          "card": "moon",
+          "observed": 12,
+          "expected": 18.27199999999935
+        },
+        {
+          "card": "sun",
+          "observed": 9,
+          "expected": 16.672999999997394
+        },
+        {
+          "card": "world",
+          "observed": 11,
+          "expected": 13.99899999999768
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "rounds": 140,
+      "oneEach": 140,
+      "categories": {
+        "special": 177,
+        "multiplier": 117,
+        "score": 126
+      },
+      "expectedCategories": {
+        "score": 60.184999999950435,
+        "multiplier": 120.85500000021301,
+        "special": 238.96000000077694
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.470107142857497,
+          "CI95": [
+            0.34707142857175116,
+            0.597300000000277
+          ]
+        },
+        "multiplier": {
+          "mean": -0.02753571428723579,
+          "CI95": [
+            -0.15005000000184876,
+            0.10012142856950847
+          ]
+        },
+        "special": {
+          "mean": -0.4425714285769782,
+          "CI95": [
+            -0.5711357142913479,
+            -0.3120928571490759
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 10,
+          "expected": 5.6770000000002305
+        },
+        {
+          "card": "magician",
+          "observed": 19,
+          "expected": 6.288000000000435
+        },
+        {
+          "card": "high_priestess",
+          "observed": 11,
+          "expected": 6.013000000000343
+        },
+        {
+          "card": "empress",
+          "observed": 10,
+          "expected": 5.997000000000337
+        },
+        {
+          "card": "emperor",
+          "observed": 15,
+          "expected": 6.164000000000393
+        },
+        {
+          "card": "hierophant",
+          "observed": 16,
+          "expected": 5.768000000000261
+        },
+        {
+          "card": "lovers",
+          "observed": 17,
+          "expected": 5.890000000000302
+        },
+        {
+          "card": "chariot",
+          "observed": 9,
+          "expected": 5.115000000000043
+        },
+        {
+          "card": "hermit",
+          "observed": 8,
+          "expected": 4.222999999999745
+        },
+        {
+          "card": "hanged_man",
+          "observed": 7,
+          "expected": 4.516999999999843
+        },
+        {
+          "card": "devil",
+          "observed": 4,
+          "expected": 4.5329999999998485
+        },
+        {
+          "card": "strength",
+          "observed": 17,
+          "expected": 20.50800000000208
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 21,
+          "expected": 19.677000000001065
+        },
+        {
+          "card": "justice",
+          "observed": 20,
+          "expected": 20.461000000002024
+        },
+        {
+          "card": "death",
+          "observed": 22,
+          "expected": 19.773000000001183
+        },
+        {
+          "card": "temperance",
+          "observed": 24,
+          "expected": 20.324000000001856
+        },
+        {
+          "card": "judgement",
+          "observed": 13,
+          "expected": 20.112000000001597
+        },
+        {
+          "card": "tower",
+          "observed": 39,
+          "expected": 43.636999999989
+        },
+        {
+          "card": "star",
+          "observed": 41,
+          "expected": 56.26499999995957
+        },
+        {
+          "card": "moon",
+          "observed": 36,
+          "expected": 51.39499999997092
+        },
+        {
+          "card": "sun",
+          "observed": 32,
+          "expected": 48.264999999978215
+        },
+        {
+          "card": "world",
+          "observed": 29,
+          "expected": 39.39799999999888
+        }
+      ]
+    }
+  ],
+  "latestOffers": [
+    {
+      "turn": 1,
+      "rounds": 80,
+      "oneEach": 79,
+      "categories": {
+        "score": 136,
+        "multiplier": 75,
+        "special": 29
+      },
+      "expectedCategories": {
+        "score": 96.75500000009794,
+        "multiplier": 95.35100000009123,
+        "special": 47.89399999997908
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.49056249999877577,
+          "CI95": [
+            0.30129999999837614,
+            0.6871249999989524
+          ]
+        },
+        "multiplier": {
+          "mean": -0.2543875000011404,
+          "CI95": [
+            -0.4310500000011691,
+            -0.07536250000111355
+          ]
+        },
+        "special": {
+          "mean": -0.2361749999997385,
+          "CI95": [
+            -0.3484874999998448,
+            -0.11524999999969969
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 9,
+          "expected": 8.759000000000585
+        },
+        {
+          "card": "magician",
+          "observed": 11,
+          "expected": 8.665000000000637
+        },
+        {
+          "card": "high_priestess",
+          "observed": 13,
+          "expected": 8.870000000000523
+        },
+        {
+          "card": "empress",
+          "observed": 11,
+          "expected": 8.788000000000569
+        },
+        {
+          "card": "emperor",
+          "observed": 15,
+          "expected": 8.665000000000637
+        },
+        {
+          "card": "hierophant",
+          "observed": 7,
+          "expected": 8.834000000000543
+        },
+        {
+          "card": "lovers",
+          "observed": 13,
+          "expected": 8.783000000000571
+        },
+        {
+          "card": "chariot",
+          "observed": 19,
+          "expected": 8.83900000000054
+        },
+        {
+          "card": "hermit",
+          "observed": 12,
+          "expected": 8.936000000000487
+        },
+        {
+          "card": "hanged_man",
+          "observed": 11,
+          "expected": 8.863000000000527
+        },
+        {
+          "card": "devil",
+          "observed": 15,
+          "expected": 8.753000000000588
+        },
+        {
+          "card": "strength",
+          "observed": 16,
+          "expected": 15.98599999999658
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 8,
+          "expected": 15.800999999996682
+        },
+        {
+          "card": "justice",
+          "observed": 19,
+          "expected": 15.932999999996609
+        },
+        {
+          "card": "death",
+          "observed": 9,
+          "expected": 15.899999999996627
+        },
+        {
+          "card": "temperance",
+          "observed": 10,
+          "expected": 15.826999999996668
+        },
+        {
+          "card": "judgement",
+          "observed": 13,
+          "expected": 15.903999999996625
+        },
+        {
+          "card": "tower",
+          "observed": 8,
+          "expected": 9.480000000000185
+        },
+        {
+          "card": "star",
+          "observed": 5,
+          "expected": 9.774000000000022
+        },
+        {
+          "card": "moon",
+          "observed": 4,
+          "expected": 9.492000000000179
+        },
+        {
+          "card": "sun",
+          "observed": 2,
+          "expected": 9.481000000000185
+        },
+        {
+          "card": "world",
+          "observed": 10,
+          "expected": 9.667000000000082
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "rounds": 80,
+      "oneEach": 80,
+      "categories": {
+        "special": 37,
+        "multiplier": 64,
+        "score": 139
+      },
+      "expectedCategories": {
+        "score": 95.79100000009333,
+        "multiplier": 96.25300000009554,
+        "special": 47.955999999978935
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.5401124999988334,
+          "CI95": [
+            0.3741624999990535,
+            0.7118749999986103
+          ]
+        },
+        "multiplier": {
+          "mean": -0.40316250000119425,
+          "CI95": [
+            -0.5552750000014353,
+            -0.24796250000136738
+          ]
+        },
+        "special": {
+          "mean": -0.1369499999997367,
+          "CI95": [
+            -0.26074999999977305,
+            -0.009849999999738974
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 18,
+          "expected": 9.12700000000038
+        },
+        {
+          "card": "magician",
+          "observed": 10,
+          "expected": 9.131000000000379
+        },
+        {
+          "card": "high_priestess",
+          "observed": 13,
+          "expected": 9.239000000000319
+        },
+        {
+          "card": "empress",
+          "observed": 18,
+          "expected": 8.960000000000473
+        },
+        {
+          "card": "emperor",
+          "observed": 7,
+          "expected": 9.267000000000303
+        },
+        {
+          "card": "hierophant",
+          "observed": 14,
+          "expected": 8.960000000000473
+        },
+        {
+          "card": "lovers",
+          "observed": 13,
+          "expected": 9.264000000000305
+        },
+        {
+          "card": "chariot",
+          "observed": 13,
+          "expected": 8.22500000000088
+        },
+        {
+          "card": "hermit",
+          "observed": 14,
+          "expected": 8.126000000000936
+        },
+        {
+          "card": "hanged_man",
+          "observed": 11,
+          "expected": 8.168000000000912
+        },
+        {
+          "card": "devil",
+          "observed": 8,
+          "expected": 7.3240000000007806
+        },
+        {
+          "card": "strength",
+          "observed": 9,
+          "expected": 15.60599999999679
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 4,
+          "expected": 16.632999999997345
+        },
+        {
+          "card": "justice",
+          "observed": 16,
+          "expected": 16.191999999996806
+        },
+        {
+          "card": "death",
+          "observed": 15,
+          "expected": 16.32499999999697
+        },
+        {
+          "card": "temperance",
+          "observed": 7,
+          "expected": 15.777999999996695
+        },
+        {
+          "card": "judgement",
+          "observed": 13,
+          "expected": 15.718999999996727
+        },
+        {
+          "card": "tower",
+          "observed": 5,
+          "expected": 9.149000000000369
+        },
+        {
+          "card": "star",
+          "observed": 12,
+          "expected": 10.13899999999982
+        },
+        {
+          "card": "moon",
+          "observed": 12,
+          "expected": 9.950999999999924
+        },
+        {
+          "card": "sun",
+          "observed": 5,
+          "expected": 9.817999999999998
+        },
+        {
+          "card": "world",
+          "observed": 3,
+          "expected": 8.899000000000507
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "rounds": 80,
+      "oneEach": 80,
+      "categories": {
+        "score": 126,
+        "special": 45,
+        "multiplier": 69
+      },
+      "expectedCategories": {
+        "score": 95.92000000009395,
+        "multiplier": 96.0550000000946,
+        "special": 48.024999999978775
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.3759999999988256,
+          "CI95": [
+            0.1992499999992921,
+            0.5627499999985737
+          ]
+        },
+        "multiplier": {
+          "mean": -0.3381875000011824,
+          "CI95": [
+            -0.5016000000008266,
+            -0.16567500000150137
+          ]
+        },
+        "special": {
+          "mean": -0.03781249999973468,
+          "CI95": [
+            -0.16064999999970633,
+            0.08711250000013995
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 13,
+          "expected": 8.981000000000462
+        },
+        {
+          "card": "magician",
+          "observed": 8,
+          "expected": 9.556000000000143
+        },
+        {
+          "card": "high_priestess",
+          "observed": 14,
+          "expected": 9.673000000000078
+        },
+        {
+          "card": "empress",
+          "observed": 7,
+          "expected": 8.874000000000521
+        },
+        {
+          "card": "emperor",
+          "observed": 14,
+          "expected": 9.68900000000007
+        },
+        {
+          "card": "hierophant",
+          "observed": 17,
+          "expected": 8.955000000000476
+        },
+        {
+          "card": "lovers",
+          "observed": 12,
+          "expected": 9.20200000000034
+        },
+        {
+          "card": "chariot",
+          "observed": 11,
+          "expected": 8.124000000000937
+        },
+        {
+          "card": "hermit",
+          "observed": 5,
+          "expected": 7.328000000000782
+        },
+        {
+          "card": "hanged_man",
+          "observed": 17,
+          "expected": 8.31500000000083
+        },
+        {
+          "card": "devil",
+          "observed": 8,
+          "expected": 7.223000000000747
+        },
+        {
+          "card": "strength",
+          "observed": 14,
+          "expected": 15.192999999997019
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 14,
+          "expected": 17.123999999997945
+        },
+        {
+          "card": "justice",
+          "observed": 7,
+          "expected": 16.349999999997
+        },
+        {
+          "card": "death",
+          "observed": 9,
+          "expected": 15.782999999996692
+        },
+        {
+          "card": "temperance",
+          "observed": 18,
+          "expected": 16.386999999997045
+        },
+        {
+          "card": "judgement",
+          "observed": 7,
+          "expected": 15.217999999997005
+        },
+        {
+          "card": "tower",
+          "observed": 8,
+          "expected": 9.085000000000404
+        },
+        {
+          "card": "star",
+          "observed": 8,
+          "expected": 10.51799999999961
+        },
+        {
+          "card": "moon",
+          "observed": 9,
+          "expected": 9.916999999999943
+        },
+        {
+          "card": "sun",
+          "observed": 11,
+          "expected": 9.6350000000001
+        },
+        {
+          "card": "world",
+          "observed": 9,
+          "expected": 8.870000000000523
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "rounds": 80,
+      "oneEach": 80,
+      "categories": {
+        "score": 130,
+        "multiplier": 75,
+        "special": 35
+      },
+      "expectedCategories": {
+        "score": 96.21500000009536,
+        "multiplier": 96.09100000009477,
+        "special": 47.693999999979546
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.42231249999880804,
+          "CI95": [
+            0.25098749999926795,
+            0.5969249999994226
+          ]
+        },
+        "multiplier": {
+          "mean": -0.2636375000011846,
+          "CI95": [
+            -0.4148000000007836,
+            -0.11217500000128484
+          ]
+        },
+        "special": {
+          "mean": -0.15867499999974433,
+          "CI95": [
+            -0.27449999999968455,
+            -0.036137499999690695
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 6,
+          "expected": 9.32600000000027
+        },
+        {
+          "card": "magician",
+          "observed": 21,
+          "expected": 10.01299999999989
+        },
+        {
+          "card": "high_priestess",
+          "observed": 9,
+          "expected": 10.224999999999772
+        },
+        {
+          "card": "empress",
+          "observed": 11,
+          "expected": 9.29000000000029
+        },
+        {
+          "card": "emperor",
+          "observed": 17,
+          "expected": 9.79700000000001
+        },
+        {
+          "card": "hierophant",
+          "observed": 8,
+          "expected": 8.845000000000537
+        },
+        {
+          "card": "lovers",
+          "observed": 9,
+          "expected": 9.322000000000273
+        },
+        {
+          "card": "chariot",
+          "observed": 17,
+          "expected": 7.7940000000009375
+        },
+        {
+          "card": "hermit",
+          "observed": 7,
+          "expected": 7.14400000000072
+        },
+        {
+          "card": "hanged_man",
+          "observed": 13,
+          "expected": 7.343000000000787
+        },
+        {
+          "card": "devil",
+          "observed": 12,
+          "expected": 7.116000000000711
+        },
+        {
+          "card": "strength",
+          "observed": 11,
+          "expected": 14.671999999997308
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 17,
+          "expected": 16.773999999997518
+        },
+        {
+          "card": "justice",
+          "observed": 13,
+          "expected": 16.666999999997387
+        },
+        {
+          "card": "death",
+          "observed": 11,
+          "expected": 15.955999999996596
+        },
+        {
+          "card": "temperance",
+          "observed": 11,
+          "expected": 16.086999999996678
+        },
+        {
+          "card": "judgement",
+          "observed": 12,
+          "expected": 15.934999999996608
+        },
+        {
+          "card": "tower",
+          "observed": 8,
+          "expected": 9.240000000000318
+        },
+        {
+          "card": "star",
+          "observed": 10,
+          "expected": 10.870999999999414
+        },
+        {
+          "card": "moon",
+          "observed": 7,
+          "expected": 10.132999999999823
+        },
+        {
+          "card": "sun",
+          "observed": 5,
+          "expected": 9.307000000000281
+        },
+        {
+          "card": "world",
+          "observed": 5,
+          "expected": 8.143000000000926
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "rounds": 80,
+      "oneEach": 80,
+      "categories": {
+        "special": 103,
+        "multiplier": 64,
+        "score": 73
+      },
+      "expectedCategories": {
+        "score": 34.07700000001128,
+        "multiplier": 69.17899999996627,
+        "special": 136.74400000028888
+      },
+      "categoryDifferencePerRound": {
+        "score": {
+          "mean": 0.48653749999985896,
+          "CI95": [
+            0.3241624999999047,
+            0.6585124999999561
+          ]
+        },
+        "multiplier": {
+          "mean": -0.06473749999957831,
+          "CI95": [
+            -0.22793749999989257,
+            0.10256250000051952
+          ]
+        },
+        "special": {
+          "mean": -0.42180000000361095,
+          "CI95": [
+            -0.5829875000033387,
+            -0.2667750000041888
+          ]
+        }
+      },
+      "cards": [
+        {
+          "card": "fool",
+          "observed": 7,
+          "expected": 3.4369999999997325
+        },
+        {
+          "card": "magician",
+          "observed": 10,
+          "expected": 3.5619999999997187
+        },
+        {
+          "card": "high_priestess",
+          "observed": 6,
+          "expected": 3.5369999999997215
+        },
+        {
+          "card": "empress",
+          "observed": 6,
+          "expected": 3.2919999999997485
+        },
+        {
+          "card": "emperor",
+          "observed": 7,
+          "expected": 3.4919999999997264
+        },
+        {
+          "card": "hierophant",
+          "observed": 10,
+          "expected": 3.3189999999997455
+        },
+        {
+          "card": "lovers",
+          "observed": 9,
+          "expected": 3.4269999999997336
+        },
+        {
+          "card": "chariot",
+          "observed": 6,
+          "expected": 2.5749999999998274
+        },
+        {
+          "card": "hermit",
+          "observed": 4,
+          "expected": 2.54999999999983
+        },
+        {
+          "card": "hanged_man",
+          "observed": 6,
+          "expected": 2.522999999999833
+        },
+        {
+          "card": "devil",
+          "observed": 2,
+          "expected": 2.3629999999998508
+        },
+        {
+          "card": "strength",
+          "observed": 9,
+          "expected": 11.172999999999247
+        },
+        {
+          "card": "wheel_of_fortune",
+          "observed": 12,
+          "expected": 11.683999999998964
+        },
+        {
+          "card": "justice",
+          "observed": 11,
+          "expected": 11.729999999998938
+        },
+        {
+          "card": "death",
+          "observed": 8,
+          "expected": 11.58099999999902
+        },
+        {
+          "card": "temperance",
+          "observed": 15,
+          "expected": 12.03199999999877
+        },
+        {
+          "card": "judgement",
+          "observed": 9,
+          "expected": 10.978999999999354
+        },
+        {
+          "card": "tower",
+          "observed": 21,
+          "expected": 24.570000000007045
+        },
+        {
+          "card": "star",
+          "observed": 30,
+          "expected": 31.482000000015493
+        },
+        {
+          "card": "moon",
+          "observed": 19,
+          "expected": 29.08100000001256
+        },
+        {
+          "card": "sun",
+          "observed": 17,
+          "expected": 27.238000000010306
+        },
+        {
+          "card": "world",
+          "observed": 16,
+          "expected": 24.373000000006805
+        }
+      ]
+    }
+  ],
+  "tower": {
+    "n": 54,
+    "high": 27
+  }
+}

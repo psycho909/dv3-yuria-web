@@ -1,0 +1,274 @@
+{
+  "provenance": {
+    "inputSHA256": "34149a07bfdd9d33a2a6534330f3beca9bcbf79afc3ba9c45a492e48a056523f",
+    "domainSHA256": "338ddee21b7b7d0166164db123488375cadb6d85db223b94943bbbab020fc38d",
+    "primarySeed": 20260930,
+    "extraSeeds": [
+      20260931,
+      20260932
+    ],
+    "simulations": 8192
+  },
+  "scope": "Only states whose 2400 recommendation changed in primary run; not global ranking stability.",
+  "summary": {
+    "n": 6,
+    "productionStable": 5,
+    "candidateStable": 4,
+    "bothStable": 3,
+    "changedAllSeeds": 3
+  },
+  "rows": [
+    {
+      "ordinal": 28,
+      "turn": 2,
+      "choices": [
+        {
+          "seed": 20260930,
+          "production": {
+            "cardId": "hermit",
+            "color": "red"
+          },
+          "candidate": {
+            "cardId": "justice",
+            "color": "blue"
+          }
+        },
+        {
+          "seed": 20260931,
+          "production": {
+            "cardId": "hermit",
+            "color": "red"
+          },
+          "candidate": {
+            "cardId": "justice",
+            "color": "blue"
+          }
+        },
+        {
+          "seed": 20260932,
+          "production": {
+            "cardId": "hermit",
+            "color": "red"
+          },
+          "candidate": {
+            "cardId": "justice",
+            "color": "blue"
+          }
+        }
+      ],
+      "productionStable": true,
+      "candidateStable": true,
+      "changedAllSeeds": true
+    },
+    {
+      "ordinal": 22,
+      "turn": 1,
+      "choices": [
+        {
+          "seed": 20260930,
+          "production": {
+            "cardId": "devil",
+            "color": "purple"
+          },
+          "candidate": {
+            "cardId": "tower",
+            "color": "red"
+          }
+        },
+        {
+          "seed": 20260931,
+          "production": {
+            "cardId": "devil",
+            "color": "purple"
+          },
+          "candidate": {
+            "cardId": "tower",
+            "color": "red"
+          }
+        },
+        {
+          "seed": 20260932,
+          "production": {
+            "cardId": "devil",
+            "color": "purple"
+          },
+          "candidate": {
+            "cardId": "tower",
+            "color": "red"
+          }
+        }
+      ],
+      "productionStable": true,
+      "candidateStable": true,
+      "changedAllSeeds": true
+    },
+    {
+      "ordinal": 12,
+      "turn": 3,
+      "choices": [
+        {
+          "seed": 20260930,
+          "production": {
+            "cardId": "hermit",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "sun",
+            "color": "purple"
+          }
+        },
+        {
+          "seed": 20260931,
+          "production": {
+            "cardId": "hermit",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "sun",
+            "color": "purple"
+          }
+        },
+        {
+          "seed": 20260932,
+          "production": {
+            "cardId": "hermit",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "sun",
+            "color": "purple"
+          }
+        }
+      ],
+      "productionStable": true,
+      "candidateStable": true,
+      "changedAllSeeds": true
+    },
+    {
+      "ordinal": 3,
+      "turn": 1,
+      "choices": [
+        {
+          "seed": 20260930,
+          "production": {
+            "cardId": "fool",
+            "color": "purple"
+          },
+          "candidate": {
+            "cardId": "wheel_of_fortune",
+            "color": "blue"
+          }
+        },
+        {
+          "seed": 20260931,
+          "production": {
+            "cardId": "wheel_of_fortune",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "wheel_of_fortune",
+            "color": "blue"
+          }
+        },
+        {
+          "seed": 20260932,
+          "production": {
+            "cardId": "wheel_of_fortune",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "wheel_of_fortune",
+            "color": "blue"
+          }
+        }
+      ],
+      "productionStable": false,
+      "candidateStable": true,
+      "changedAllSeeds": false
+    },
+    {
+      "ordinal": 1,
+      "turn": 1,
+      "choices": [
+        {
+          "seed": 20260930,
+          "production": {
+            "cardId": "hierophant",
+            "color": "red"
+          },
+          "candidate": {
+            "cardId": "empress",
+            "color": "blue"
+          }
+        },
+        {
+          "seed": 20260931,
+          "production": {
+            "cardId": "hierophant",
+            "color": "red"
+          },
+          "candidate": {
+            "cardId": "hierophant",
+            "color": "red"
+          }
+        },
+        {
+          "seed": 20260932,
+          "production": {
+            "cardId": "hierophant",
+            "color": "red"
+          },
+          "candidate": {
+            "cardId": "hierophant",
+            "color": "red"
+          }
+        }
+      ],
+      "productionStable": true,
+      "candidateStable": false,
+      "changedAllSeeds": false
+    },
+    {
+      "ordinal": 1,
+      "turn": 2,
+      "choices": [
+        {
+          "seed": 20260930,
+          "production": {
+            "cardId": "tower",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "judgement",
+            "color": "red"
+          }
+        },
+        {
+          "seed": 20260931,
+          "production": {
+            "cardId": "tower",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "judgement",
+            "color": "red"
+          }
+        },
+        {
+          "seed": 20260932,
+          "production": {
+            "cardId": "tower",
+            "color": "blue"
+          },
+          "candidate": {
+            "cardId": "tower",
+            "color": "blue"
+          }
+        }
+      ],
+      "productionStable": true,
+      "candidateStable": false,
+      "changedAllSeeds": false
+    }
+  ]
+}

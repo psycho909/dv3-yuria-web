@@ -1,0 +1,246 @@
+{
+  "provenance": {
+    "inputSHA256": "34149a07bfdd9d33a2a6534330f3beca9bcbf79afc3ba9c45a492e48a056523f",
+    "domainSHA256": "338ddee21b7b7d0166164db123488375cadb6d85db223b94943bbbab020fc38d",
+    "sourceCommit": "e94545ac73f10506d1fb00e56828b3d3e26fccaa",
+    "seed": 20260930,
+    "evaluationSeed": 20261001,
+    "simulations": 8192,
+    "bootstrapSamples": 10000
+  },
+  "scenarios": [
+    {
+      "scenario": "target2400",
+      "games": 28,
+      "decisions": 140,
+      "changed": 6,
+      "byTurn": [
+        {
+          "turn": 1,
+          "n": 28,
+          "changed": 3,
+          "meanPredictionShift": -21.310863741734515
+        },
+        {
+          "turn": 2,
+          "n": 28,
+          "changed": 2,
+          "meanPredictionShift": -9.448965618183243
+        },
+        {
+          "turn": 3,
+          "n": 28,
+          "changed": 1,
+          "meanPredictionShift": -4.222152813381642
+        },
+        {
+          "turn": 4,
+          "n": 28,
+          "changed": 0,
+          "meanPredictionShift": -5.01454504698239
+        },
+        {
+          "turn": 5,
+          "n": 28,
+          "changed": 0,
+          "meanPredictionShift": 0
+        }
+      ],
+      "worlds": {
+        "productionWorld": {
+          "meanGainPerDecision": -2.050611299075094,
+          "meanGainCI95": [
+            -6.295592005226919,
+            0.2685362509287724
+          ],
+          "hitProbabilityGainPerDecision": -0.0006497672577911947,
+          "hitGainCI95": [
+            -0.0016177526422973577,
+            -0.000019654600021027162
+          ],
+          "changedDecisionMeanGain": -47.847596978418856,
+          "changedDecisionHitGain": -0.015161236015127874,
+          "independentSeedPrefersCandidate": 1
+        },
+        "candidateWorld": {
+          "meanGainPerDecision": 0.2716058136816441,
+          "meanGainCI95": [
+            -1.2403544613397857,
+            1.789934419227165
+          ],
+          "hitProbabilityGainPerDecision": 0.000307099747220661,
+          "hitGainCI95": [
+            0.000014561232243536519,
+            0.0006996642407678713
+          ],
+          "changedDecisionMeanGain": 6.337468985905029,
+          "changedDecisionHitGain": 0.00716566076848209,
+          "independentSeedPrefersCandidate": 5
+        }
+      }
+    },
+    {
+      "scenario": "target1500",
+      "games": 28,
+      "decisions": 140,
+      "changed": 10,
+      "byTurn": [
+        {
+          "turn": 1,
+          "n": 28,
+          "changed": 4,
+          "meanPredictionShift": -27.192994358019103
+        },
+        {
+          "turn": 2,
+          "n": 28,
+          "changed": 4,
+          "meanPredictionShift": -21.60082231875806
+        },
+        {
+          "turn": 3,
+          "n": 28,
+          "changed": 0,
+          "meanPredictionShift": -9.782042922356514
+        },
+        {
+          "turn": 4,
+          "n": 28,
+          "changed": 2,
+          "meanPredictionShift": -10.600724184535324
+        },
+        {
+          "turn": 5,
+          "n": 28,
+          "changed": 0,
+          "meanPredictionShift": 0
+        }
+      ],
+      "worlds": {
+        "productionWorld": {
+          "meanGainPerDecision": -2.4238560814995247,
+          "meanGainCI95": [
+            -4.900366188977101,
+            -0.6108854042410632
+          ],
+          "hitProbabilityGainPerDecision": -0.0014027000386305718,
+          "hitGainCI95": [
+            -0.0028560154884209833,
+            -0.00029578100536994175
+          ],
+          "changedDecisionMeanGain": -33.93398514099334,
+          "changedDecisionHitGain": -0.019637800540828004,
+          "independentSeedPrefersCandidate": 1
+        },
+        "candidateWorld": {
+          "meanGainPerDecision": 0.6480406357904046,
+          "meanGainCI95": [
+            -0.8216775355156413,
+            2.296380608762314
+          ],
+          "hitProbabilityGainPerDecision": 0.0012722881649773023,
+          "hitGainCI95": [
+            0.00048608688320086384,
+            0.0022291277052647247
+          ],
+          "changedDecisionMeanGain": 9.072568901065665,
+          "changedDecisionHitGain": 0.017812034309682236,
+          "independentSeedPrefersCandidate": 10
+        }
+      }
+    },
+    {
+      "scenario": "expected2400",
+      "games": 28,
+      "decisions": 140,
+      "changed": 14,
+      "byTurn": [
+        {
+          "turn": 1,
+          "n": 28,
+          "changed": 5,
+          "meanPredictionShift": -26.941177077732714
+        },
+        {
+          "turn": 2,
+          "n": 28,
+          "changed": 7,
+          "meanPredictionShift": -19.995363904025517
+        },
+        {
+          "turn": 3,
+          "n": 28,
+          "changed": 2,
+          "meanPredictionShift": -13.648594045726018
+        },
+        {
+          "turn": 4,
+          "n": 28,
+          "changed": 0,
+          "meanPredictionShift": -13.463784738846716
+        },
+        {
+          "turn": 5,
+          "n": 28,
+          "changed": 0,
+          "meanPredictionShift": 0
+        }
+      ],
+      "worlds": {
+        "productionWorld": {
+          "meanGainPerDecision": -2.4135714925207536,
+          "meanGainCI95": [
+            -4.063214499714696,
+            -1.045264815908569
+          ],
+          "hitProbabilityGainPerDecision": -0.0003909865815827905,
+          "hitGainCI95": [
+            -0.0016808802787526013,
+            0.0005501234399415298
+          ],
+          "changedDecisionMeanGain": -24.135714925207537,
+          "changedDecisionHitGain": -0.0039098658158279054,
+          "independentSeedPrefersCandidate": 0
+        },
+        "candidateWorld": {
+          "meanGainPerDecision": 2.0147258005008957,
+          "meanGainCI95": [
+            0.666867920724602,
+            3.796696702452489
+          ],
+          "hitProbabilityGainPerDecision": 0.0002756516210056745,
+          "hitGainCI95": [
+            -0.0006737418420834103,
+            0.0012056371704176542
+          ],
+          "changedDecisionMeanGain": 20.147258005008958,
+          "changedDecisionHitGain": 0.0027565162100567447,
+          "independentSeedPrefersCandidate": 12
+        }
+      }
+    }
+  ],
+  "goalComparisons": {
+    "production": {
+      "decisionsChanged": 28,
+      "finalTurn": {
+        "n": 28,
+        "changed": 0,
+        "meanGain": 0,
+        "hitGain": 0,
+        "rows": []
+      }
+    },
+    "candidate": {
+      "decisionsChanged": 26,
+      "finalTurn": {
+        "n": 28,
+        "changed": 0,
+        "meanGain": 0,
+        "hitGain": 0,
+        "rows": []
+      }
+    }
+  },
+  "interpretation": "Exact final-turn effects are conditional on recorded first four cards; not whole-game effects. Scenario gains compare offer models within the same objective."
+}

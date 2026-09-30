@@ -1,0 +1,4117 @@
+{
+  "kind": "synthetic-full-games",
+  "world": "candidate",
+  "goal": "expected2400",
+  "provenance": {
+    "sourceCommit": "e94545ac73f10506d1fb00e56828b3d3e26fccaa",
+    "domainSHA256": "338ddee21b7b7d0166164db123488375cadb6d85db223b94943bbbab020fc38d",
+    "environmentSeed": 20260930,
+    "decisionSeed": 20261003,
+    "simulations": 2048,
+    "bootstrapSamples": 10000,
+    "elapsedMs": 142673.1249
+  },
+  "rules": {
+    "failureScore": 20,
+    "sunCountsSelf": true,
+    "redRollMode": "integerPercent",
+    "futureColorModel": "oneEach",
+    "starRemovalPolicy": "uniformPresent"
+  },
+  "researchModel": {
+    "family": "card",
+    "early": [
+      10,
+      10,
+      5
+    ],
+    "final": [
+      5,
+      10,
+      20
+    ]
+  },
+  "summary": {
+    "gamesPerPolicy": 100,
+    "policies": {
+      "production": {
+        "n": 100,
+        "mean": 1128.32,
+        "meanCI95": [
+          1020.22,
+          1238.93
+        ],
+        "median": 1060,
+        "p10": 392,
+        "p90": 1762,
+        "min": 204,
+        "max": 2745,
+        "hits2400": 5,
+        "hitRate2400": 0.05,
+        "hitRateCI95": [
+          0.021543679154368438,
+          0.1117504692319169
+        ],
+        "totalDecisionMs": 36566.307000000044
+      },
+      "candidate": {
+        "n": 100,
+        "mean": 1093.86,
+        "meanCI95": [
+          988.53,
+          1202.04
+        ],
+        "median": 1062,
+        "p10": 392,
+        "p90": 1748,
+        "min": 168,
+        "max": 3052,
+        "hits2400": 4,
+        "hitRate2400": 0.04,
+        "hitRateCI95": [
+          0.015663303991548,
+          0.09837071435887702
+        ],
+        "totalDecisionMs": 105763.61239999997
+      }
+    },
+    "paired": {
+      "meanGain": -34.46,
+      "meanGainCI95": [
+        -93.66,
+        28.24
+      ],
+      "hitRateGain": -0.01,
+      "hitRateGainCI95": [
+        -0.04,
+        0.02
+      ],
+      "candidateWins": 14,
+      "productionWins": 21,
+      "ties": 65,
+      "differentTrajectories": 39
+    }
+  },
+  "limitations": [
+    "Synthetic games, not new real-game evidence.",
+    "Each policy starts empty and replans all five rounds; actual environment conditions on its own selected cards.",
+    "Streams are paired by game and turn; after choices diverge, offers differ legally because selected identities differ.",
+    "Both models use existing deterministic score rules, including unresolved red and World/Moon assumptions.",
+    "Only the recommendation offer model differs within each objective; rollout continuation still uses production immediate policy.",
+    "Finite recommendation budgets and two assumed worlds do not establish real-world uplift."
+  ],
+  "rows": [
+    {
+      "game": 0,
+      "production": {
+        "score": 2197,
+        "hit2400": false,
+        "decisionMs": 406.36370000000005
+      },
+      "candidate": {
+        "score": 2106,
+        "hit2400": false,
+        "decisionMs": 1147.9310000000003
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 1,
+      "production": {
+        "score": 1360,
+        "hit2400": false,
+        "decisionMs": 297.5736999999999
+      },
+      "candidate": {
+        "score": 1326,
+        "hit2400": false,
+        "decisionMs": 842.6442000000002
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 2,
+      "production": {
+        "score": 385,
+        "hit2400": false,
+        "decisionMs": 283.2723000000001
+      },
+      "candidate": {
+        "score": 385,
+        "hit2400": false,
+        "decisionMs": 804.1203
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 3,
+      "production": {
+        "score": 371,
+        "hit2400": false,
+        "decisionMs": 279.78140000000076
+      },
+      "candidate": {
+        "score": 168,
+        "hit2400": false,
+        "decisionMs": 797.3616999999986
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 4,
+      "production": {
+        "score": 1332,
+        "hit2400": false,
+        "decisionMs": 272.8670000000002
+      },
+      "candidate": {
+        "score": 1332,
+        "hit2400": false,
+        "decisionMs": 765.2927999999993
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 5,
+      "production": {
+        "score": 400,
+        "hit2400": false,
+        "decisionMs": 277.51590000000033
+      },
+      "candidate": {
+        "score": 280,
+        "hit2400": false,
+        "decisionMs": 814.3464000000004
+      },
+      "changedTurns": 2
+    },
+    {
+      "game": 6,
+      "production": {
+        "score": 924,
+        "hit2400": false,
+        "decisionMs": 255.4389000000001
+      },
+      "candidate": {
+        "score": 391,
+        "hit2400": false,
+        "decisionMs": 1031.4797999999982
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 7,
+      "production": {
+        "score": 1782,
+        "hit2400": false,
+        "decisionMs": 403.7892000000029
+      },
+      "candidate": {
+        "score": 935,
+        "hit2400": false,
+        "decisionMs": 1219.2625999999964
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 8,
+      "production": {
+        "score": 1326,
+        "hit2400": false,
+        "decisionMs": 368.0358000000015
+      },
+      "candidate": {
+        "score": 1326,
+        "hit2400": false,
+        "decisionMs": 1094.9147999999968
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 9,
+      "production": {
+        "score": 279,
+        "hit2400": false,
+        "decisionMs": 347.4038000000037
+      },
+      "candidate": {
+        "score": 279,
+        "hit2400": false,
+        "decisionMs": 1412.8823999999986
+      },
+      "changedTurns": 2
+    },
+    {
+      "game": 10,
+      "production": {
+        "score": 759,
+        "hit2400": false,
+        "decisionMs": 586.1201999999994
+      },
+      "candidate": {
+        "score": 1037,
+        "hit2400": false,
+        "decisionMs": 1748.586299999999
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 11,
+      "production": {
+        "score": 2187,
+        "hit2400": false,
+        "decisionMs": 509.39730000000054
+      },
+      "candidate": {
+        "score": 1134,
+        "hit2400": false,
+        "decisionMs": 1322.9392000000025
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 12,
+      "production": {
+        "score": 392,
+        "hit2400": false,
+        "decisionMs": 378.4933000000019
+      },
+      "candidate": {
+        "score": 392,
+        "hit2400": false,
+        "decisionMs": 1047.9249000000018
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 13,
+      "production": {
+        "score": 1290,
+        "hit2400": false,
+        "decisionMs": 282.5516000000025
+      },
+      "candidate": {
+        "score": 1044,
+        "hit2400": false,
+        "decisionMs": 888.1004999999968
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 14,
+      "production": {
+        "score": 1290,
+        "hit2400": false,
+        "decisionMs": 486.38910000000396
+      },
+      "candidate": {
+        "score": 1290,
+        "hit2400": false,
+        "decisionMs": 1044.4337000000014
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 15,
+      "production": {
+        "score": 1833,
+        "hit2400": false,
+        "decisionMs": 311.0965000000033
+      },
+      "candidate": {
+        "score": 1833,
+        "hit2400": false,
+        "decisionMs": 938.8569000000025
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 16,
+      "production": {
+        "score": 1394,
+        "hit2400": false,
+        "decisionMs": 323.09200000000055
+      },
+      "candidate": {
+        "score": 1394,
+        "hit2400": false,
+        "decisionMs": 1002.1582999999991
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 17,
+      "production": {
+        "score": 2745,
+        "hit2400": true,
+        "decisionMs": 350.53190000000177
+      },
+      "candidate": {
+        "score": 1935,
+        "hit2400": false,
+        "decisionMs": 905.0377000000044
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 18,
+      "production": {
+        "score": 864,
+        "hit2400": false,
+        "decisionMs": 312.4149000000034
+      },
+      "candidate": {
+        "score": 864,
+        "hit2400": false,
+        "decisionMs": 870.1470999999983
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 19,
+      "production": {
+        "score": 1762,
+        "hit2400": false,
+        "decisionMs": 315.8014000000039
+      },
+      "candidate": {
+        "score": 1762,
+        "hit2400": false,
+        "decisionMs": 932.5322000000015
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 20,
+      "production": {
+        "score": 669,
+        "hit2400": false,
+        "decisionMs": 374.96979999999894
+      },
+      "candidate": {
+        "score": 669,
+        "hit2400": false,
+        "decisionMs": 951.2042999999976
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 21,
+      "production": {
+        "score": 1060,
+        "hit2400": false,
+        "decisionMs": 387.9193000000014
+      },
+      "candidate": {
+        "score": 1086,
+        "hit2400": false,
+        "decisionMs": 930.3356000000022
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 22,
+      "production": {
+        "score": 1700,
+        "hit2400": false,
+        "decisionMs": 284.479800000001
+      },
+      "candidate": {
+        "score": 3052,
+        "hit2400": true,
+        "decisionMs": 840.2171000000017
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 23,
+      "production": {
+        "score": 1575,
+        "hit2400": false,
+        "decisionMs": 311.3027000000002
+      },
+      "candidate": {
+        "score": 1575,
+        "hit2400": false,
+        "decisionMs": 952.8471000000063
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 24,
+      "production": {
+        "score": 783,
+        "hit2400": false,
+        "decisionMs": 286.1178
+      },
+      "candidate": {
+        "score": 783,
+        "hit2400": false,
+        "decisionMs": 892.1473000000042
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 25,
+      "production": {
+        "score": 679,
+        "hit2400": false,
+        "decisionMs": 289.86559999999736
+      },
+      "candidate": {
+        "score": 679,
+        "hit2400": false,
+        "decisionMs": 902.3289000000004
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 26,
+      "production": {
+        "score": 1599,
+        "hit2400": false,
+        "decisionMs": 284.1191000000108
+      },
+      "candidate": {
+        "score": 1062,
+        "hit2400": false,
+        "decisionMs": 911.5199999999968
+      },
+      "changedTurns": 3
+    },
+    {
+      "game": 27,
+      "production": {
+        "score": 779,
+        "hit2400": false,
+        "decisionMs": 363.0394000000015
+      },
+      "candidate": {
+        "score": 779,
+        "hit2400": false,
+        "decisionMs": 933.1399999999994
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 28,
+      "production": {
+        "score": 1118,
+        "hit2400": false,
+        "decisionMs": 282.1224000000002
+      },
+      "candidate": {
+        "score": 1118,
+        "hit2400": false,
+        "decisionMs": 904.5400999999765
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 29,
+      "production": {
+        "score": 1395,
+        "hit2400": false,
+        "decisionMs": 262.7113999999783
+      },
+      "candidate": {
+        "score": 1445,
+        "hit2400": false,
+        "decisionMs": 826.1403999999966
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 30,
+      "production": {
+        "score": 1029,
+        "hit2400": false,
+        "decisionMs": 286.56870000000345
+      },
+      "candidate": {
+        "score": 620,
+        "hit2400": false,
+        "decisionMs": 1015.5422000000035
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 31,
+      "production": {
+        "score": 852,
+        "hit2400": false,
+        "decisionMs": 265.781799999997
+      },
+      "candidate": {
+        "score": 852,
+        "hit2400": false,
+        "decisionMs": 828.8202000000019
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 32,
+      "production": {
+        "score": 1431,
+        "hit2400": false,
+        "decisionMs": 314.3464999999924
+      },
+      "candidate": {
+        "score": 1431,
+        "hit2400": false,
+        "decisionMs": 873.4815999999919
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 33,
+      "production": {
+        "score": 513,
+        "hit2400": false,
+        "decisionMs": 285.52990000000136
+      },
+      "candidate": {
+        "score": 513,
+        "hit2400": false,
+        "decisionMs": 870.290700000005
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 34,
+      "production": {
+        "score": 882,
+        "hit2400": false,
+        "decisionMs": 434.1244000000079
+      },
+      "candidate": {
+        "score": 882,
+        "hit2400": false,
+        "decisionMs": 1122.790100000013
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 35,
+      "production": {
+        "score": 1452,
+        "hit2400": false,
+        "decisionMs": 340.7173000000039
+      },
+      "candidate": {
+        "score": 1452,
+        "hit2400": false,
+        "decisionMs": 1013.6016000000091
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 36,
+      "production": {
+        "score": 1155,
+        "hit2400": false,
+        "decisionMs": 361.75539999999455
+      },
+      "candidate": {
+        "score": 645,
+        "hit2400": false,
+        "decisionMs": 919.2775000000038
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 37,
+      "production": {
+        "score": 986,
+        "hit2400": false,
+        "decisionMs": 291.38730000000214
+      },
+      "candidate": {
+        "score": 615,
+        "hit2400": false,
+        "decisionMs": 1030.204099999988
+      },
+      "changedTurns": 3
+    },
+    {
+      "game": 38,
+      "production": {
+        "score": 1122,
+        "hit2400": false,
+        "decisionMs": 378.81320000000414
+      },
+      "candidate": {
+        "score": 2047,
+        "hit2400": false,
+        "decisionMs": 1071.9636000000028
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 39,
+      "production": {
+        "score": 398,
+        "hit2400": false,
+        "decisionMs": 338.78899999999703
+      },
+      "candidate": {
+        "score": 798,
+        "hit2400": false,
+        "decisionMs": 1034.2434999999896
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 40,
+      "production": {
+        "score": 819,
+        "hit2400": false,
+        "decisionMs": 320.46420000000944
+      },
+      "candidate": {
+        "score": 819,
+        "hit2400": false,
+        "decisionMs": 1011.9597000000067
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 41,
+      "production": {
+        "score": 2445,
+        "hit2400": true,
+        "decisionMs": 389.6616999999969
+      },
+      "candidate": {
+        "score": 2445,
+        "hit2400": true,
+        "decisionMs": 1118.7688999999955
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 42,
+      "production": {
+        "score": 285,
+        "hit2400": false,
+        "decisionMs": 330.0005999999994
+      },
+      "candidate": {
+        "score": 648,
+        "hit2400": false,
+        "decisionMs": 937.448000000004
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 43,
+      "production": {
+        "score": 1200,
+        "hit2400": false,
+        "decisionMs": 308.7587000000058
+      },
+      "candidate": {
+        "score": 1100,
+        "hit2400": false,
+        "decisionMs": 924.9370999999956
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 44,
+      "production": {
+        "score": 669,
+        "hit2400": false,
+        "decisionMs": 294.3995000000068
+      },
+      "candidate": {
+        "score": 669,
+        "hit2400": false,
+        "decisionMs": 1030.5821999999898
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 45,
+      "production": {
+        "score": 315,
+        "hit2400": false,
+        "decisionMs": 298.6287000000011
+      },
+      "candidate": {
+        "score": 230,
+        "hit2400": false,
+        "decisionMs": 1119.032100000004
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 46,
+      "production": {
+        "score": 1515,
+        "hit2400": false,
+        "decisionMs": 419.63730000000214
+      },
+      "candidate": {
+        "score": 1515,
+        "hit2400": false,
+        "decisionMs": 1102.4563000000053
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 47,
+      "production": {
+        "score": 784,
+        "hit2400": false,
+        "decisionMs": 443.152599999994
+      },
+      "candidate": {
+        "score": 1064,
+        "hit2400": false,
+        "decisionMs": 1168.1412999999957
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 48,
+      "production": {
+        "score": 855,
+        "hit2400": false,
+        "decisionMs": 330.20590000000084
+      },
+      "candidate": {
+        "score": 855,
+        "hit2400": false,
+        "decisionMs": 997.994399999996
+      },
+      "changedTurns": 1
+    },
+    {
+      "game": 49,
+      "production": {
+        "score": 527,
+        "hit2400": false,
+        "decisionMs": 457.6374999999971
+      },
+      "candidate": {
+        "score": 527,
+        "hit2400": false,
+        "decisionMs": 1094.2378000000026
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 50,
+      "production": {
+        "score": 838,
+        "hit2400": false,
+        "decisionMs": 385.13880000000063
+      },
+      "candidate": {
+        "score": 838,
+        "hit2400": false,
+        "decisionMs": 1040.22169999998
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 51,
+      "production": {
+        "score": 765,
+        "hit2400": false,
+        "decisionMs": 358.8615000000136
+      },
+      "candidate": {
+        "score": 765,
+        "hit2400": false,
+        "decisionMs": 1220.6260000000038
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 52,
+      "production": {
+        "score": 1066,
+        "hit2400": false,
+        "decisionMs": 473.271900000007
+      },
+      "candidate": {
+        "score": 540,
+        "hit2400": false,
+        "decisionMs": 1326.0970999999845
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 53,
+      "production": {
+        "score": 1020,
+        "hit2400": false,
+        "decisionMs": 357.85460000000603
+      },
+      "candidate": {
+        "score": 864,
+        "hit2400": false,
+        "decisionMs": 1594.458799999993
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 54,
+      "production": {
+        "score": 1449,
+        "hit2400": false,
+        "decisionMs": 633.0351999999984
+      },
+      "candidate": {
+        "score": 1449,
+        "hit2400": false,
+        "decisionMs": 1505.5279000000155
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 55,
+      "production": {
+        "score": 1751,
+        "hit2400": false,
+        "decisionMs": 341.1113999999943
+      },
+      "candidate": {
+        "score": 1751,
+        "hit2400": false,
+        "decisionMs": 1014.5451000000176
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 56,
+      "production": {
+        "score": 912,
+        "hit2400": false,
+        "decisionMs": 322.36419999999634
+      },
+      "candidate": {
+        "score": 912,
+        "hit2400": false,
+        "decisionMs": 954.3815999999933
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 57,
+      "production": {
+        "score": 798,
+        "hit2400": false,
+        "decisionMs": 305.1515000000072
+      },
+      "candidate": {
+        "score": 798,
+        "hit2400": false,
+        "decisionMs": 885.8326999999845
+      },
+      "changedTurns": 2
+    },
+    {
+      "game": 58,
+      "production": {
+        "score": 626,
+        "hit2400": false,
+        "decisionMs": 296.7113999999856
+      },
+      "candidate": {
+        "score": 626,
+        "hit2400": false,
+        "decisionMs": 932.2452000000048
+      },
+      "changedTurns": 1
+    },
+    {
+      "game": 59,
+      "production": {
+        "score": 204,
+        "hit2400": false,
+        "decisionMs": 292.64370000000054
+      },
+      "candidate": {
+        "score": 261,
+        "hit2400": false,
+        "decisionMs": 913.3441000000021
+      },
+      "changedTurns": 2
+    },
+    {
+      "game": 60,
+      "production": {
+        "score": 1176,
+        "hit2400": false,
+        "decisionMs": 310.1545000000042
+      },
+      "candidate": {
+        "score": 1176,
+        "hit2400": false,
+        "decisionMs": 969.1309999999794
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 61,
+      "production": {
+        "score": 418,
+        "hit2400": false,
+        "decisionMs": 319.0726000000286
+      },
+      "candidate": {
+        "score": 418,
+        "hit2400": false,
+        "decisionMs": 936.420300000027
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 62,
+      "production": {
+        "score": 1100,
+        "hit2400": false,
+        "decisionMs": 298.984300000011
+      },
+      "candidate": {
+        "score": 1131,
+        "hit2400": false,
+        "decisionMs": 920.3065999999963
+      },
+      "changedTurns": 3
+    },
+    {
+      "game": 63,
+      "production": {
+        "score": 1278,
+        "hit2400": false,
+        "decisionMs": 304.9427999999898
+      },
+      "candidate": {
+        "score": 1278,
+        "hit2400": false,
+        "decisionMs": 895.3090000000084
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 64,
+      "production": {
+        "score": 1530,
+        "hit2400": false,
+        "decisionMs": 382.55230000002484
+      },
+      "candidate": {
+        "score": 1530,
+        "hit2400": false,
+        "decisionMs": 996.3080000000045
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 65,
+      "production": {
+        "score": 951,
+        "hit2400": false,
+        "decisionMs": 278.9704000000056
+      },
+      "candidate": {
+        "score": 951,
+        "hit2400": false,
+        "decisionMs": 865.7834999999905
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 66,
+      "production": {
+        "score": 1664,
+        "hit2400": false,
+        "decisionMs": 356.9260999999824
+      },
+      "candidate": {
+        "score": 1664,
+        "hit2400": false,
+        "decisionMs": 952.0177000000112
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 67,
+      "production": {
+        "score": 1040,
+        "hit2400": false,
+        "decisionMs": 315.071299999996
+      },
+      "candidate": {
+        "score": 1040,
+        "hit2400": false,
+        "decisionMs": 888.1302999999898
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 68,
+      "production": {
+        "score": 807,
+        "hit2400": false,
+        "decisionMs": 297.7948000000033
+      },
+      "candidate": {
+        "score": 1093,
+        "hit2400": false,
+        "decisionMs": 930.3605000000243
+      },
+      "changedTurns": 3
+    },
+    {
+      "game": 69,
+      "production": {
+        "score": 1221,
+        "hit2400": false,
+        "decisionMs": 325.94069999997737
+      },
+      "candidate": {
+        "score": 1221,
+        "hit2400": false,
+        "decisionMs": 1027.7207999999955
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 70,
+      "production": {
+        "score": 969,
+        "hit2400": false,
+        "decisionMs": 416.39949999999953
+      },
+      "candidate": {
+        "score": 969,
+        "hit2400": false,
+        "decisionMs": 1274.3285999999935
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 71,
+      "production": {
+        "score": 849,
+        "hit2400": false,
+        "decisionMs": 424.9125000000058
+      },
+      "candidate": {
+        "score": 849,
+        "hit2400": false,
+        "decisionMs": 1258.3117000000057
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 72,
+      "production": {
+        "score": 1113,
+        "hit2400": false,
+        "decisionMs": 357.9719999999943
+      },
+      "candidate": {
+        "score": 1113,
+        "hit2400": false,
+        "decisionMs": 1000.8821000000025
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 73,
+      "production": {
+        "score": 900,
+        "hit2400": false,
+        "decisionMs": 387.9600999999966
+      },
+      "candidate": {
+        "score": 900,
+        "hit2400": false,
+        "decisionMs": 1191.2390000000014
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 74,
+      "production": {
+        "score": 952,
+        "hit2400": false,
+        "decisionMs": 452.4006999999983
+      },
+      "candidate": {
+        "score": 1092,
+        "hit2400": false,
+        "decisionMs": 1117.2447999999858
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 75,
+      "production": {
+        "score": 841,
+        "hit2400": false,
+        "decisionMs": 440.72769999998854
+      },
+      "candidate": {
+        "score": 841,
+        "hit2400": false,
+        "decisionMs": 1193.345799999981
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 76,
+      "production": {
+        "score": 1425,
+        "hit2400": false,
+        "decisionMs": 379.6515000000072
+      },
+      "candidate": {
+        "score": 1425,
+        "hit2400": false,
+        "decisionMs": 1175.7090000000026
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 77,
+      "production": {
+        "score": 865,
+        "hit2400": false,
+        "decisionMs": 417.63220000002184
+      },
+      "candidate": {
+        "score": 350,
+        "hit2400": false,
+        "decisionMs": 1161.5883999999933
+      },
+      "changedTurns": 4
+    },
+    {
+      "game": 78,
+      "production": {
+        "score": 1460,
+        "hit2400": false,
+        "decisionMs": 359.6482999999862
+      },
+      "candidate": {
+        "score": 1460,
+        "hit2400": false,
+        "decisionMs": 1053.0047999999952
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 79,
+      "production": {
+        "score": 1800,
+        "hit2400": false,
+        "decisionMs": 339.98390000000654
+      },
+      "candidate": {
+        "score": 1092,
+        "hit2400": false,
+        "decisionMs": 976.586999999985
+      },
+      "changedTurns": 2
+    },
+    {
+      "game": 80,
+      "production": {
+        "score": 371,
+        "hit2400": false,
+        "decisionMs": 376.4832000000024
+      },
+      "candidate": {
+        "score": 735,
+        "hit2400": false,
+        "decisionMs": 1245.2425000000076
+      },
+      "changedTurns": 5
+    },
+    {
+      "game": 81,
+      "production": {
+        "score": 867,
+        "hit2400": false,
+        "decisionMs": 730.7116999999853
+      },
+      "candidate": {
+        "score": 867,
+        "hit2400": false,
+        "decisionMs": 1587.2344000000012
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 82,
+      "production": {
+        "score": 1248,
+        "hit2400": false,
+        "decisionMs": 370.1621000000014
+      },
+      "candidate": {
+        "score": 1248,
+        "hit2400": false,
+        "decisionMs": 1001.2196999999869
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 83,
+      "production": {
+        "score": 1342,
+        "hit2400": false,
+        "decisionMs": 302.81380000003264
+      },
+      "candidate": {
+        "score": 1342,
+        "hit2400": false,
+        "decisionMs": 915.4278000000049
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 84,
+      "production": {
+        "score": 2402,
+        "hit2400": true,
+        "decisionMs": 357.6778000000195
+      },
+      "candidate": {
+        "score": 1739,
+        "hit2400": false,
+        "decisionMs": 949.7186999999976
+      },
+      "changedTurns": 3
+    },
+    {
+      "game": 85,
+      "production": {
+        "score": 1748,
+        "hit2400": false,
+        "decisionMs": 319.6002999999764
+      },
+      "candidate": {
+        "score": 1748,
+        "hit2400": false,
+        "decisionMs": 989.9116000000358
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 86,
+      "production": {
+        "score": 1500,
+        "hit2400": false,
+        "decisionMs": 342.85349999999744
+      },
+      "candidate": {
+        "score": 1500,
+        "hit2400": false,
+        "decisionMs": 976.7293000000209
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 87,
+      "production": {
+        "score": 1530,
+        "hit2400": false,
+        "decisionMs": 353.4775000000227
+      },
+      "candidate": {
+        "score": 1170,
+        "hit2400": false,
+        "decisionMs": 968.9940000000206
+      },
+      "changedTurns": 3
+    },
+    {
+      "game": 88,
+      "production": {
+        "score": 480,
+        "hit2400": false,
+        "decisionMs": 332.17420000000857
+      },
+      "candidate": {
+        "score": 480,
+        "hit2400": false,
+        "decisionMs": 919.4189000000042
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 89,
+      "production": {
+        "score": 1312,
+        "hit2400": false,
+        "decisionMs": 325.443700000018
+      },
+      "candidate": {
+        "score": 1312,
+        "hit2400": false,
+        "decisionMs": 1055.4279999999999
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 90,
+      "production": {
+        "score": 515,
+        "hit2400": false,
+        "decisionMs": 346.231300000014
+      },
+      "candidate": {
+        "score": 515,
+        "hit2400": false,
+        "decisionMs": 943.2264000000141
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 91,
+      "production": {
+        "score": 1648,
+        "hit2400": false,
+        "decisionMs": 357.67210000002524
+      },
+      "candidate": {
+        "score": 1648,
+        "hit2400": false,
+        "decisionMs": 899.8767000000225
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 92,
+      "production": {
+        "score": 2484,
+        "hit2400": true,
+        "decisionMs": 297.22209999999905
+      },
+      "candidate": {
+        "score": 2484,
+        "hit2400": true,
+        "decisionMs": 913.9723000000085
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 93,
+      "production": {
+        "score": 204,
+        "hit2400": false,
+        "decisionMs": 359.32919999999285
+      },
+      "candidate": {
+        "score": 1083,
+        "hit2400": false,
+        "decisionMs": 1029.5828000000183
+      },
+      "changedTurns": 3
+    },
+    {
+      "game": 94,
+      "production": {
+        "score": 255,
+        "hit2400": false,
+        "decisionMs": 353.43869999998424
+      },
+      "candidate": {
+        "score": 255,
+        "hit2400": false,
+        "decisionMs": 995.3066999999864
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 95,
+      "production": {
+        "score": 1575,
+        "hit2400": false,
+        "decisionMs": 319.40949999997974
+      },
+      "candidate": {
+        "score": 1575,
+        "hit2400": false,
+        "decisionMs": 1150.8454999999958
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 96,
+      "production": {
+        "score": 2704,
+        "hit2400": true,
+        "decisionMs": 561.6487999999663
+      },
+      "candidate": {
+        "score": 2704,
+        "hit2400": true,
+        "decisionMs": 2061.7812999999733
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 97,
+      "production": {
+        "score": 1133,
+        "hit2400": false,
+        "decisionMs": 1036.2679999999818
+      },
+      "candidate": {
+        "score": 1133,
+        "hit2400": false,
+        "decisionMs": 2236.7930999999517
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 98,
+      "production": {
+        "score": 901,
+        "hit2400": false,
+        "decisionMs": 711.7884999999951
+      },
+      "candidate": {
+        "score": 901,
+        "hit2400": false,
+        "decisionMs": 1598.4789000000164
+      },
+      "changedTurns": 0
+    },
+    {
+      "game": 99,
+      "production": {
+        "score": 1362,
+        "hit2400": false,
+        "decisionMs": 413.12119999996503
+      },
+      "candidate": {
+        "score": 1362,
+        "hit2400": false,
+        "decisionMs": 1192.2681999999622
+      },
+      "changedTurns": 0
+    }
+  ],
+  "traces": [
+    {
+      "game": 0,
+      "changedTurns": 5,
+      "production": {
+        "score": 2197,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "chariot",
+            "color": "red",
+            "activated": true
+          },
+          {
+            "cardId": "death",
+            "color": "red",
+            "activated": true
+          },
+          {
+            "cardId": "hierophant",
+            "color": "red",
+            "activated": true
+          },
+          {
+            "cardId": "temperance",
+            "color": "red",
+            "activated": true
+          },
+          {
+            "cardId": "devil",
+            "color": "red",
+            "activated": true
+          }
+        ],
+        "redUniform": 0.6536166495643556,
+        "breakdown": {
+          "sum": 370,
+          "multiplier": 3.3,
+          "redBonus": 0.8,
+          "finalScore": 2197,
+          "activeColorCounts": {
+            "blue": 0,
+            "purple": 0,
+            "red": 5
+          },
+          "failedCount": 0
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "chariot",
+                "color": "red"
+              },
+              {
+                "cardId": "judgement",
+                "color": "purple"
+              },
+              {
+                "cardId": "star",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "chariot",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "red",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "chariot",
+                "color": "red"
+              },
+              "meanScore": 1064.6189947807195,
+              "p10": 450,
+              "p50": 964,
+              "p90": 1841,
+              "threshold": 2400,
+              "thresholdProbability": 0.03247198502522347,
+              "minScore": 73,
+              "maxScore": 4514,
+              "standardDeviation": 569.2081411642932,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "death",
+                "color": "red"
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              {
+                "cardId": "judgement",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "death",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "red",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "death",
+                "color": "red"
+              },
+              "meanScore": 1201.9356037917153,
+              "p10": 592,
+              "p50": 1086,
+              "p90": 1991,
+              "threshold": 2400,
+              "thresholdProbability": 0.04345483224562735,
+              "minScore": 80,
+              "maxScore": 4446,
+              "standardDeviation": 570.9340973213795,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "lovers",
+                "color": "purple"
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red"
+              },
+              {
+                "cardId": "fool",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "hierophant",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "hierophant",
+                "color": "red"
+              },
+              "meanScore": 1348.5437884638234,
+              "p10": 693,
+              "p50": 1226,
+              "p90": 2098,
+              "threshold": 2400,
+              "thresholdProbability": 0.04374714299896994,
+              "minScore": 198,
+              "maxScore": 3933,
+              "standardDeviation": 546.1700609302718,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "judgement",
+                "color": "purple"
+              },
+              {
+                "cardId": "temperance",
+                "color": "red"
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "temperance",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "temperance",
+                "color": "red",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "temperance",
+                "color": "red"
+              },
+              "meanScore": 1425.774258751429,
+              "p10": 768,
+              "p50": 1259,
+              "p90": 2207,
+              "threshold": 2400,
+              "thresholdProbability": 0.04065522693452388,
+              "minScore": 648,
+              "maxScore": 2884,
+              "standardDeviation": 503.0801071410373,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "devil",
+                "color": "red"
+              },
+              {
+                "cardId": "empress",
+                "color": "purple"
+              },
+              {
+                "cardId": "sun",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "devil",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "temperance",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "devil",
+                "color": "red",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "devil",
+                "color": "red"
+              },
+              "meanScore": 1661.89093701997,
+              "p10": 1140,
+              "p50": 1267,
+              "p90": 2246,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 1108,
+              "maxScore": 2319,
+              "standardDeviation": 481.80721497954113,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 406.36370000000005
+      },
+      "candidate": {
+        "score": 2106,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "star",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "lovers",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "fool",
+            "color": "blue",
+            "activated": true,
+            "removed": true
+          },
+          {
+            "cardId": "chariot",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "sun",
+            "color": "blue",
+            "activated": true
+          }
+        ],
+        "redUniform": 0.6536166495643556,
+        "breakdown": {
+          "sum": 390,
+          "multiplier": 5.4,
+          "redBonus": 0,
+          "finalScore": 2106,
+          "activeColorCounts": {
+            "blue": 4,
+            "purple": 0,
+            "red": 0
+          },
+          "failedCount": 0
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "chariot",
+                "color": "red"
+              },
+              {
+                "cardId": "judgement",
+                "color": "purple"
+              },
+              {
+                "cardId": "star",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "star",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "star",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "star",
+                "color": "blue"
+              },
+              "meanScore": 1081.250464976908,
+              "p10": 544,
+              "p50": 1020,
+              "p90": 1683,
+              "threshold": 2400,
+              "thresholdProbability": 0.004575972123579511,
+              "minScore": 0,
+              "maxScore": 3294,
+              "standardDeviation": 440.5452143324823,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "justice",
+                "color": "red"
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              {
+                "cardId": "judgement",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "lovers",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "star",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              "meanScore": 1139.769670521119,
+              "p10": 578,
+              "p50": 1054,
+              "p90": 1755,
+              "threshold": 2400,
+              "thresholdProbability": 0.0044855291193181416,
+              "minScore": 93,
+              "maxScore": 3294,
+              "standardDeviation": 455.6765350740799,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "chariot",
+                "color": "purple"
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red"
+              },
+              {
+                "cardId": "fool",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "fool",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "star",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "fool",
+                "color": "blue"
+              },
+              "meanScore": 1322.092798406426,
+              "p10": 884,
+              "p50": 1445,
+              "p90": 1782,
+              "threshold": 2400,
+              "thresholdProbability": 0.001464843749999998,
+              "minScore": 527,
+              "maxScore": 2646,
+              "standardDeviation": 367.43343749847963,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "temperance",
+                "color": "purple"
+              },
+              {
+                "cardId": "death",
+                "color": "red"
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "chariot",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "star",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              "meanScore": 1337.9351196289065,
+              "p10": 945,
+              "p50": 1462,
+              "p90": 1863,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 527,
+              "maxScore": 2142,
+              "standardDeviation": 381.3322981928356,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "strength",
+                "color": "red"
+              },
+              {
+                "cardId": "emperor",
+                "color": "purple"
+              },
+              {
+                "cardId": "sun",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "sun",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "star",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true,
+                "removed": true
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "sun",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "sun",
+                "color": "blue"
+              },
+              "meanScore": 1517.75,
+              "p10": 969,
+              "p50": 1581,
+              "p90": 2106,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 969,
+              "maxScore": 2106,
+              "standardDeviation": 411.6050139393348,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 1147.9310000000003
+      }
+    },
+    {
+      "game": 1,
+      "changedTurns": 4,
+      "production": {
+        "score": 1360,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "hierophant",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "death",
+            "color": "blue",
+            "activated": false,
+            "removed": true
+          },
+          {
+            "cardId": "moon",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "world",
+            "color": "red",
+            "activated": true
+          },
+          {
+            "cardId": "star",
+            "color": "blue",
+            "activated": true
+          }
+        ],
+        "redUniform": 0.8809352901298553,
+        "breakdown": {
+          "sum": 400,
+          "multiplier": 3.4,
+          "redBonus": 0,
+          "finalScore": 1360,
+          "activeColorCounts": {
+            "blue": 3,
+            "purple": 0,
+            "red": 1
+          },
+          "failedCount": 0
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "hierophant",
+                "color": "blue"
+              },
+              {
+                "cardId": "strength",
+                "color": "red"
+              },
+              {
+                "cardId": "tower",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "hierophant",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "hierophant",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "hierophant",
+                "color": "blue"
+              },
+              "meanScore": 1119.4277660287353,
+              "p10": 500,
+              "p50": 1040,
+              "p90": 1860,
+              "threshold": 2400,
+              "thresholdProbability": 0.025547096946022894,
+              "minScore": 100,
+              "maxScore": 3672,
+              "standardDeviation": 534.810561466905,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "emperor",
+                "color": "red"
+              },
+              {
+                "cardId": "death",
+                "color": "blue"
+              },
+              {
+                "cardId": "judgement",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "death",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "hierophant",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "death",
+                "color": "blue"
+              },
+              "meanScore": 1231.5172063654238,
+              "p10": 612,
+              "p50": 1150,
+              "p90": 1984,
+              "threshold": 2400,
+              "thresholdProbability": 0.03802712180397756,
+              "minScore": 146,
+              "maxScore": 3600,
+              "standardDeviation": 548.3600167735119,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "moon",
+                "color": "blue"
+              },
+              {
+                "cardId": "devil",
+                "color": "red"
+              },
+              {
+                "cardId": "strength",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "moon",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "hierophant",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "moon",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "moon",
+                "color": "blue"
+              },
+              "meanScore": 940.431297718396,
+              "p10": 494,
+              "p50": 952,
+              "p90": 1400,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 136,
+              "maxScore": 2000,
+              "standardDeviation": 353.03857139423076,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "hermit",
+                "color": "purple"
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              {
+                "cardId": "world",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "world",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "hierophant",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "moon",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "world",
+                "color": "red",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "world",
+                "color": "red"
+              },
+              "meanScore": 978.7505082563914,
+              "p10": 520,
+              "p50": 959,
+              "p90": 1560,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 476,
+              "maxScore": 1728,
+              "standardDeviation": 394.1903188539933,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "sun",
+                "color": "purple"
+              },
+              {
+                "cardId": "hanged_man",
+                "color": "red"
+              },
+              {
+                "cardId": "star",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "star",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "hierophant",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "death",
+                "color": "blue",
+                "activated": false,
+                "removed": true
+              },
+              {
+                "cardId": "moon",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "world",
+                "color": "red",
+                "activated": true
+              },
+              {
+                "cardId": "star",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "star",
+                "color": "blue"
+              },
+              "meanScore": 1071,
+              "p10": 612,
+              "p50": 1088,
+              "p90": 1360,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 612,
+              "maxScore": 1360,
+              "standardDeviation": 281.913107180209,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 297.5736999999999
+      },
+      "candidate": {
+        "score": 1326,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "tower",
+            "color": "purple",
+            "activated": true,
+            "towerProc": true
+          },
+          {
+            "cardId": "hierophant",
+            "color": "red",
+            "activated": false
+          },
+          {
+            "cardId": "moon",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "hermit",
+            "color": "purple",
+            "activated": true
+          },
+          {
+            "cardId": "world",
+            "color": "purple",
+            "activated": false
+          }
+        ],
+        "redUniform": 0.8809352901298553,
+        "breakdown": {
+          "sum": 390,
+          "multiplier": 3.4,
+          "redBonus": 0,
+          "finalScore": 1326,
+          "activeColorCounts": {
+            "blue": 1,
+            "purple": 2,
+            "red": 0
+          },
+          "failedCount": 2
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "hierophant",
+                "color": "blue"
+              },
+              {
+                "cardId": "strength",
+                "color": "red"
+              },
+              {
+                "cardId": "tower",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "tower",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "tower",
+                "color": "purple",
+                "activated": true,
+                "towerProc": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "tower",
+                "color": "purple"
+              },
+              "meanScore": 1122.8585493608064,
+              "p10": 475,
+              "p50": 1064,
+              "p90": 1852,
+              "threshold": 2400,
+              "thresholdProbability": 0.026695139170725427,
+              "minScore": 89,
+              "maxScore": 3933,
+              "standardDeviation": 551.6027081725811,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "hierophant",
+                "color": "red"
+              },
+              {
+                "cardId": "justice",
+                "color": "blue"
+              },
+              {
+                "cardId": "judgement",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "hierophant",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "tower",
+                "color": "purple",
+                "activated": true,
+                "towerProc": true
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "hierophant",
+                "color": "red"
+              },
+              "meanScore": 1342.395995882371,
+              "p10": 735,
+              "p50": 1271,
+              "p90": 2046,
+              "threshold": 2400,
+              "thresholdProbability": 0.04067446225649344,
+              "minScore": 220,
+              "maxScore": 3920,
+              "standardDeviation": 518.0342551155799,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "moon",
+                "color": "blue"
+              },
+              {
+                "cardId": "strength",
+                "color": "red"
+              },
+              {
+                "cardId": "devil",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "moon",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "tower",
+                "color": "purple",
+                "activated": true,
+                "towerProc": true
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red",
+                "activated": false
+              },
+              {
+                "cardId": "moon",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "moon",
+                "color": "blue"
+              },
+              "meanScore": 1183.1601273970189,
+              "p10": 621,
+              "p50": 1209,
+              "p90": 1520,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 216,
+              "maxScore": 2242,
+              "standardDeviation": 337.52166806985394,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "hermit",
+                "color": "purple"
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              {
+                "cardId": "world",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "hermit",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "tower",
+                "color": "purple",
+                "activated": true,
+                "towerProc": true
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red",
+                "activated": false
+              },
+              {
+                "cardId": "moon",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "hermit",
+                "color": "purple",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "hermit",
+                "color": "purple"
+              },
+              "meanScore": 1372.1767578124998,
+              "p10": 1140,
+              "p50": 1326,
+              "p90": 1802,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 884,
+              "maxScore": 2014,
+              "standardDeviation": 227.86443371698024,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "world",
+                "color": "purple"
+              },
+              {
+                "cardId": "devil",
+                "color": "red"
+              },
+              {
+                "cardId": "star",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "world",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "tower",
+                "color": "purple",
+                "activated": true,
+                "towerProc": true
+              },
+              {
+                "cardId": "hierophant",
+                "color": "red",
+                "activated": false
+              },
+              {
+                "cardId": "moon",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "hermit",
+                "color": "purple",
+                "activated": true
+              },
+              {
+                "cardId": "world",
+                "color": "purple",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "world",
+                "color": "purple"
+              },
+              "meanScore": 1670,
+              "p10": 1326,
+              "p50": 1326,
+              "p90": 2014,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 1326,
+              "maxScore": 2014,
+              "standardDeviation": 344,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 842.6442000000002
+      }
+    },
+    {
+      "game": 2,
+      "changedTurns": 0,
+      "production": {
+        "score": 385,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "chariot",
+            "color": "blue",
+            "activated": false
+          },
+          {
+            "cardId": "fool",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "sun",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "lovers",
+            "color": "blue",
+            "activated": false
+          },
+          {
+            "cardId": "moon",
+            "color": "purple",
+            "activated": false
+          }
+        ],
+        "redUniform": 0.6634767951909453,
+        "breakdown": {
+          "sum": 175,
+          "multiplier": 2.2,
+          "redBonus": 0,
+          "finalScore": 385,
+          "activeColorCounts": {
+            "blue": 2,
+            "purple": 0,
+            "red": 0
+          },
+          "failedCount": 3
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              {
+                "cardId": "fool",
+                "color": "purple"
+              },
+              {
+                "cardId": "temperance",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "chariot",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              "meanScore": 1123.9279551320326,
+              "p10": 475,
+              "p50": 1020,
+              "p90": 1934,
+              "threshold": 2400,
+              "thresholdProbability": 0.03617746592600136,
+              "minScore": 80,
+              "maxScore": 3843,
+              "standardDeviation": 580.604841313074,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "fool",
+                "color": "blue"
+              },
+              {
+                "cardId": "strength",
+                "color": "purple"
+              },
+              {
+                "cardId": "justice",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "fool",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "fool",
+                "color": "blue"
+              },
+              "meanScore": 799.738954301314,
+              "p10": 385,
+              "p50": 760,
+              "p90": 1275,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 80,
+              "maxScore": 2329,
+              "standardDeviation": 345.7027969082396,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "star",
+                "color": "purple"
+              },
+              {
+                "cardId": "sun",
+                "color": "blue"
+              },
+              {
+                "cardId": "magician",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "sun",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "sun",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "sun",
+                "color": "blue"
+              },
+              "meanScore": 845.9452969637792,
+              "p10": 367,
+              "p50": 770,
+              "p90": 1462,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 136,
+              "maxScore": 2115,
+              "standardDeviation": 417.25530742766944,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "death",
+                "color": "purple"
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              {
+                "cardId": "judgement",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "lovers",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "sun",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              "meanScore": 1140.867260742188,
+              "p10": 682,
+              "p50": 1079,
+              "p90": 1755,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 368,
+              "maxScore": 1863,
+              "standardDeviation": 409.7322874694378,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "death",
+                "color": "blue"
+              },
+              {
+                "cardId": "temperance",
+                "color": "red"
+              },
+              {
+                "cardId": "moon",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "moon",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "sun",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "moon",
+                "color": "purple",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "moon",
+                "color": "purple"
+              },
+              "meanScore": 857,
+              "p10": 385,
+              "p50": 975,
+              "p90": 975,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 385,
+              "maxScore": 975,
+              "standardDeviation": 235.99999999999997,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 283.2723000000001
+      },
+      "candidate": {
+        "score": 385,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "chariot",
+            "color": "blue",
+            "activated": false
+          },
+          {
+            "cardId": "fool",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "sun",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "lovers",
+            "color": "blue",
+            "activated": false
+          },
+          {
+            "cardId": "moon",
+            "color": "purple",
+            "activated": false
+          }
+        ],
+        "redUniform": 0.6634767951909453,
+        "breakdown": {
+          "sum": 175,
+          "multiplier": 2.2,
+          "redBonus": 0,
+          "finalScore": 385,
+          "activeColorCounts": {
+            "blue": 2,
+            "purple": 0,
+            "red": 0
+          },
+          "failedCount": 3
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              {
+                "cardId": "fool",
+                "color": "purple"
+              },
+              {
+                "cardId": "temperance",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "chariot",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              "meanScore": 1089.9754931165123,
+              "p10": 467,
+              "p50": 999,
+              "p90": 1844,
+              "threshold": 2400,
+              "thresholdProbability": 0.027248313210227606,
+              "minScore": 100,
+              "maxScore": 3499,
+              "standardDeviation": 544.5928853730644,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "fool",
+                "color": "blue"
+              },
+              {
+                "cardId": "strength",
+                "color": "purple"
+              },
+              {
+                "cardId": "justice",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "fool",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "fool",
+                "color": "blue"
+              },
+              "meanScore": 779.8132135564659,
+              "p10": 367,
+              "p50": 750,
+              "p90": 1258,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 136,
+              "maxScore": 2329,
+              "standardDeviation": 337.1065452841092,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "star",
+                "color": "purple"
+              },
+              {
+                "cardId": "sun",
+                "color": "blue"
+              },
+              {
+                "cardId": "magician",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "sun",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "sun",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "sun",
+                "color": "blue"
+              },
+              "meanScore": 825.6009615811453,
+              "p10": 343,
+              "p50": 741,
+              "p90": 1470,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 136,
+              "maxScore": 2115,
+              "standardDeviation": 424.1852645449616,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "death",
+                "color": "purple"
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              {
+                "cardId": "judgement",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "lovers",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "sun",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              "meanScore": 1132.2160888671874,
+              "p10": 663,
+              "p50": 1079,
+              "p90": 1755,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 368,
+              "maxScore": 1863,
+              "standardDeviation": 404.7955451327405,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "death",
+                "color": "blue"
+              },
+              {
+                "cardId": "temperance",
+                "color": "red"
+              },
+              {
+                "cardId": "moon",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "moon",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "sun",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "moon",
+                "color": "purple",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "moon",
+                "color": "purple"
+              },
+              "meanScore": 857,
+              "p10": 385,
+              "p50": 975,
+              "p90": 975,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 385,
+              "maxScore": 975,
+              "standardDeviation": 235.99999999999997,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 804.1203
+      }
+    },
+    {
+      "game": 3,
+      "changedTurns": 4,
+      "production": {
+        "score": 371,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "high_priestess",
+            "color": "blue",
+            "activated": true
+          },
+          {
+            "cardId": "hermit",
+            "color": "blue",
+            "activated": false
+          },
+          {
+            "cardId": "tower",
+            "color": "red",
+            "activated": true,
+            "towerProc": false
+          },
+          {
+            "cardId": "temperance",
+            "color": "blue",
+            "activated": false
+          },
+          {
+            "cardId": "justice",
+            "color": "blue",
+            "activated": true
+          }
+        ],
+        "redUniform": 0.2857092577032745,
+        "breakdown": {
+          "sum": 165,
+          "multiplier": 2.25,
+          "redBonus": 0,
+          "finalScore": 371,
+          "activeColorCounts": {
+            "blue": 2,
+            "purple": 0,
+            "red": 1
+          },
+          "failedCount": 2
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "hanged_man",
+                "color": "purple"
+              },
+              {
+                "cardId": "wheel_of_fortune",
+                "color": "red"
+              },
+              {
+                "cardId": "high_priestess",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "high_priestess",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "high_priestess",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "high_priestess",
+                "color": "blue"
+              },
+              "meanScore": 1125.8104722852922,
+              "p10": 531,
+              "p50": 1050,
+              "p90": 1824,
+              "threshold": 2400,
+              "thresholdProbability": 0.0208378250980792,
+              "minScore": 100,
+              "maxScore": 4239,
+              "standardDeviation": 526.6741811001584,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "hermit",
+                "color": "blue"
+              },
+              {
+                "cardId": "emperor",
+                "color": "purple"
+              },
+              {
+                "cardId": "strength",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "hermit",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "high_priestess",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "hermit",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "hermit",
+                "color": "blue"
+              },
+              "meanScore": 1120.6634810014295,
+              "p10": 529,
+              "p50": 1034,
+              "p90": 1861,
+              "threshold": 2400,
+              "thresholdProbability": 0.02746803977272754,
+              "minScore": 136,
+              "maxScore": 3915,
+              "standardDeviation": 539.5198820249177,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "tower",
+                "color": "red"
+              },
+              {
+                "cardId": "lovers",
+                "color": "blue"
+              },
+              {
+                "cardId": "empress",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "tower",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "high_priestess",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "hermit",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "tower",
+                "color": "red",
+                "activated": true,
+                "towerProc": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "tower",
+                "color": "red"
+              },
+              "meanScore": 811.2173295454558,
+              "p10": 356,
+              "p50": 763,
+              "p90": 1325,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 73,
+              "maxScore": 2142,
+              "standardDeviation": 378.6698239354224,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "devil",
+                "color": "purple"
+              },
+              {
+                "cardId": "fool",
+                "color": "red"
+              },
+              {
+                "cardId": "temperance",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "temperance",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "high_priestess",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "hermit",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "tower",
+                "color": "red",
+                "activated": true,
+                "towerProc": false
+              },
+              {
+                "cardId": "temperance",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "temperance",
+                "color": "blue"
+              },
+              "meanScore": 530.1898348721605,
+              "p10": 181,
+              "p50": 481,
+              "p90": 816,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 146,
+              "maxScore": 926,
+              "standardDeviation": 202.52963084325248,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "fool",
+                "color": "purple"
+              },
+              {
+                "cardId": "sun",
+                "color": "red"
+              },
+              {
+                "cardId": "justice",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "justice",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "high_priestess",
+                "color": "blue",
+                "activated": true
+              },
+              {
+                "cardId": "hermit",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "tower",
+                "color": "red",
+                "activated": true,
+                "towerProc": false
+              },
+              {
+                "cardId": "temperance",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "justice",
+                "color": "blue",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "justice",
+                "color": "blue"
+              },
+              "meanScore": 333,
+              "p10": 181,
+              "p50": 371,
+              "p90": 371,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 181,
+              "maxScore": 371,
+              "standardDeviation": 76,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 279.78140000000076
+      },
+      "candidate": {
+        "score": 168,
+        "hit2400": false,
+        "selected": [
+          {
+            "cardId": "hanged_man",
+            "color": "purple",
+            "activated": false
+          },
+          {
+            "cardId": "chariot",
+            "color": "blue",
+            "activated": false
+          },
+          {
+            "cardId": "tower",
+            "color": "red",
+            "activated": true,
+            "towerProc": false
+          },
+          {
+            "cardId": "devil",
+            "color": "purple",
+            "activated": false
+          },
+          {
+            "cardId": "fool",
+            "color": "purple",
+            "activated": true
+          }
+        ],
+        "redUniform": 0.2857092577032745,
+        "breakdown": {
+          "sum": 135,
+          "multiplier": 1.25,
+          "redBonus": 0,
+          "finalScore": 168,
+          "activeColorCounts": {
+            "blue": 0,
+            "purple": 1,
+            "red": 1
+          },
+          "failedCount": 3
+        },
+        "turns": [
+          {
+            "turn": 1,
+            "offers": [
+              {
+                "cardId": "hanged_man",
+                "color": "purple"
+              },
+              {
+                "cardId": "wheel_of_fortune",
+                "color": "red"
+              },
+              {
+                "cardId": "high_priestess",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "hanged_man",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "hanged_man",
+                "color": "purple",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "hanged_man",
+                "color": "purple"
+              },
+              "meanScore": 1101.2090667064112,
+              "p10": 459,
+              "p50": 1029,
+              "p90": 1893,
+              "threshold": 2400,
+              "thresholdProbability": 0.03280600015219182,
+              "minScore": 100,
+              "maxScore": 4071,
+              "standardDeviation": 577.6645892227132,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 2,
+            "offers": [
+              {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              {
+                "cardId": "empress",
+                "color": "purple"
+              },
+              {
+                "cardId": "strength",
+                "color": "red"
+              }
+            ],
+            "chosen": {
+              "cardId": "chariot",
+              "color": "blue"
+            },
+            "selected": [
+              {
+                "cardId": "hanged_man",
+                "color": "purple",
+                "activated": false
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "chariot",
+                "color": "blue"
+              },
+              "meanScore": 797.9877302690019,
+              "p10": 341,
+              "p50": 758,
+              "p90": 1323,
+              "threshold": 2400,
+              "thresholdProbability": 0.0008544921875000041,
+              "minScore": 100,
+              "maxScore": 2808,
+              "standardDeviation": 391.1052363214575,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 3,
+            "offers": [
+              {
+                "cardId": "tower",
+                "color": "red"
+              },
+              {
+                "cardId": "hierophant",
+                "color": "blue"
+              },
+              {
+                "cardId": "high_priestess",
+                "color": "purple"
+              }
+            ],
+            "chosen": {
+              "cardId": "tower",
+              "color": "red"
+            },
+            "selected": [
+              {
+                "cardId": "hanged_man",
+                "color": "purple",
+                "activated": false
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "tower",
+                "color": "red",
+                "activated": true,
+                "towerProc": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "tower",
+                "color": "red"
+              },
+              "meanScore": 601.9808749112236,
+              "p10": 193,
+              "p50": 508,
+              "p90": 1192,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 100,
+              "maxScore": 1911,
+              "standardDeviation": 361.8441563247241,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 4,
+            "offers": [
+              {
+                "cardId": "devil",
+                "color": "purple"
+              },
+              {
+                "cardId": "fool",
+                "color": "red"
+              },
+              {
+                "cardId": "temperance",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "devil",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "hanged_man",
+                "color": "purple",
+                "activated": false
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "tower",
+                "color": "red",
+                "activated": true,
+                "towerProc": false
+              },
+              {
+                "cardId": "devil",
+                "color": "purple",
+                "activated": false
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "devil",
+                "color": "purple"
+              },
+              "meanScore": 374.28529607599467,
+              "p10": 136,
+              "p50": 262,
+              "p90": 676,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 100,
+              "maxScore": 808,
+              "standardDeviation": 214.6698235049314,
+              "simulations": 2048,
+              "method": "monte_carlo"
+            }
+          },
+          {
+            "turn": 5,
+            "offers": [
+              {
+                "cardId": "fool",
+                "color": "purple"
+              },
+              {
+                "cardId": "sun",
+                "color": "red"
+              },
+              {
+                "cardId": "death",
+                "color": "blue"
+              }
+            ],
+            "chosen": {
+              "cardId": "fool",
+              "color": "purple"
+            },
+            "selected": [
+              {
+                "cardId": "hanged_man",
+                "color": "purple",
+                "activated": false
+              },
+              {
+                "cardId": "chariot",
+                "color": "blue",
+                "activated": false
+              },
+              {
+                "cardId": "tower",
+                "color": "red",
+                "activated": true,
+                "towerProc": false
+              },
+              {
+                "cardId": "devil",
+                "color": "purple",
+                "activated": false
+              },
+              {
+                "cardId": "fool",
+                "color": "purple",
+                "activated": true
+              }
+            ],
+            "prediction": {
+              "candidate": {
+                "cardId": "fool",
+                "color": "purple"
+              },
+              "meanScore": 168,
+              "p10": 168,
+              "p50": 168,
+              "p90": 168,
+              "threshold": 2400,
+              "thresholdProbability": 0,
+              "minScore": 168,
+              "maxScore": 168,
+              "standardDeviation": 0,
+              "simulations": 0,
+              "method": "exact"
+            }
+          }
+        ],
+        "decisionMs": 797.3616999999986
+      }
+    }
+  ]
+}

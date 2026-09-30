@@ -1,0 +1,475 @@
+{
+  "baseline": [
+    {
+      "world": "production",
+      "goal": "target2400",
+      "gamesPerPolicy": 100,
+      "policies": {
+        "production": {
+          "n": 100,
+          "mean": 1079.27,
+          "meanCI95": [
+            960.35,
+            1202.06
+          ],
+          "median": 982,
+          "p10": 342,
+          "p90": 1897,
+          "min": 100,
+          "max": 3712,
+          "hits2400": 4,
+          "hitRate2400": 0.04,
+          "hitRateCI95": [
+            0.015663303991548,
+            0.09837071435887702
+          ],
+          "totalDecisionMs": 37367.77350000003
+        },
+        "candidate": {
+          "n": 100,
+          "mean": 1065.38,
+          "meanCI95": [
+            946.08,
+            1189.45
+          ],
+          "median": 982,
+          "p10": 342,
+          "p90": 1897,
+          "min": 100,
+          "max": 3712,
+          "hits2400": 4,
+          "hitRate2400": 0.04,
+          "hitRateCI95": [
+            0.015663303991548,
+            0.09837071435887702
+          ],
+          "totalDecisionMs": 108153.12930000007
+        }
+      },
+      "paired": {
+        "meanGain": -13.89,
+        "meanGainCI95": [
+          -46.38,
+          14.83
+        ],
+        "hitRateGain": 0,
+        "hitRateGainCI95": [
+          0,
+          0
+        ],
+        "candidateWins": 9,
+        "productionWins": 13,
+        "ties": 78,
+        "differentTrajectories": 29
+      },
+      "hitDifferenceNoObservedDiscordance": true
+    },
+    {
+      "world": "production",
+      "goal": "expected2400",
+      "gamesPerPolicy": 100,
+      "policies": {
+        "production": {
+          "n": 100,
+          "mean": 1086.75,
+          "meanCI95": [
+            968.71,
+            1208.95
+          ],
+          "median": 999,
+          "p10": 336,
+          "p90": 1795,
+          "min": 100,
+          "max": 3712,
+          "hits2400": 4,
+          "hitRate2400": 0.04,
+          "hitRateCI95": [
+            0.015663303991548,
+            0.09837071435887702
+          ],
+          "totalDecisionMs": 37943.40540000006
+        },
+        "candidate": {
+          "n": 100,
+          "mean": 1109.25,
+          "meanCI95": [
+            987.5,
+            1235.72
+          ],
+          "median": 999,
+          "p10": 342,
+          "p90": 1949,
+          "min": 100,
+          "max": 3712,
+          "hits2400": 4,
+          "hitRate2400": 0.04,
+          "hitRateCI95": [
+            0.015663303991548,
+            0.09837071435887702
+          ],
+          "totalDecisionMs": 106146.28810000015
+        }
+      },
+      "paired": {
+        "meanGain": 22.5,
+        "meanGainCI95": [
+          -26.23,
+          72.28
+        ],
+        "hitRateGain": 0,
+        "hitRateGainCI95": [
+          0,
+          0
+        ],
+        "candidateWins": 15,
+        "productionWins": 18,
+        "ties": 67,
+        "differentTrajectories": 37
+      },
+      "hitDifferenceNoObservedDiscordance": true
+    },
+    {
+      "world": "candidate",
+      "goal": "target2400",
+      "gamesPerPolicy": 100,
+      "policies": {
+        "production": {
+          "n": 100,
+          "mean": 1136.08,
+          "meanCI95": [
+            1010.18,
+            1266.6
+          ],
+          "median": 986,
+          "p10": 400,
+          "p90": 2197,
+          "min": 167,
+          "max": 3052,
+          "hits2400": 8,
+          "hitRate2400": 0.08,
+          "hitRateCI95": [
+            0.04109346148438136,
+            0.14998107700948496
+          ],
+          "totalDecisionMs": 37581.56360000011
+        },
+        "candidate": {
+          "n": 100,
+          "mean": 1076.25,
+          "meanCI95": [
+            957.74,
+            1200.3
+          ],
+          "median": 951,
+          "p10": 388,
+          "p90": 1984,
+          "min": 165,
+          "max": 2999,
+          "hits2400": 7,
+          "hitRate2400": 0.07,
+          "hitRateCI95": [
+            0.03431926106727332,
+            0.13749514739073268
+          ],
+          "totalDecisionMs": 106267.79419999976
+        }
+      },
+      "paired": {
+        "meanGain": -59.83,
+        "meanGainCI95": [
+          -120.14,
+          -7.55
+        ],
+        "hitRateGain": -0.01,
+        "hitRateGainCI95": [
+          -0.03,
+          0
+        ],
+        "candidateWins": 12,
+        "productionWins": 23,
+        "ties": 65,
+        "differentTrajectories": 37
+      },
+      "hitDifferenceNoObservedDiscordance": false
+    },
+    {
+      "world": "candidate",
+      "goal": "expected2400",
+      "gamesPerPolicy": 100,
+      "policies": {
+        "production": {
+          "n": 100,
+          "mean": 1128.32,
+          "meanCI95": [
+            1020.22,
+            1238.93
+          ],
+          "median": 1060,
+          "p10": 392,
+          "p90": 1762,
+          "min": 204,
+          "max": 2745,
+          "hits2400": 5,
+          "hitRate2400": 0.05,
+          "hitRateCI95": [
+            0.021543679154368438,
+            0.1117504692319169
+          ],
+          "totalDecisionMs": 36566.307000000044
+        },
+        "candidate": {
+          "n": 100,
+          "mean": 1093.86,
+          "meanCI95": [
+            988.53,
+            1202.04
+          ],
+          "median": 1062,
+          "p10": 392,
+          "p90": 1748,
+          "min": 168,
+          "max": 3052,
+          "hits2400": 4,
+          "hitRate2400": 0.04,
+          "hitRateCI95": [
+            0.015663303991548,
+            0.09837071435887702
+          ],
+          "totalDecisionMs": 105763.61239999997
+        }
+      },
+      "paired": {
+        "meanGain": -34.46,
+        "meanGainCI95": [
+          -93.66,
+          28.24
+        ],
+        "hitRateGain": -0.01,
+        "hitRateGainCI95": [
+          -0.04,
+          0.02
+        ],
+        "candidateWins": 14,
+        "productionWins": 21,
+        "ties": 65,
+        "differentTrajectories": 39
+      },
+      "hitDifferenceNoObservedDiscordance": false
+    }
+  ],
+  "sensitivity": [
+    {
+      "world": "production",
+      "n": 40,
+      "lowBudgetPairMeanGain": -23.05,
+      "highBudgetSummary": {
+        "gamesPerPolicy": 40,
+        "policies": {
+          "production": {
+            "n": 40,
+            "mean": 1051.75,
+            "meanCI95": [
+              873.25,
+              1233.175
+            ],
+            "median": 977,
+            "p10": 275,
+            "p90": 1897,
+            "min": 100,
+            "max": 2417,
+            "hits2400": 1,
+            "hitRate2400": 0.025,
+            "hitRateCI95": [
+              0.004426831502681583,
+              0.12881368963473658
+            ],
+            "totalDecisionMs": 45932.26200000002
+          },
+          "candidate": {
+            "n": 40,
+            "mean": 1060.5,
+            "meanCI95": [
+              888.675,
+              1235.825
+            ],
+            "median": 967,
+            "p10": 275,
+            "p90": 1897,
+            "min": 100,
+            "max": 2417,
+            "hits2400": 1,
+            "hitRate2400": 0.025,
+            "hitRateCI95": [
+              0.004426831502681583,
+              0.12881368963473658
+            ],
+            "totalDecisionMs": 124113.33949999991
+          }
+        },
+        "paired": {
+          "meanGain": 8.75,
+          "meanGainCI95": [
+            -22.275,
+            47.6
+          ],
+          "hitRateGain": 0,
+          "hitRateGainCI95": [
+            0,
+            0
+          ],
+          "candidateWins": 3,
+          "productionWins": 3,
+          "ties": 34,
+          "differentTrajectories": 8
+        }
+      },
+      "changeOfPairGain": 31.8,
+      "changeOfPairGainCI95": [
+        -17.875,
+        99.525
+      ],
+      "productionFinalScoreChanged": 1,
+      "candidateFinalScoreChanged": 5
+    },
+    {
+      "world": "candidate",
+      "n": 40,
+      "lowBudgetPairMeanGain": -34.975,
+      "highBudgetSummary": {
+        "gamesPerPolicy": 40,
+        "policies": {
+          "production": {
+            "n": 40,
+            "mean": 1162.525,
+            "meanCI95": [
+              945.4,
+              1392.225
+            ],
+            "median": 986,
+            "p10": 381,
+            "p90": 2197,
+            "min": 167,
+            "max": 2999,
+            "hits2400": 3,
+            "hitRate2400": 0.075,
+            "hitRateCI95": [
+              0.025836025774588905,
+              0.19864233524310101
+            ],
+            "totalDecisionMs": 44338.3447000001
+          },
+          "candidate": {
+            "n": 40,
+            "mean": 1091.475,
+            "meanCI95": [
+              894.225,
+              1301.6
+            ],
+            "median": 987,
+            "p10": 280,
+            "p90": 2197,
+            "min": 167,
+            "max": 2745,
+            "hits2400": 3,
+            "hitRate2400": 0.075,
+            "hitRateCI95": [
+              0.025836025774588905,
+              0.19864233524310101
+            ],
+            "totalDecisionMs": 123385.07129999994
+          }
+        },
+        "paired": {
+          "meanGain": -71.05,
+          "meanGainCI95": [
+            -170.65,
+            19.3
+          ],
+          "hitRateGain": 0,
+          "hitRateGainCI95": [
+            0,
+            0
+          ],
+          "candidateWins": 5,
+          "productionWins": 9,
+          "ties": 26,
+          "differentTrajectories": 14
+        }
+      },
+      "changeOfPairGain": -36.075,
+      "changeOfPairGainCI95": [
+        -98.575,
+        14.4
+      ],
+      "productionFinalScoreChanged": 5,
+      "candidateFinalScoreChanged": 5
+    }
+  ],
+  "goalComparisons": [
+    {
+      "world": "production",
+      "policy": "production",
+      "n": 100,
+      "expectedMinusThresholdMean": 7.48,
+      "meanCI95": [
+        -55.16,
+        66.67
+      ],
+      "expectedMinusThresholdHitRate": 0,
+      "hitCI95": [
+        0,
+        0
+      ],
+      "hitDifferenceNoObservedDiscordance": true
+    },
+    {
+      "world": "production",
+      "policy": "candidate",
+      "n": 100,
+      "expectedMinusThresholdMean": 43.87,
+      "meanCI95": [
+        -27.13,
+        113.87
+      ],
+      "expectedMinusThresholdHitRate": 0,
+      "hitCI95": [
+        0,
+        0
+      ],
+      "hitDifferenceNoObservedDiscordance": true
+    },
+    {
+      "world": "candidate",
+      "policy": "production",
+      "n": 100,
+      "expectedMinusThresholdMean": -7.76,
+      "meanCI95": [
+        -103.22,
+        85.44
+      ],
+      "expectedMinusThresholdHitRate": -0.03,
+      "hitCI95": [
+        -0.08,
+        0.01
+      ],
+      "hitDifferenceNoObservedDiscordance": false
+    },
+    {
+      "world": "candidate",
+      "policy": "candidate",
+      "n": 100,
+      "expectedMinusThresholdMean": 17.61,
+      "meanCI95": [
+        -66.41,
+        102.26
+      ],
+      "expectedMinusThresholdHitRate": -0.03,
+      "hitCI95": [
+        -0.08,
+        0.01
+      ],
+      "hitDifferenceNoObservedDiscordance": false
+    }
+  ],
+  "interpretation": "All outcomes are complete synthetic games; paired CIs use game seeds. High-budget sensitivity reuses first 40 seeds, not independent extra games. Bootstrap hit intervals [0,0] with no observed discordance are degenerate and do not prove identical true hit rates."
+}

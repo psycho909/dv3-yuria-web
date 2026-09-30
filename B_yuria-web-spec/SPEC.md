@@ -11,7 +11,7 @@ MVP 僅需：
 可選 query：
 
 ```text
-/yuria?objective=threshold&target=2700
+/yuria?objective=threshold&target=3200
 ```
 
 ## 2. 主要操作流程
@@ -32,7 +32,7 @@ MVP 僅需：
 ### Target Rate
 排序依據：`P(finalScore >= target)`；相同時再比較平均分數。
 
-預設 Target：1500（目前使用者測試目標）。獎勵參考門檻仍保留 1400 / 2000 / 2700。
+預設 Target：1500（目前使用者測試目標）。祝福參考門檻為 0 / 200 / 500 / 1000 / 1600 / 2400 / 3200。
 
 ### Stable
 主要比較 P10，下分位相同時比較平均分數並扣除波動。

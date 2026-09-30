@@ -75,7 +75,7 @@ export const CARDS: Record<CardId, CardDefinition> = {
   world: { id: "world", name: "世界", category: "special", activationProbability: .5, specialEffect: { kind: "highestActiveScore", factor: 2 } }
 };
 
-export const REWARD_THRESHOLDS = [0, 200, 500, 900, 1400, 2000, 2700] as const;
+export const REWARD_THRESHOLDS = [0, 200, 500, 1000, 1600, 2400, 3200] as const;
 export const CATEGORY_WEIGHTS = {
   early: { score: 10, multiplier: 10, special: 5 },
   final: { score: 5, multiplier: 10, special: 20 }

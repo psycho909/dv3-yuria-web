@@ -484,7 +484,10 @@ function render() {
       <details class="more-panel advanced-settings" data-detail-key="advanced-settings"${detailAttribute("advanced-settings")}><summary>設定：版面寬度與模擬次數</summary><div class="advanced-fields"><div class="control-group layout-mode-group"><label>版面寬度</label><div class="segmented" role="group" aria-label="版面寬度"><button type="button" data-layout-mode="full" aria-pressed="${layoutMode === "full"}" class="${layoutMode === "full" ? "active" : ""}">滿版</button><button type="button" data-layout-mode="narrow" aria-pressed="${layoutMode === "narrow"}" class="${layoutMode === "narrow" ? "active" : ""}">窄版</button></div></div><label class="simulation-field">模擬次數 <select id="simulations"><option value="5000" ${simulationCount === 5000 ? "selected" : ""}>5,000（快速）</option><option value="10000" ${simulationCount === 10000 ? "selected" : ""}>10,000（標準）</option><option value="20000" ${simulationCount === 20000 ? "selected" : ""}>20,000（精細）</option></select></label></div></details>
       ${renderReleaseNotes()}
     </section>
-    <footer class="footer">推薦由這台裝置上的模型計算；特殊卡、顏色級距與失敗補償已納入，尤里亞的祝福尚未納入。</footer>
+    <footer class="footer">
+      <p>推薦由這台裝置上的模型計算；特殊卡、顏色級距與失敗補償已納入，尤里亞的祝福尚未納入。</p>
+      <p>© ${new Date().getFullYear()} DV3 Yuria. All rights reserved.</p>
+    </footer>
     ${renderPicker()}
     ${renderResetDialog()}
     <p class="sr-only" aria-live="polite">${resultReady && ranked[0] ? `推薦已更新：建議選 ${esc(offerLabel(ranked[0]))}` : calculationStatus === "calculating" ? "正在計算推薦" : calculationStatus === "error" ? "推薦計算失敗，可重試" : state.selected.length === 5 ? "本局已完成" : ""}</p>

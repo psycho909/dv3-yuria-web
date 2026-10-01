@@ -345,6 +345,8 @@ label { color: var(--ink); font-size: 14px; font-weight: 600; }
 .evidence-grid small, .model-run small { color: var(--ink-soft); font-size: 13px; }
 .model-run { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
 .footer { padding: 16px 4px 0; color: var(--ink-soft); font-size: 13px; }
+.footer p { margin: 0; }
+.footer p + p { margin-top: 8px; }
 
 /* ---------- Dialogs ---------- */
 .picker-dialog { width: min(1120px, calc(100% - 24px)); max-height: calc(100dvh - 32px); padding: 0 20px 20px; overflow: auto; border: 2px solid var(--ink); border-radius: 6px; background: var(--vellum); color: var(--ink); }
